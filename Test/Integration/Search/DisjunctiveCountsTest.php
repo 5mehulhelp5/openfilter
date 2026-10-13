@@ -12,6 +12,7 @@ use Iranimij\OpenFilter\Model\Config;
 use Iranimij\OpenFilter\Model\Search\StrategyResolver;
 use Magento\Catalog\Model\Layer\Category as CategoryLayer;
 use Magento\CatalogSearch\Model\ResourceModel\Fulltext\Collection;
+use Magento\Framework\Api\Search\SearchCriteriaBuilder;
 use Magento\Framework\App\Config\MutableScopeConfigInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\HTTP\Client\Curl;
@@ -174,7 +175,12 @@ class DisjunctiveCountsTest extends TestCase
      */
     private function collection(array $active): Collection
     {
-        $layer = Bootstrap::getObjectManager()->create(CategoryLayer::class);
+        $om = Bootstrap::getObjectManager();
+        // Core's fulltext collection takes the search criteria builder from ObjectManager::get(): one instance per
+        // process whose filters are never cleared, so every collection would inherit the previous one's filters.
+        // A storefront request builds one layer collection; tests build many, so they start from a fresh builder.
+        $om->removeSharedInstance(SearchCriteriaBuilder::class);
+        $layer = $om->create(CategoryLayer::class);
         $layer->setCurrentCategory(self::$catalog['category']);
         /** @var Collection $collection */
         $collection = $layer->getProductCollection();

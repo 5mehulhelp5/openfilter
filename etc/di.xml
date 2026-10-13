@@ -42,8 +42,24 @@
         </arguments>
     </type>
 
+    <!-- Logging channel var/log/openfilter.log (strategy choice in debug mode, later diagnostics). -->
+    <virtualType name="Iranimij\OpenFilter\Model\Logger\Handler" type="Magento\Framework\Logger\Handler\Base">
+        <arguments>
+            <argument name="fileName" xsi:type="string">/var/log/openfilter.log</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="Iranimij\OpenFilter\Model\Logger" type="Magento\Framework\Logger\Monolog">
+        <arguments>
+            <argument name="name" xsi:type="string">openfilter</argument>
+            <argument name="handlers" xsi:type="array">
+                <item name="file" xsi:type="object">Iranimij\OpenFilter\Model\Logger\Handler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
     <type name="Iranimij\OpenFilter\Model\Search\StrategyResolver">
         <arguments>
+            <argument name="logger" xsi:type="object">Iranimij\OpenFilter\Model\Logger</argument>
             <argument name="strategies" xsi:type="array">
                 <item name="single_query" xsi:type="object">Iranimij\OpenFilter\Model\Search\Strategy\SingleQuery</item>
                 <item name="per_attribute" xsi:type="object">Iranimij\OpenFilter\Model\Search\Strategy\PerAttribute</item>
