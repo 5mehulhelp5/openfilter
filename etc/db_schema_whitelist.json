@@ -61,5 +61,33 @@
             "OPENFILTER_BUILTIN_STORE_CODE_OPENFILTER_BUILTIN_CODE": true,
             "OPENFILTER_BUILTIN_STORE_STORE_ID_STORE_STORE_ID": true
         }
+    },
+    "openfilter_option_slug": {
+        "column": {
+            "option_id": true,
+            "attribute_id": true,
+            "store_id": true,
+            "slug": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "OPENFILTER_OPTION_SLUG_ATTRIBUTE_ID_STORE_ID_SLUG": true,
+            "OPENFILTER_OPTION_SLUG_OPTION_ID_EAV_ATTRIBUTE_OPTION_OPTION_ID": true,
+            "OPENFILTER_OPTION_SLUG_ATTRIBUTE_ID_EAV_ATTRIBUTE_ATTRIBUTE_ID": true,
+            "OPENFILTER_OPTION_SLUG_STORE_ID_STORE_STORE_ID": true
+        }
+    },
+    "openfilter_attribute_slug": {
+        "column": {
+            "attribute_id": true,
+            "store_id": true,
+            "slug": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "OPENFILTER_ATTRIBUTE_SLUG_STORE_ID_SLUG": true,
+            "OPENFILTER_ATTR_SLUG_ATTR_ID_EAV_ATTR_ATTR_ID": true,
+            "OPENFILTER_ATTRIBUTE_SLUG_STORE_ID_STORE_STORE_ID": true
+        }
     }
 }

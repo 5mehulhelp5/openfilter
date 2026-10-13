@@ -13,9 +13,22 @@
     <preference for="Iranimij\OpenFilter\Api\FilterConfigRepositoryInterface"
                 type="Iranimij\OpenFilter\Model\Config\FilterConfigRepository"/>
 
+    <preference for="Iranimij\OpenFilter\Api\SlugRepositoryInterface"
+                type="Iranimij\OpenFilter\Model\Url\SlugRepository"/>
+
     <type name="Iranimij\OpenFilter\Model\Search\QueryState" shared="true"/>
 
     <type name="Iranimij\OpenFilter\Model\Config\FilterConfigProvider">
+        <arguments>
+            <argument name="cache" xsi:type="object">Iranimij\OpenFilter\Model\Cache\Type</argument>
+        </arguments>
+    </type>
+    <type name="Iranimij\OpenFilter\Model\Url\SlugProvider">
+        <arguments>
+            <argument name="cache" xsi:type="object">Iranimij\OpenFilter\Model\Cache\Type</argument>
+        </arguments>
+    </type>
+    <type name="Iranimij\OpenFilter\Model\Url\SlugRepository">
         <arguments>
             <argument name="cache" xsi:type="object">Iranimij\OpenFilter\Model\Cache\Type</argument>
         </arguments>

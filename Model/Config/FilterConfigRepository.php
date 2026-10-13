@@ -75,7 +75,7 @@ class FilterConfigRepository implements FilterConfigRepositoryInterface
      */
     public function save(FilterConfigInterface $config): FilterConfigInterface
     {
-        $current = $this->current($config->getCode());
+        $current = $this->current($this->provider->keyOf($config));
         $merged = $current->withBehaviourOf($config);
         $row = $merged->toRow();
         $attributeId = $current->getAttributeId();
@@ -89,7 +89,7 @@ class FilterConfigRepository implements FilterConfigRepositoryInterface
         }
         $this->clean();
 
-        return $this->getByCode($config->getCode());
+        return $this->current($this->provider->keyOf($config));
     }
 
     /**

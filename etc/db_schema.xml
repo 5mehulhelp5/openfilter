@@ -69,4 +69,42 @@
         <constraint xsi:type="foreign" referenceId="OPENFILTER_BUILTIN_STORE_STORE_ID_STORE_STORE_ID" table="openfilter_builtin_store"
                     column="store_id" referenceTable="store" referenceColumn="store_id" onDelete="CASCADE"/>
     </table>
+    <table name="openfilter_option_slug" resource="default" engine="innodb" comment="OpenFilter option URL names">
+        <column xsi:type="int" name="option_id" unsigned="true" nullable="false" comment="Option ID"/>
+        <column xsi:type="smallint" name="attribute_id" unsigned="true" nullable="false" comment="Attribute ID"/>
+        <column xsi:type="smallint" name="store_id" unsigned="true" nullable="false" comment="Store ID (0 = all)"/>
+        <column xsi:type="varchar" name="slug" length="128" nullable="false" comment="URL name"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="option_id"/>
+            <column name="store_id"/>
+        </constraint>
+        <constraint xsi:type="unique" referenceId="OPENFILTER_OPTION_SLUG_ATTRIBUTE_ID_STORE_ID_SLUG">
+            <column name="attribute_id"/>
+            <column name="store_id"/>
+            <column name="slug"/>
+        </constraint>
+        <constraint xsi:type="foreign" referenceId="OPENFILTER_OPT_SLUG_OPT_ID_EAV_ATTR_OPT_OPT_ID" table="openfilter_option_slug"
+                    column="option_id" referenceTable="eav_attribute_option" referenceColumn="option_id" onDelete="CASCADE"/>
+        <constraint xsi:type="foreign" referenceId="OPENFILTER_OPT_SLUG_ATTR_ID_EAV_ATTR_ATTR_ID" table="openfilter_option_slug"
+                    column="attribute_id" referenceTable="eav_attribute" referenceColumn="attribute_id" onDelete="CASCADE"/>
+        <constraint xsi:type="foreign" referenceId="OPENFILTER_OPTION_SLUG_STORE_ID_STORE_STORE_ID" table="openfilter_option_slug"
+                    column="store_id" referenceTable="store" referenceColumn="store_id" onDelete="CASCADE"/>
+    </table>
+    <table name="openfilter_attribute_slug" resource="default" engine="innodb" comment="OpenFilter URL parameter names">
+        <column xsi:type="smallint" name="attribute_id" unsigned="true" nullable="false" comment="Attribute ID"/>
+        <column xsi:type="smallint" name="store_id" unsigned="true" nullable="false" comment="Store ID (0 = all)"/>
+        <column xsi:type="varchar" name="slug" length="64" nullable="false" comment="URL parameter name"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="attribute_id"/>
+            <column name="store_id"/>
+        </constraint>
+        <constraint xsi:type="unique" referenceId="OPENFILTER_ATTRIBUTE_SLUG_STORE_ID_SLUG">
+            <column name="store_id"/>
+            <column name="slug"/>
+        </constraint>
+        <constraint xsi:type="foreign" referenceId="OPENFILTER_ATTR_SLUG_ATTR_ID_EAV_ATTR_ATTR_ID" table="openfilter_attribute_slug"
+                    column="attribute_id" referenceTable="eav_attribute" referenceColumn="attribute_id" onDelete="CASCADE"/>
+        <constraint xsi:type="foreign" referenceId="OPENFILTER_ATTRIBUTE_SLUG_STORE_ID_STORE_STORE_ID" table="openfilter_attribute_slug"
+                    column="store_id" referenceTable="store" referenceColumn="store_id" onDelete="CASCADE"/>
+    </table>
 </schema>
