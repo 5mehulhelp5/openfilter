@@ -41,8 +41,9 @@ Plan: `~/.claude/plans/pasted-content-id-b16b-read-https-app-n-glittery-aho.md` 
 | S2 | Transliterator, slugs (`openfilter_option_slug`, `_attribute_slug`), slug repository + cached map, observer for new options, patches DefaultFilterConfig / InitialSlugs | done locally: `feat/m1-s2-slugs` |
 | S3 | `UrlCodecInterface` (decode/encode/urlFor, numeric id fallback, clamping, canonical order), `FilterStateInterface`, request-scoped `FilterStateProvider`, `Range` | done locally: `feat/m1-s3-codec` |
 | S4 | Multi-value attribute filter (OR, selected options stay, hide empty/single, sort by position/name/count), canonical item links incl. swatches and core category links, `LayerContext` | done locally: `feat/m1-s4-layer-filters` |
-| S5 | Production count strategies + M1 catalog fixture | in progress |
-| S6–S9 | strategies, stats, built-ins, normaliser + coexistence, budgets | open |
+| S5 | M1 catalog fixture (simple + configurable, 3 groups, 2 store views), counts = brute force = catalog model for both strategies on category and search pages, `var/log/openfilter.log` channel | done locally: `feat/m1-s5-strategies` |
+| S6 | Price and decimal stats | in progress |
+| S7–S9 | strategies, stats, built-ins, normaliser + coexistence, budgets | open |
 
 ## M0 decisions (also in the Notion build log at close-out)
 

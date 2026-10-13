@@ -24,6 +24,7 @@ use Magento\Framework\App\Cache\TypeListInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Indexer\IndexerRegistry;
 use Magento\Framework\Registry;
+use Iranimij\OpenFilter\Test\Integration\Catalog\SearchIndexReset;
 use Magento\TestFramework\Helper\Bootstrap;
 
 /**
@@ -84,6 +85,7 @@ class SpikeCatalog
             $product->setCategoryIds([$i < 36 ? $categoryId : $otherId]);
             $repository->save($product);
         }
+        SearchIndexReset::forNewAttributes();
         foreach (['catalog_category_product', 'catalog_product_category', 'catalogsearch_fulltext'] as $indexer) {
             $om->get(IndexerRegistry::class)->get($indexer)->reindexAll();
         }
