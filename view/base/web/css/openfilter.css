@@ -1,0 +1,27 @@
+/*
+ * OpenFilter storefront structure (MIT). Theme-agnostic: of-* classes, logical properties (RTL mirrors itself),
+ * theme tokens through custom properties. Restyle by setting --of-* on .of-filters / .of-state / .of-drawer.
+ */
+.of-filters,.of-state,.of-results{--of-accent:#1d4ed8;--of-muted:#4b5563;--of-border:#d1d5db;--of-surface:#fff;--of-radius:.375rem;--of-gap:.5rem;--of-row:2rem}
+.of-filters__title{margin-block:0 var(--of-gap);font-size:1.125rem;font-weight:600}
+.of-group{border-block-end:1px solid var(--of-border)}
+.of-group__title{display:flex;align-items:center;gap:var(--of-gap);min-block-size:2.75rem;padding-block:.5rem;font-weight:600;cursor:pointer;list-style:none}
+.of-group__title::-webkit-details-marker{display:none}
+.of-group__title::after{content:"";flex:none;inline-size:.5rem;block-size:.5rem;margin-inline-start:auto;border-inline-end:2px solid currentColor;border-block-end:2px solid currentColor;transform:rotate(45deg)}
+.of-group[open]>.of-group__title::after{transform:rotate(225deg)}
+.of-group__active{font-size:.875rem;font-weight:400;color:var(--of-muted)}
+.of-group__body{padding-block-end:.75rem}
+.of-options{margin:0;padding:0;list-style:none}
+.of-option{display:flex;align-items:center;gap:var(--of-gap);min-block-size:var(--of-row);color:inherit;text-decoration:none}
+.of-option:hover .of-option__label{text-decoration:underline}
+.of-option__check{flex:none;inline-size:1rem;block-size:1rem;border:1px solid currentColor;border-radius:.25rem}
+.of-option--selected{font-weight:600}
+.of-option--selected .of-option__check{border-color:var(--of-accent);background:var(--of-accent);box-shadow:inset 0 0 0 2px var(--of-surface)}
+.of-option__count{margin-inline-start:auto;font-size:.875rem;color:var(--of-muted)}
+.of-option:focus-visible,.of-group__title:focus-visible,.of-chip:focus-visible,.of-clear:focus-visible{outline:2px solid var(--of-accent);outline-offset:2px}
+.of-state__list{display:flex;flex-wrap:wrap;gap:var(--of-gap);margin:0 0 1rem;padding:0;list-style:none}
+.of-chip,.of-clear{display:inline-flex;align-items:center;gap:.25rem;min-block-size:var(--of-row);padding-inline:.75rem;border:1px solid var(--of-border);border-radius:999px;color:inherit;text-decoration:none}
+.of-chip__remove{font-size:1.25em;line-height:1}
+.of-clear{border-color:transparent;text-decoration:underline}
+.of-sr{position:absolute;inline-size:1px;block-size:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (pointer:coarse){.of-filters,.of-state{--of-row:2.75rem}}
