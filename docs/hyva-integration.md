@@ -55,3 +55,16 @@ Below the `md` breakpoint the whole filter block collapses behind the "Shop By" 
 ## CSP
 
 The fixture runs the storefront CSP in enforce mode. Hyvä 1.5 registers its inline scripts through `HyvaCsp`. Hyvä 1.4.2's layered navigation script has no registration call but still runs on the fixture (no violations in the smoke spec). OpenFilter registers every inline script it prints.
+
+## As built (M3)
+
+OpenFilter's Hyvä package applies everything above through its own layout handles (`openfilter_hyva_layer`, `openfilter_hyva_category`, `openfilter_hyva_search`), added by an observer on `layout_load_before` only on layered category and search pages of a Hyvä theme while OpenFilter is enabled. Switched off, the page keeps Hyvä's stock templates (the "off" side of the Lighthouse gate). Verified on 1.4.2 and 1.5.2 (the local store runs 1.5.2 as a second store view, CI as the default theme):
+
+- `catalog.leftnav` / `catalogsearch.leftnav` get `layer/view.phtml`: a `<dialog id="of-drawer" open>` around `#of-filters`, open in place on desktop and without JavaScript, modal on phones.
+- `catalog(search).navigation.state` gets `layer/state.phtml` and moves into `content` above `#of-results` (a container around `category.products` / `search.result`).
+- Hyvä's toolbar keeps its markup; the component replaces the toolbar component's `changeUrl` (via `Alpine.$data`) on first use, so sorter, limiter and view mode swap like links.
+- After a swap: `Alpine.mutateDom` → `destroyTree` → `replaceChildren` → inline scripts not yet run on the page → `Alpine.initTree`, then `hyva.initFormKey()` (Hyvä fills form keys only on page load).
+- Hyvä 1.5.2 renders stock swatches as `a.swatch-option` (1.4.2: `a.swatch-option-link-layered`) and its toolbar amount without `.toolbar-number` spans; OpenFilter's own templates replace both on layered pages.
+
+Details for shoppers and theme developers: [Storefront](storefront.md).
+
