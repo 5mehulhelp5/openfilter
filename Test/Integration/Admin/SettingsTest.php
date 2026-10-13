@@ -10,6 +10,7 @@ namespace Iranimij\OpenFilter\Test\Integration\Admin;
 
 use Iranimij\OpenFilter\Model\Config;
 use Iranimij\OpenFilter\Model\Config\Backend\NonNegativeNumber;
+use Iranimij\OpenFilter\Model\Config\Backend\PageCacheValue;
 use Magento\Config\Model\Config as ConfigModel;
 use Magento\Config\Model\Config\Factory as ConfigFactory;
 use Magento\Config\Model\Config\Structure\Data as ConfigStructureData;
@@ -46,6 +47,11 @@ class SettingsTest extends TestCase
             }
         }
         self::assertArrayHasKey('ajax', $groups['general']['children']);
+        self::assertSame(
+            PageCacheValue::class,
+            ltrim($groups['general']['children']['debug']['backend_model'] ?? '', '\\'),
+            'debug markup is part of cached pages'
+        );
 
         $config = Bootstrap::getObjectManager()->get(Config::class);
         self::assertTrue($config->isAjaxEnabled());

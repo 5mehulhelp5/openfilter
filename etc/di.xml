@@ -26,6 +26,7 @@
     <type name="Iranimij\OpenFilter\Model\Config">
         <arguments>
             <argument name="detector" xsi:type="object">Iranimij\OpenFilter\Model\Coexistence\Detector</argument>
+            <argument name="logger" xsi:type="object">Iranimij\OpenFilter\Model\Logger</argument>
         </arguments>
     </type>
 
@@ -226,6 +227,11 @@
     <type name="Iranimij\OpenFilter\Console\Command\ConfigImport">
         <arguments>
             <argument name="importer" xsi:type="object">Iranimij\OpenFilter\Model\Transfer\Importer\Proxy</argument>
+        </arguments>
+    </type>
+    <type name="Iranimij\OpenFilter\Observer\NormalizeFilterParams">
+        <arguments>
+            <argument name="logger" xsi:type="object">Iranimij\OpenFilter\Model\Logger</argument>
         </arguments>
     </type>
     <type name="Iranimij\OpenFilter\Model\Transfer\Importer">

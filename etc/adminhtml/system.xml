@@ -30,6 +30,7 @@
                     <label>Debug mode</label>
                     <comment>Adds data-of-* attributes to the filter markup and writes the facet count strategy to var/log/openfilter.log. Keep it off in production.</comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <backend_model>Iranimij\OpenFilter\Model\Config\Backend\PageCacheValue</backend_model>
                 </field>
             </group>
             <group id="display" translate="label" type="text" sortOrder="15" showInDefault="1" showInWebsite="1" showInStore="1">

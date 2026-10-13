@@ -12,6 +12,7 @@ use Iranimij\Base\Model\Config\TypedReader;
 use Iranimij\OpenFilter\Model\Coexistence\Detector;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Store\Model\ScopeInterface;
+use Psr\Log\LoggerInterface;
 
 /**
  * OpenFilter settings (section `openfilter` under the `iranimij` tab), read through the shared base module.
@@ -26,13 +27,17 @@ class Config
     public const XML_PATH_NOFOLLOW_THRESHOLD = 'openfilter/seo/nofollow_threshold';
     public const XML_PATH_MAX_ACTIVE_VALUES = 'openfilter/seo/max_active_values';
 
+    private bool $loggedReplacement = false;
+
     /**
      * @param TypedReader $reader
      * @param Detector|null $detector another layered navigation (ElasticSuite, Live Search) switches OpenFilter off
+     * @param LoggerInterface|null $logger the openfilter channel (debug mode: why OpenFilter steps aside)
      */
     public function __construct(
         private readonly TypedReader $reader,
-        private readonly ?Detector $detector = null
+        private readonly ?Detector $detector = null,
+        private readonly ?LoggerInterface $logger = null
     ) {
     }
 
@@ -45,8 +50,16 @@ class Config
      */
     public function isEnabled(?int $storeId = null): bool
     {
-        return $this->reader->getBool(self::XML_PATH_ENABLED, ScopeInterface::SCOPE_STORE, $storeId)
-            && $this->detector?->getActiveReplacement() === null;
+        if (!$this->reader->getBool(self::XML_PATH_ENABLED, ScopeInterface::SCOPE_STORE, $storeId)) {
+            return false;
+        }
+        $replacement = $this->detector?->getActiveReplacement();
+        if ($replacement !== null && !$this->loggedReplacement && $this->isDebug()) {
+            $this->logger?->info(sprintf('OpenFilter steps aside: %s provides the layered navigation.', $replacement));
+            $this->loggedReplacement = true;
+        }
+
+        return $replacement === null;
     }
 
     /**
