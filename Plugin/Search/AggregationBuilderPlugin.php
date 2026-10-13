@@ -9,6 +9,8 @@ declare(strict_types=1);
 namespace Iranimij\OpenFilter\Plugin\Search;
 
 use Iranimij\OpenFilter\Model\Config;
+use Iranimij\OpenFilter\Model\Search\BuiltinClauses;
+use Iranimij\OpenFilter\Model\Search\BuiltinCounts;
 use Iranimij\OpenFilter\Model\Search\FacetFilterCollector;
 use Iranimij\OpenFilter\Model\Search\QueryState;
 use Magento\Elasticsearch\SearchAdapter\Aggregation\Builder;
@@ -27,12 +29,16 @@ class AggregationBuilderPlugin
      * @param QueryContainerFactory $queryContainerFactory
      * @param FacetFilterCollector $collector
      * @param Config $config
+     * @param BuiltinClauses $builtinClauses
+     * @param BuiltinCounts $builtinCounts
      */
     public function __construct(
         private readonly QueryState $state,
         private readonly QueryContainerFactory $queryContainerFactory,
         private readonly FacetFilterCollector $collector,
-        private readonly Config $config
+        private readonly Config $config,
+        private readonly BuiltinClauses $builtinClauses,
+        private readonly BuiltinCounts $builtinCounts
     ) {
     }
 
@@ -67,7 +73,11 @@ class AggregationBuilderPlugin
         if ($state !== null) {
             $queryResult = $state['strategy']->prepareResponse($state['prepared'], $queryResult, $state['filters']);
         }
-        $this->state->setHandling($this->collector->isLayeredRequest($request) && $this->config->isEnabled());
+        $handling = $this->collector->isLayeredRequest($request) && $this->config->isEnabled();
+        if ($handling) {
+            $this->builtinCounts->set($this->builtinClauses->counts((array) ($queryResult['aggregations'] ?? [])));
+        }
+        $this->state->setHandling($handling);
         try {
             return $proceed($request, $queryResult);
         } finally {

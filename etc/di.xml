@@ -94,6 +94,14 @@
             <argument name="filterItemFactory" xsi:type="object">Iranimij\OpenFilter\Model\Layer\Filter\ItemFactory</argument>
         </arguments>
     </type>
+    <type name="Iranimij\OpenFilter\Model\Layer\Filter\Builtin">
+        <arguments>
+            <argument name="filterItemFactory" xsi:type="object">Iranimij\OpenFilter\Model\Layer\Filter\ItemFactory</argument>
+        </arguments>
+    </type>
+    <type name="Magento\Catalog\Model\Layer\FilterList">
+        <plugin name="openfilter_builtin_filters" type="Iranimij\OpenFilter\Plugin\Layer\FilterListPlugin"/>
+    </type>
     <!-- Core filters OpenFilter keeps (category drill-down) link to canonical filter URLs too. -->
     <type name="Magento\CatalogSearch\Model\Layer\Filter\Category">
         <arguments>
@@ -131,6 +139,34 @@
             </argument>
         </arguments>
     </virtualType>
+
+    <!-- Built-in filters: index fields (pool and mapping verified in M0, docs/index-fields.md) and reindex triggers. -->
+    <virtualType name="additionalFieldsProviderForElasticsearch">
+        <arguments>
+            <argument name="fieldsProviders" xsi:type="array">
+                <item name="openfilter_rating" xsi:type="object">Iranimij\OpenFilter\Model\Index\Provider\RatingFieldsProvider</item>
+                <item name="openfilter_stock" xsi:type="object">Iranimij\OpenFilter\Model\Index\Provider\StockFieldsProvider</item>
+                <item name="openfilter_sale" xsi:type="object">Iranimij\OpenFilter\Model\Index\Provider\SaleFieldsProvider</item>
+                <item name="openfilter_news" xsi:type="object">Iranimij\OpenFilter\Model\Index\Provider\NewsFieldsProvider</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="elasticsearch5FieldProvider">
+        <arguments>
+            <argument name="providers" xsi:type="array">
+                <item name="openfilter" xsi:type="object">Iranimij\OpenFilter\Model\Index\FieldMappingProvider</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <type name="Magento\Review\Model\ResourceModel\Review">
+        <plugin name="openfilter_reindex_rating" type="Iranimij\OpenFilter\Plugin\Index\ReviewAggregatePlugin"/>
+    </type>
+    <type name="Magento\Catalog\Model\Indexer\Product\Price">
+        <plugin name="openfilter_reindex_sale" type="Iranimij\OpenFilter\Plugin\Index\IndexerRowsPlugin"/>
+    </type>
+    <type name="Magento\CatalogInventory\Model\Indexer\Stock">
+        <plugin name="openfilter_reindex_stock" type="Iranimij\OpenFilter\Plugin\Index\IndexerRowsPlugin"/>
+    </type>
 
     <type name="Magento\Elasticsearch\ElasticAdapter\SearchAdapter\Mapper">
         <plugin name="openfilter_facet_counts" type="Iranimij\OpenFilter\Plugin\Search\MapperPlugin"/>
