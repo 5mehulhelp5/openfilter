@@ -8,9 +8,10 @@ declare(strict_types=1);
 
 namespace Iranimij\OpenFilter\Model\Url;
 
+use Iranimij\OpenFilter\Model\ResourceModel\SlugStorage;
 use Iranimij\Base\Serializer\SafeJson;
 use Iranimij\OpenFilter\Model\Cache\Type as CacheType;
-use Iranimij\OpenFilter\Model\Config\FilterConfigStorage;
+use Iranimij\OpenFilter\Model\ResourceModel\FilterConfigStorage;
 use Magento\Framework\Cache\FrontendInterface;
 
 /**

@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace Iranimij\OpenFilter\Model\Url;
 
+use Iranimij\OpenFilter\Model\ResourceModel\SlugStorage;
 use Iranimij\OpenFilter\Api\SlugRepositoryInterface;
 use Iranimij\OpenFilter\Model\Cache\Type as CacheType;
 use Magento\Framework\App\Cache\TypeListInterface;

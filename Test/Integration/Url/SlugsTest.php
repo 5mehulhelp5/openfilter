@@ -11,7 +11,7 @@ namespace Iranimij\OpenFilter\Test\Integration\Url;
 use Iranimij\OpenFilter\Api\Data\FilterConfigInterface as Filter;
 use Iranimij\OpenFilter\Api\SlugRepositoryInterface;
 use Iranimij\OpenFilter\Model\Cache\Type as CacheType;
-use Iranimij\OpenFilter\Model\Config\FilterConfigStorage;
+use Iranimij\OpenFilter\Model\ResourceModel\FilterConfigStorage;
 use Iranimij\OpenFilter\Model\Url\SlugProvider;
 use Iranimij\OpenFilter\Setup\Patch\Data\DefaultFilterConfig;
 use Magento\Catalog\Api\ProductAttributeRepositoryInterface;

@@ -6,7 +6,7 @@
 
 declare(strict_types=1);
 
-namespace Iranimij\OpenFilter\Model\Index;
+namespace Iranimij\OpenFilter\Model\ResourceModel;
 
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\DB\Adapter\AdapterInterface;

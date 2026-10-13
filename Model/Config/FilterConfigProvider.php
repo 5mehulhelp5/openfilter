@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace Iranimij\OpenFilter\Model\Config;
 
+use Iranimij\OpenFilter\Model\ResourceModel\FilterConfigStorage;
 use Iranimij\Base\Serializer\SafeJson;
 use Iranimij\OpenFilter\Api\Data\FilterConfigInterface;
 use Iranimij\OpenFilter\Model\Cache\Type as CacheType;

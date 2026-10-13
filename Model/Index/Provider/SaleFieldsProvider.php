@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 namespace Iranimij\OpenFilter\Model\Index\Provider;
 
-use Iranimij\OpenFilter\Model\Index\BuiltinDataSource;
+use Iranimij\OpenFilter\Model\ResourceModel\BuiltinDataSource;
 use Iranimij\OpenFilter\Model\Index\Fields;
 use Magento\AdvancedSearch\Model\Adapter\DataMapper\AdditionalFieldsProviderInterface;
 

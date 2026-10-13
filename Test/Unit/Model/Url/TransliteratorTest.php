@@ -30,6 +30,9 @@ class TransliteratorTest extends TestCase
             'separators collapse' => ['  Red / Blue  ', 'red-blue'],
             'digits stay' => ['Size 42.5', 'size-42-5'],
             'symbols only' => ['!!! ???', ''],
+            'html entities and marks' => ['Cocona&reg; performance fabric', 'cocona-performance-fabric'],
+            'trademark' => ['LumaTech™', 'lumatech'],
+            'fraction entity' => ['&frac14; zip', '1-4-zip'],
             'empty' => ['', ''],
         ];
     }

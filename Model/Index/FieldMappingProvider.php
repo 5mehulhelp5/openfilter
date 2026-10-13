@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace Iranimij\OpenFilter\Model\Index;
 
+use Iranimij\OpenFilter\Model\ResourceModel\BuiltinDataSource;
 use Magento\Elasticsearch\Model\Adapter\FieldMapper\Product\FieldProviderInterface;
 
 /**
