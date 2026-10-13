@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © Iman Aboheydary. All rights reserved.
+ * See LICENSE for license details (MIT).
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+    <event name="adminhtml_catalog_product_attribute_edit_frontend_prepare_form">
+        <observer name="openfilter_attribute_fieldset" instance="Iranimij\OpenFilter\Observer\Adminhtml\AddAttributeFieldset"/>
+    </event>
+    <event name="catalog_entity_attribute_save_after">
+        <observer name="openfilter_attribute_fieldset_save" instance="Iranimij\OpenFilter\Observer\Adminhtml\SaveAttributeFieldset"/>
+    </event>
+</config>
