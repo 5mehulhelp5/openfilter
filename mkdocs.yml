@@ -8,6 +8,7 @@ strict: true
 nav:
   - Home: index.md
   - Filters: filters.md
+  - Admin: admin.md
   - Filter URLs: url-format.md
   - Developers:
       - Hyvä integration: hyva-integration.md

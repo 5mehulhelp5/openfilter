@@ -2,7 +2,7 @@
 
 ## Settings
 
-Every filterable attribute and every built-in filter has settings (`Api\FilterConfigRepositoryInterface`, admin screens in M2): display type, multi-select, options before "Show more", search box threshold, expanded, option order (position, name, count), hide a filter with one option, indexable for search engines, position, label per store view.
+Every filterable attribute and every built-in filter has settings (`Api\FilterConfigRepositoryInterface`, Catalog › OpenFilter › Filters: see [Admin](admin.md)): display type, multi-select, options before "Show more", search box threshold, expanded, option order (position, name, count), hide a filter with one option, indexable for search engines, position, label per store view.
 
 On install OpenFilter stores sensible starting settings: colour-like (visual) swatches → swatch multi-select, text swatches → swatch multi-select, other selects → list multi-select, decimals → slider, Yes/No → toggle. Price and category are on; rating, in stock, on sale and new are off until switched on.
 
