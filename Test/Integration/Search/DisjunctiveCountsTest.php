@@ -95,7 +95,7 @@ class DisjunctiveCountsTest extends TestCase
      * @param array<string, string[]> $selection
      */
     #[DataProvider('cases')]
-    public function testSearchRequestsAddedOverCore(string $strategy, array $selection): void
+    public function testSearchRequestsPerPage(string $strategy, array $selection): void
     {
         $active = $this->ids($selection);
         $this->enabled(false);
@@ -104,8 +104,10 @@ class DisjunctiveCountsTest extends TestCase
         $this->useStrategy($strategy);
         $openFilter = $this->countRequests(fn () => $this->facetCounts($active, SpikeCatalog::COLOR));
 
-        $expected = $strategy === StrategyResolver::SINGLE_QUERY ? 0 : count($active);
-        self::assertSame($expected, $openFilter - $core, "requests added by $strategy (core: $core)");
+        // M1 S6: price intervals come from the same request, so SingleQuery is one request per page in total.
+        $expected = $strategy === StrategyResolver::SINGLE_QUERY ? 1 : 1 + count($active);
+        self::assertSame($expected, $openFilter, "requests with $strategy");
+        self::assertGreaterThanOrEqual($openFilter, $core + count($active), "core needs $core");
     }
 
     public function testAutoResolvesToAStrategyForThisEngine(): void

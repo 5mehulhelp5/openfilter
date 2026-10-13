@@ -42,8 +42,9 @@ Plan: `~/.claude/plans/pasted-content-id-b16b-read-https-app-n-glittery-aho.md` 
 | S3 | `UrlCodecInterface` (decode/encode/urlFor, numeric id fallback, clamping, canonical order), `FilterStateInterface`, request-scoped `FilterStateProvider`, `Range` | done locally: `feat/m1-s3-codec` |
 | S4 | Multi-value attribute filter (OR, selected options stay, hide empty/single, sort by position/name/count), canonical item links incl. swatches and core category links, `LayerContext` | done locally: `feat/m1-s4-layer-filters` |
 | S5 | M1 catalog fixture (simple + configurable, 3 groups, 2 store views), counts = brute force = catalog model for both strategies on category and search pages, `var/log/openfilter.log` channel | done locally: `feat/m1-s5-strategies` |
-| S6 | Price and decimal stats | in progress |
-| S7–S9 | strategies, stats, built-ins, normaliser + coexistence, budgets | open |
+| S6 | Price + decimal sliders: range filters are facet filters, bounds from the same request (`DynamicBucketPlugin`), display currency + tax (`PriceBoundsConverter`), OpenFilter `Price`/`Decimal` filters (core fallback when off) | done locally: `feat/m1-s6-stats` |
+| S7 | Built-in index fields + filters | in progress |
+| S8–S9 | strategies, stats, built-ins, normaliser + coexistence, budgets | open |
 
 ## M0 decisions (also in the Notion build log at close-out)
 
