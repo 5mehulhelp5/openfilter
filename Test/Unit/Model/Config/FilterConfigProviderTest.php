@@ -55,7 +55,7 @@ class FilterConfigProviderTest extends TestCase
         $this->storage->expects(self::once())->method('attributeRows')->willReturn([
             140 => ['attribute_id' => '140', 'display_mode' => 'list', 'multiselect' => '0', 'logic' => 'or',
                 'visible_options' => '3', 'search_threshold' => '12', 'expanded' => null, 'sort_by' => 'name',
-                'hide_single_option' => '1', 'seo_indexable' => '1', 'position_override' => '5'],
+                'hide_single_option' => '1', 'seo_indexable' => '1', 'position_override' => '5', 'is_active' => '0'],
         ]);
         $this->storage->expects(self::once())->method('builtinRows')->willReturn([
             'stock' => ['code' => 'stock', 'is_active' => '1', 'display_mode' => 'toggle', 'multiselect' => '0',
@@ -80,13 +80,15 @@ class FilterConfigProviderTest extends TestCase
         self::assertSame(5, $configs['material']->getPosition());
         self::assertFalse($configs['material']->isMultiselect());
         self::assertTrue($configs['material']->isSeoIndexable());
+        self::assertFalse($configs['material']->isActive(), 'hidden by the merchant');
+        self::assertTrue($configs['color']->isActive(), 'no row: shown');
         self::assertSame(77, $configs['price']->getAttributeId());
         self::assertSame('Preis', $configs['price']->getLabel());
         self::assertTrue($configs['price']->isBuiltin());
         self::assertTrue($configs['stock']->isActive());
         self::assertSame('Auf Lager', $configs['stock']->getLabel());
         self::assertNull($configs['rating']->getLabel());
-        self::assertSame(['category', 'material', 'price', 'color', 'attribute:new', 'stock'],
+        self::assertSame(['category', 'price', 'color', 'attribute:new', 'stock'],
             array_keys($this->provider->getActive(1)));
 
         $fresh = new FilterConfigProvider($this->storage, new Defaults(), $this->cachedFrontend(), new SafeJson());

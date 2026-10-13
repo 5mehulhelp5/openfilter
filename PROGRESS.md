@@ -45,8 +45,8 @@ Built as local branches while GitHub is off limits. Stack per repo (bottom first
 | # | Slice | State |
 |---|---|---|
 | S1 | System config (AJAX, filters open by default, price step, nofollow threshold, max active values; full_page invalidated on change; server-side number validation), menu Catalog › OpenFilter › Filters / Settings, admin route | done locally: `feat/m2-s1-config` |
-| S2 | `getList(SearchCriteria)` + Filters grid (inline edit, Show/Hide/Reset), `is_active` on `openfilter_attribute` | **next** |
-| S3 | Filter form (How it looks / behaves / SEO / Labels per store view), option URL names saved as one set | open |
+| S2 | `getList(SearchCriteria)` + Filters grid (inline edit, Show/Hide/Reset), `is_active` on `openfilter_attribute`, hidden filters leave the storefront | done locally: `feat/m2-s2-grid` |
+| S3 | Filter form (How it looks / behaves / SEO / Labels per store view), option URL names saved as one set | **next** |
 | S4 | Attribute edit fieldset | open |
 | S5 | "Why is this filter not showing?" (`Model/Doctor`) | open |
 | S6 | First-run notice | open |

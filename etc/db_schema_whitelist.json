@@ -11,7 +11,8 @@
             "sort_by": true,
             "hide_single_option": true,
             "seo_indexable": true,
-            "position_override": true
+            "position_override": true,
+            "is_active": true
         },
         "constraint": {
             "PRIMARY": true,

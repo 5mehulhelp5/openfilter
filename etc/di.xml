@@ -13,6 +13,9 @@
     <preference for="Iranimij\OpenFilter\Api\FilterConfigRepositoryInterface"
                 type="Iranimij\OpenFilter\Model\Config\FilterConfigRepository"/>
 
+    <preference for="Iranimij\OpenFilter\Api\Data\FilterConfigSearchResultsInterface"
+                type="Iranimij\OpenFilter\Model\Config\FilterConfigSearchResults"/>
+
     <preference for="Iranimij\OpenFilter\Api\SlugRepositoryInterface"
                 type="Iranimij\OpenFilter\Model\Url\SlugRepository"/>
 

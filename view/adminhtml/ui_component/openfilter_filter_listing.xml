@@ -1,0 +1,224 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © Iman Aboheydary. All rights reserved.
+ * See LICENSE for license details (MIT).
+ */
+-->
+<listing xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
+    <argument name="data" xsi:type="array">
+        <item name="js_config" xsi:type="array">
+            <item name="provider" xsi:type="string">openfilter_filter_listing.openfilter_filter_listing_data_source</item>
+        </item>
+    </argument>
+    <settings>
+        <buttons>
+            <button name="settings">
+                <url path="adminhtml/system_config/edit/section/openfilter"/>
+                <label translate="true">Settings</label>
+            </button>
+        </buttons>
+        <spinner>openfilter_filter_columns</spinner>
+        <deps>
+            <dep>openfilter_filter_listing.openfilter_filter_listing_data_source</dep>
+        </deps>
+    </settings>
+    <dataSource name="openfilter_filter_listing_data_source" component="Magento_Ui/js/grid/provider">
+        <settings>
+            <storageConfig>
+                <param name="indexField" xsi:type="string">key</param>
+            </storageConfig>
+            <updateUrl path="mui/index/render"/>
+        </settings>
+        <aclResource>Iranimij_OpenFilter::filters</aclResource>
+        <dataProvider class="Iranimij\OpenFilter\Ui\DataProvider\FilterListing" name="openfilter_filter_listing_data_source">
+            <settings>
+                <requestFieldName>code</requestFieldName>
+                <primaryFieldName>key</primaryFieldName>
+            </settings>
+        </dataProvider>
+    </dataSource>
+    <listingToolbar name="listing_top">
+        <settings>
+            <sticky>true</sticky>
+        </settings>
+        <bookmark name="bookmarks"/>
+        <columnsControls name="columns_controls"/>
+        <filters name="listing_filters"/>
+        <massaction name="listing_massaction">
+            <action name="show">
+                <settings>
+                    <url path="openfilter/filter/massAction">
+                        <param name="do">show</param>
+                    </url>
+                    <type>show</type>
+                    <label translate="true">Show on the storefront</label>
+                </settings>
+            </action>
+            <action name="hide">
+                <settings>
+                    <url path="openfilter/filter/massAction">
+                        <param name="do">hide</param>
+                    </url>
+                    <type>hide</type>
+                    <label translate="true">Hide from the storefront</label>
+                </settings>
+            </action>
+            <action name="reset">
+                <settings>
+                    <confirm>
+                        <message translate="true">Put the selected filters back to OpenFilter's defaults? Labels per store view and URL names are kept.</message>
+                        <title translate="true">Reset to defaults</title>
+                    </confirm>
+                    <url path="openfilter/filter/massAction">
+                        <param name="do">reset</param>
+                    </url>
+                    <type>reset</type>
+                    <label translate="true">Reset to defaults</label>
+                </settings>
+            </action>
+        </massaction>
+        <paging name="listing_paging">
+            <settings>
+                <pageSize>50</pageSize>
+            </settings>
+        </paging>
+    </listingToolbar>
+    <columns name="openfilter_filter_columns">
+        <settings>
+            <editorConfig>
+                <param name="clientConfig" xsi:type="array">
+                    <item name="saveUrl" xsi:type="url" path="openfilter/filter/inlineEdit"/>
+                    <item name="validateBeforeSave" xsi:type="boolean">false</item>
+                </param>
+                <param name="indexField" xsi:type="string">key</param>
+                <param name="enabled" xsi:type="boolean">true</param>
+                <param name="selectProvider" xsi:type="string">openfilter_filter_listing.openfilter_filter_listing.openfilter_filter_columns.ids</param>
+            </editorConfig>
+            <childDefaults>
+                <param name="fieldAction" xsi:type="array">
+                    <item name="provider" xsi:type="string">openfilter_filter_listing.openfilter_filter_listing.openfilter_filter_columns_editor</item>
+                    <item name="target" xsi:type="string">startEdit</item>
+                    <item name="params" xsi:type="array">
+                        <item name="0" xsi:type="string">${ $.$data.rowIndex }</item>
+                        <item name="1" xsi:type="boolean">true</item>
+                    </item>
+                </param>
+            </childDefaults>
+        </settings>
+        <selectionsColumn name="ids">
+            <settings>
+                <indexField>key</indexField>
+            </settings>
+        </selectionsColumn>
+        <column name="label" sortOrder="10">
+            <settings>
+                <filter>text</filter>
+                <label translate="true">Filter</label>
+            </settings>
+        </column>
+        <column name="code" sortOrder="20">
+            <settings>
+                <filter>text</filter>
+                <label translate="true">Code</label>
+            </settings>
+        </column>
+        <column name="builtin" component="Magento_Ui/js/grid/columns/select" sortOrder="30">
+            <settings>
+                <options class="Iranimij\OpenFilter\Model\Config\Source\FilterType"/>
+                <filter>select</filter>
+                <dataType>select</dataType>
+                <label translate="true">Type</label>
+            </settings>
+        </column>
+        <column name="display_mode" component="Magento_Ui/js/grid/columns/select" sortOrder="40">
+            <settings>
+                <options class="Iranimij\OpenFilter\Model\Config\Source\DisplayMode"/>
+                <filter>select</filter>
+                <editor>
+                    <editorType>select</editorType>
+                </editor>
+                <dataType>select</dataType>
+                <label translate="true">Looks like</label>
+            </settings>
+        </column>
+        <column name="multiselect" component="Magento_Ui/js/grid/columns/select" sortOrder="50">
+            <settings>
+                <options class="Magento\Config\Model\Config\Source\Yesno"/>
+                <filter>select</filter>
+                <editor>
+                    <editorType>select</editorType>
+                </editor>
+                <dataType>select</dataType>
+                <label translate="true">Several values</label>
+            </settings>
+        </column>
+        <column name="visible_options" sortOrder="60">
+            <settings>
+                <filter>textRange</filter>
+                <editor>
+                    <validation>
+                        <rule name="required-entry" xsi:type="boolean">true</rule>
+                        <rule name="validate-digits" xsi:type="boolean">true</rule>
+                    </validation>
+                    <editorType>text</editorType>
+                </editor>
+                <label translate="true">Options before "Show more"</label>
+            </settings>
+        </column>
+        <column name="search_threshold" sortOrder="70">
+            <settings>
+                <filter>textRange</filter>
+                <editor>
+                    <validation>
+                        <rule name="required-entry" xsi:type="boolean">true</rule>
+                        <rule name="validate-digits" xsi:type="boolean">true</rule>
+                    </validation>
+                    <editorType>text</editorType>
+                </editor>
+                <label translate="true">Search box from</label>
+            </settings>
+        </column>
+        <column name="seo_indexable" component="Magento_Ui/js/grid/columns/select" sortOrder="80">
+            <settings>
+                <options class="Magento\Config\Model\Config\Source\Yesno"/>
+                <filter>select</filter>
+                <editor>
+                    <editorType>select</editorType>
+                </editor>
+                <dataType>select</dataType>
+                <label translate="true">Google may index</label>
+            </settings>
+        </column>
+        <column name="position" sortOrder="90">
+            <settings>
+                <filter>textRange</filter>
+                <editor>
+                    <validation>
+                        <rule name="validate-number" xsi:type="boolean">true</rule>
+                    </validation>
+                    <editorType>text</editorType>
+                </editor>
+                <sorting>asc</sorting>
+                <label translate="true">Position</label>
+            </settings>
+        </column>
+        <column name="active" component="Magento_Ui/js/grid/columns/select" sortOrder="100">
+            <settings>
+                <options class="Iranimij\OpenFilter\Model\Config\Source\Visibility"/>
+                <filter>select</filter>
+                <editor>
+                    <editorType>select</editorType>
+                </editor>
+                <dataType>select</dataType>
+                <label translate="true">Storefront</label>
+            </settings>
+        </column>
+        <actionsColumn name="actions" class="Iranimij\OpenFilter\Ui\Component\Listing\Column\FilterActions" sortOrder="200">
+            <settings>
+                <indexField>key</indexField>
+            </settings>
+        </actionsColumn>
+    </columns>
+</listing>

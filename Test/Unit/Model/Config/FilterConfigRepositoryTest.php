@@ -8,12 +8,19 @@ declare(strict_types=1);
 
 namespace Iranimij\OpenFilter\Test\Unit\Model\Config;
 
+use Iranimij\OpenFilter\Api\Data\FilterConfigSearchResultsInterfaceFactory;
 use Iranimij\OpenFilter\Model\Config\Defaults;
 use Iranimij\OpenFilter\Model\Config\FilterConfig;
+use Iranimij\OpenFilter\Model\Config\FilterConfigList;
+use Iranimij\OpenFilter\Model\Config\FilterConfigSearchResults;
 use Iranimij\OpenFilter\Model\Config\FilterConfigProvider;
 use Iranimij\OpenFilter\Model\Config\FilterConfigRepository;
 use Iranimij\OpenFilter\Model\Config\Validator;
 use Iranimij\OpenFilter\Model\ResourceModel\FilterConfigStorage;
+use Magento\Framework\Api\Filter;
+use Magento\Framework\Api\Search\FilterGroup;
+use Magento\Framework\Api\SearchCriteria;
+use Magento\Framework\Api\SortOrder;
 use Magento\Framework\App\Cache\TypeListInterface;
 use Magento\Framework\Cache\FrontendInterface;
 use Magento\Framework\Exception\InputException;
@@ -56,7 +63,9 @@ class FilterConfigRepositoryTest extends TestCase
             new Validator(),
             $defaults,
             $this->cache,
-            $this->typeList
+            $this->typeList,
+            new FilterConfigList(),
+            $this->resultsFactory()
         );
     }
 
@@ -80,13 +89,43 @@ class FilterConfigRepositoryTest extends TestCase
     {
         $this->storage->method('optionCount')->with(93)->willReturn(4);
         $this->storage->expects(self::once())->method('saveAttribute')
-            ->with(93, self::callback(static fn (array $row): bool => $row['visible_options'] === 3));
+            ->with(93, self::callback(static fn (array $row): bool => $row['visible_options'] === 3 && $row['is_active'] === 1));
         $this->cache->expects(self::once())->method('clean');
         $this->provider->expects(self::once())->method('reset');
         $this->typeList->expects(self::once())->method('invalidate')->with('full_page');
 
         $config = (new FilterConfig(['code' => 'color']))->setDisplayMode('swatch')->setVisibleOptions(3);
         $this->repository->save($config);
+    }
+
+    public function testHidingAnAttributeFilterKeepsCoreAttributeFlagsAlone(): void
+    {
+        $this->storage->expects(self::once())->method('saveAttribute')
+            ->with(93, self::callback(static fn (array $row): bool => $row['is_active'] === 0));
+
+        $this->repository->save((new FilterConfig(['code' => 'color']))->setDisplayMode('swatch')->setActive(false));
+    }
+
+    public function testGetListFiltersSortsAndPagesTheAdminList(): void
+    {
+        $criteria = (new SearchCriteria())
+            ->setFilterGroups([new FilterGroup(['filters' => [new Filter(['field' => 'builtin', 'value' => '0'])]])])
+            ->setSortOrders([new SortOrder(['field' => 'code', 'direction' => SortOrder::SORT_DESC])])
+            ->setPageSize(1)
+            ->setCurrentPage(2);
+
+        $results = $this->repository->getList($criteria);
+
+        self::assertSame(2, $results->getTotalCount());
+        self::assertSame(['color'], array_map(static fn ($c) => $c->getCode(), $results->getItems()));
+        self::assertSame($criteria, $results->getSearchCriteria());
+
+        $stock = $this->repository->getList(
+            (new SearchCriteria())->setFilterGroups([new FilterGroup(['filters' => [
+                new Filter(['field' => 'label', 'value' => 'in stock', 'condition_type' => 'like']),
+            ]])])
+        )->getItems();
+        self::assertSame(['In stock'], array_map(static fn ($c) => $c->getLabel(), $stock), 'built-in labels resolved');
     }
 
     public function testSaveRejectsWhatDoesNotFit(): void
@@ -123,5 +162,13 @@ class FilterConfigRepositoryTest extends TestCase
         $this->repository->saveLabel('stock', 2, 'Lieferbar');
         $this->repository->resetToDefault('color');
         $this->repository->resetToDefault('stock');
+    }
+
+    private function resultsFactory(): FilterConfigSearchResultsInterfaceFactory
+    {
+        $factory = $this->createMock(FilterConfigSearchResultsInterfaceFactory::class);
+        $factory->method('create')->willReturnCallback(static fn () => new FilterConfigSearchResults());
+
+        return $factory;
     }
 }

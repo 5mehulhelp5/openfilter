@@ -10,7 +10,10 @@ namespace Iranimij\OpenFilter\Model\Config;
 
 use Iranimij\OpenFilter\Model\ResourceModel\FilterConfigStorage;
 use Iranimij\OpenFilter\Api\Data\FilterConfigInterface;
+use Iranimij\OpenFilter\Api\Data\FilterConfigSearchResultsInterface;
+use Iranimij\OpenFilter\Api\Data\FilterConfigSearchResultsInterfaceFactory;
 use Iranimij\OpenFilter\Api\FilterConfigRepositoryInterface;
+use Magento\Framework\Api\SearchCriteriaInterface;
 use Magento\Framework\App\Cache\TypeListInterface;
 use Magento\Framework\Cache\FrontendInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
@@ -31,6 +34,8 @@ class FilterConfigRepository implements FilterConfigRepositoryInterface
      * @param Defaults $defaults
      * @param FrontendInterface $cache the "openfilter" cache type
      * @param TypeListInterface $cacheTypeList
+     * @param FilterConfigList $list
+     * @param FilterConfigSearchResultsInterfaceFactory $resultsFactory
      */
     public function __construct(
         private readonly FilterConfigProvider $provider,
@@ -38,7 +43,9 @@ class FilterConfigRepository implements FilterConfigRepositoryInterface
         private readonly Validator $validator,
         private readonly Defaults $defaults,
         private readonly FrontendInterface $cache,
-        private readonly TypeListInterface $cacheTypeList
+        private readonly TypeListInterface $cacheTypeList,
+        private readonly FilterConfigList $list,
+        private readonly FilterConfigSearchResultsInterfaceFactory $resultsFactory
     ) {
     }
 
@@ -72,6 +79,30 @@ class FilterConfigRepository implements FilterConfigRepositoryInterface
     }
 
     /**
+     * Labels are resolved for the admin: built-ins without their own label get the translated default label.
+     *
+     * @inheritDoc
+     */
+    public function getList(SearchCriteriaInterface $searchCriteria): FilterConfigSearchResultsInterface
+    {
+        $configs = array_map(
+            fn (FilterConfig $config): FilterConfig => $config->getLabel() !== null ? $config : $config->with([
+                'label' => $config->isBuiltin()
+                    ? (string) __($this->defaults->builtinLabel($config->getCode()))
+                    : $config->getCode(),
+            ]),
+            $this->provider->getForStore(Store::DEFAULT_STORE_ID)
+        );
+        [$items, $total] = $this->list->apply($configs, $searchCriteria);
+        $results = $this->resultsFactory->create();
+        $results->setSearchCriteria($searchCriteria);
+        $results->setItems($items);
+        $results->setTotalCount($total);
+
+        return $results;
+    }
+
+    /**
      * @inheritDoc
      */
     public function save(FilterConfigInterface $config): FilterConfigInterface
@@ -86,7 +117,7 @@ class FilterConfigRepository implements FilterConfigRepositoryInterface
         if ($current->isBuiltin()) {
             $this->storage->saveBuiltin($current->getCode(), $merged->isActive(), $row);
         } elseif ($attributeId !== null) {
-            $this->storage->saveAttribute($attributeId, $row);
+            $this->storage->saveAttribute($attributeId, $row + ['is_active' => (int) $merged->isActive()]);
         }
         $this->clean();
 
