@@ -15,6 +15,8 @@ use Iranimij\OpenFilter\Model\Layer\Filter\Attribute;
 use Iranimij\OpenFilter\Model\Layer\Filter\Item;
 use Iranimij\OpenFilter\Model\Layer\Filter\Price;
 use Iranimij\OpenFilter\Model\Layer\LayerContext;
+use Iranimij\OpenFilter\Model\Seo\NofollowPolicy;
+use Iranimij\OpenFilter\Model\Url\FilterState;
 use Iranimij\OpenFilter\ViewModel\Data\Slider as SliderData;
 use Iranimij\OpenFilter\ViewModel\FilterBlock;
 use Iranimij\OpenFilter\ViewModel\Slider;
@@ -166,16 +168,34 @@ class FilterBlockTest extends TestCase
         self::assertSame(3, $block->selectedCount($groups));
     }
 
-    private function block(int $expandedGroups = 3): FilterBlock
+    public function testOptionLinksGetNofollowFromTheThresholdButRemoveLinksDoNot(): void
+    {
+        $this->configs['a'] = new FilterConfig(['code' => 'a']);
+        $filter = $this->openFilter('a', 'A', [
+            $this->item('x', '1', 1, '/a', true),
+            $this->item('y', '2', 1, '/a', true),
+            $this->item('z', '3', 4, '/a?a=x,y,z', false),
+        ]);
+
+        $below = $this->block(3, new FilterState(['a' => ['1']]))->groups([$filter])[0]->getOptions();
+        $at = $this->block(3, new FilterState(['a' => ['1', '2']]))->groups([$filter])[0]->getOptions();
+
+        self::assertSame(['', '', ''], array_map(static fn ($o): string => $o->getRel(), $below));
+        self::assertSame(['', '', 'nofollow'], array_map(static fn ($o): string => $o->getRel(), $at));
+    }
+
+    private function block(int $expandedGroups = 3, ?FilterState $state = null): FilterBlock
     {
         $context = $this->createStub(LayerContext::class);
         $context->method('config')->willReturnCallback(fn (string $key) => $this->configs[$key] ?? null);
+        $context->method('state')->willReturn($state ?? new FilterState());
         $config = $this->createStub(Config::class);
         $config->method('getExpandedGroups')->willReturn($expandedGroups);
+        $config->method('getNofollowThreshold')->willReturn(2);
         $slider = $this->createStub(Slider::class);
         $slider->method('forFilter')->willReturnCallback(fn ($filter) => $this->sliders[$filter->getOpenFilterKey()] ?? null);
 
-        return new FilterBlock($context, $config, $slider);
+        return new FilterBlock($context, $config, $slider, new NofollowPolicy($config));
     }
 
     /**

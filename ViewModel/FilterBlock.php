@@ -14,6 +14,7 @@ use Iranimij\OpenFilter\Model\Layer\Filter\AbstractRangeFilter;
 use Iranimij\OpenFilter\Model\Layer\Filter\Item;
 use Iranimij\OpenFilter\Model\Layer\Filter\OpenFilterInterface;
 use Iranimij\OpenFilter\Model\Layer\LayerContext;
+use Iranimij\OpenFilter\Model\Seo\NofollowPolicy;
 use Magento\Catalog\Model\Layer\Filter\AbstractFilter;
 use Magento\Catalog\Model\Layer\Filter\FilterInterface;
 use Magento\Catalog\Model\Layer\Filter\Item as CoreItem;
@@ -33,11 +34,13 @@ class FilterBlock implements ArgumentInterface
      * @param LayerContext $context
      * @param Config $config
      * @param Slider $slider
+     * @param NofollowPolicy $nofollow
      */
     public function __construct(
         private readonly LayerContext $context,
         private readonly Config $config,
-        private readonly Slider $slider
+        private readonly Slider $slider,
+        private readonly NofollowPolicy $nofollow
     ) {
     }
 
@@ -116,13 +119,16 @@ class FilterBlock implements ArgumentInterface
     private function option(CoreItem $item): Data\FilterOption
     {
         $value = $item->getData('value');
+        $selected = $item instanceof Item && $item->isSelected();
+        $storeId = $this->context->storeId();
 
         return new Data\FilterOption(
             trim(strip_tags((string) $item->getData('label'))),
             is_array($value) ? implode('-', $value) : (string) $value,
             (string) $item->getUrl(),
             (int) $item->getData('count'),
-            $item instanceof Item && $item->isSelected()
+            $selected,
+            $this->nofollow->rel($this->context->state()->count(), $selected, $storeId)
         );
     }
 }

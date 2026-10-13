@@ -19,13 +19,15 @@ class FilterOption
      * @param string $url link that adds the option, or removes it when it is selected
      * @param int $count products the link leads to
      * @param bool $selected
+     * @param string $rel the link's rel attribute ('nofollow' beyond the SEO threshold, '' otherwise)
      */
     public function __construct(
         private readonly string $label,
         private readonly string $value,
         private readonly string $url,
         private readonly int $count,
-        private readonly bool $selected
+        private readonly bool $selected,
+        private readonly string $rel = ''
     ) {
     }
 
@@ -67,5 +69,15 @@ class FilterOption
     public function isSelected(): bool
     {
         return $this->selected;
+    }
+
+    /**
+     * Value of the link's rel attribute ('' for none).
+     *
+     * @return string
+     */
+    public function getRel(): string
+    {
+        return $this->rel;
     }
 }
