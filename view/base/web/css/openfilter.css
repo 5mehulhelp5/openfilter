@@ -48,5 +48,11 @@
 .of-search__input{box-sizing:border-box;inline-size:100%;min-block-size:var(--of-row);padding-inline:.5rem;border:1px solid var(--of-border);border-radius:var(--of-radius)}
 .of-hidden{display:none}
 @media (scripting:none){.of-search{display:none}}
+.of-results{position:relative}
+.of-results.of-loading>*{opacity:.6;transition:opacity .15s}
+.of-results.of-loading::before{content:"";position:absolute;inset-block-start:0;inset-inline:0;z-index:1;block-size:3px;background:var(--of-accent);animation:of-pulse 1s ease-in-out infinite}
+.of-empty{margin-block:0 1rem}
 .of-sr{position:absolute;inline-size:1px;block-size:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@keyframes of-pulse{50%{opacity:.35}}
+@media (prefers-reduced-motion:reduce){.of-results.of-loading::before{animation:none}}
 @media (pointer:coarse){.of-filters,.of-state{--of-row:2.75rem}}
