@@ -45,6 +45,19 @@ class NormalizeFilterParamsTest extends TestCase
             ->execute($this->event($this->request('GET', ['color' => 'junk', 'p' => '2'])));
     }
 
+    public function testFoldedRangeFormFieldsLeaveTheRedirectUrl(): void
+    {
+        $response = $this->createMock(HttpResponse::class);
+        $response->expects(self::once())->method('setRedirect')
+            ->with('canonical|{"price_from":null,"price_to":null}', 301);
+
+        $this->observer(
+            ['redirect' => true, 'changed' => false, 'drop' => ['price_from', 'price_to']],
+            $response,
+            $this->createStub(ActionFlag::class)
+        )->execute($this->event($this->request('GET', ['price_from' => '20', 'price_to' => '50'])));
+    }
+
     public function testCanonicalPostAndInactiveAreLeftAlone(): void
     {
         $response = $this->createMock(HttpResponse::class);

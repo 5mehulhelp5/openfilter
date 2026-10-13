@@ -23,6 +23,7 @@ class FilterGroup
      * @param int $visibleOptions options shown before "Show more"
      * @param bool $searchable whether the group gets a search box
      * @param FilterOption[] $options
+     * @param Slider|null $slider price and decimal filters: their range form and slider
      */
     public function __construct(
         private readonly string $code,
@@ -33,8 +34,17 @@ class FilterGroup
         private readonly bool $expanded,
         private readonly int $visibleOptions,
         private readonly bool $searchable,
-        private readonly array $options
+        private readonly array $options,
+        private readonly ?Slider $slider = null
     ) {
+    }
+
+    /**
+     * @return Slider|null
+     */
+    public function getSlider(): ?Slider
+    {
+        return $this->slider;
     }
 
     /**

@@ -13,8 +13,11 @@ use Iranimij\OpenFilter\Model\Config;
 use Iranimij\OpenFilter\Model\Config\FilterConfig;
 use Iranimij\OpenFilter\Model\Layer\Filter\Attribute;
 use Iranimij\OpenFilter\Model\Layer\Filter\Item;
+use Iranimij\OpenFilter\Model\Layer\Filter\Price;
 use Iranimij\OpenFilter\Model\Layer\LayerContext;
+use Iranimij\OpenFilter\ViewModel\Data\Slider as SliderData;
 use Iranimij\OpenFilter\ViewModel\FilterBlock;
+use Iranimij\OpenFilter\ViewModel\Slider;
 use Magento\Catalog\Model\Layer\Filter\AbstractFilter;
 use Magento\Catalog\Model\Layer\Filter\Item as CoreItem;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
@@ -26,6 +29,9 @@ class FilterBlockTest extends TestCase
 {
     /** @var array<string, FilterConfig> */
     private array $configs = [];
+
+    /** @var array<string, SliderData|null> */
+    private array $sliders = [];
 
     public function testGroupsCarryLabelDisplayAndOptionsWithLinksCountsAndSelection(): void
     {
@@ -132,6 +138,21 @@ class FilterBlockTest extends TestCase
         self::assertSame(['L'], array_map(static fn ($o) => $o->getLabel(), $group->getMoreOptions()));
     }
 
+    public function testRangeFiltersShowASliderWhileTheyHaveBoundsEvenWithoutItems(): void
+    {
+        $this->configs['price'] = new FilterConfig(['code' => 'price', 'display_mode' => FilterConfigInterface::DISPLAY_SLIDER]);
+        $this->configs['width'] = new FilterConfig(['code' => 'width', 'display_mode' => FilterConfigInterface::DISPLAY_SLIDER]);
+        $slider = new SliderData('price', 10.0, 90.0, 1.0, null, null, 'EUR', 'en-US', '/c', [], '/c?price=x', '/c');
+        $this->sliders = ['price' => $slider, 'width' => null];
+
+        $groups = $this->block()->groups([$this->rangeFilter('price', 'Price'), $this->rangeFilter('width', 'Width')]);
+
+        self::assertCount(1, $groups, 'a range filter without bounds and without items is left out');
+        self::assertSame(FilterConfigInterface::DISPLAY_SLIDER, $groups[0]->getDisplay());
+        self::assertSame($slider, $groups[0]->getSlider());
+        self::assertSame([], $groups[0]->getOptions());
+    }
+
     public function testTotalSelectedCountsEveryGroup(): void
     {
         $this->configs['a'] = new FilterConfig(['code' => 'a']);
@@ -151,8 +172,10 @@ class FilterBlockTest extends TestCase
         $context->method('config')->willReturnCallback(fn (string $key) => $this->configs[$key] ?? null);
         $config = $this->createStub(Config::class);
         $config->method('getExpandedGroups')->willReturn($expandedGroups);
+        $slider = $this->createStub(Slider::class);
+        $slider->method('forFilter')->willReturnCallback(fn ($filter) => $this->sliders[$filter->getOpenFilterKey()] ?? null);
 
-        return new FilterBlock($context, $config);
+        return new FilterBlock($context, $config, $slider);
     }
 
     /**
@@ -168,6 +191,19 @@ class FilterBlockTest extends TestCase
         $filter->method('getName')->willReturn($name);
         $filter->method('getItems')->willReturn($items);
         $filter->method('getItemsCount')->willReturn(count($items));
+        $filter->method('getRequestVar')->willReturn($key);
+
+        return $filter;
+    }
+
+    private function rangeFilter(string $key, string $name): Price
+    {
+        $filter = $this->getMockBuilder(Price::class)->disableOriginalConstructor()
+            ->onlyMethods(['getOpenFilterKey', 'getName', 'getItems', 'getItemsCount', 'getRequestVar'])->getMock();
+        $filter->method('getOpenFilterKey')->willReturn($key);
+        $filter->method('getName')->willReturn($name);
+        $filter->method('getItems')->willReturn([]);
+        $filter->method('getItemsCount')->willReturn(0);
         $filter->method('getRequestVar')->willReturn($key);
 
         return $filter;
