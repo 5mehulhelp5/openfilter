@@ -24,3 +24,6 @@
 "Another filter already uses the URL name ""%1"".","Another filter already uses the URL name ""%1""."
 "Another option of this filter already uses the URL name ""%1"".","Another option of this filter already uses the URL name ""%1""."
 "Option %1 does not exist.","Option %1 does not exist."
+"%1 and above","%1 and above"
+"up to %1","up to %1"
+"%1 - %2","%1 - %2"

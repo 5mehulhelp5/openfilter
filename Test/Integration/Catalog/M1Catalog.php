@@ -46,6 +46,8 @@ class M1Catalog
     public const COLOR = 'of_m1_color';
     public const SIZE = 'of_m1_size';
     public const MATERIAL = 'of_m1_material';
+    /** Decimal attribute (slider): simple product i has width 1 + i / 2, configurable k has 20 + k. */
+    public const WIDTH = 'of_m1_width';
     public const STORE = 'of_m1_de';
     public const TOKEN = 'ofmone';
     public const SKU = 'of-m1-';
@@ -79,6 +81,7 @@ class M1Catalog
         foreach (self::OPTIONS as $code => $labels) {
             $options[$code] = self::attribute($code, $labels, $store);
         }
+        self::decimalAttribute(self::WIDTH);
         $om->get(EavConfig::class)->clear();
         $om->get(TypeListInterface::class)->cleanType('config');
         $om->get(TypeListInterface::class)->cleanType('eav');
@@ -94,6 +97,7 @@ class M1Catalog
                 $product->setData(self::COLOR, $options[self::COLOR][$colors[$i % 4]]);
                 $product->setData(self::SIZE, $options[self::SIZE][$sizes[($i + intdiv($i, 4)) % 3]]);
                 $product->setData(self::MATERIAL, $options[self::MATERIAL][$i % 3 === 0 ? 'Wool' : 'Cotton']);
+                $product->setData(self::WIDTH, 1 + $i / 2);
                 $product->setCategoryIds([$i < 24 ? $category : $outside]);
                 if ($i % 2 === 0) {
                     $product->setData('tier_price', [[
@@ -125,7 +129,7 @@ class M1Catalog
      * which also finds the products outside the category) match a selection.
      *
      * @return array<string, array{colors: string[], sizes: string[], material: string, price: float,
-     *     wholesale: float, category: bool, german: bool}> by SKU of the visible product
+     *     wholesale: float, width: float, category: bool, german: bool}> by SKU of the visible product
      */
     public static function products(): array
     {
@@ -140,6 +144,7 @@ class M1Catalog
                 'material' => $i % 3 === 0 ? 'Wool' : 'Cotton',
                 'price' => $price,
                 'wholesale' => $i % 2 === 0 ? $price * 0.8 : $price,
+                'width' => 1 + $i / 2,
                 'category' => $i < 24,
                 'german' => $i !== self::HIDDEN_IN_GERMAN,
             ];
@@ -151,6 +156,7 @@ class M1Catalog
                 'material' => $definition['material'],
                 'price' => 50.0 + $k,
                 'wholesale' => 50.0 + $k,
+                'width' => 20.0 + $k,
                 'category' => true,
                 'german' => true,
             ];
@@ -216,6 +222,7 @@ class M1Catalog
                 $child->setData(self::COLOR, $options[self::COLOR][$color]);
                 $child->setData(self::SIZE, $options[self::SIZE][$size]);
                 $child->setData(self::MATERIAL, $options[self::MATERIAL][$definition['material']]);
+                $child->setData(self::WIDTH, 20 + $k);
                 $childIds[] = (int) $repository->save($child)->getId();
                 $values[self::COLOR][$color] = $options[self::COLOR][$color];
                 $values[self::SIZE][$size] = $options[self::SIZE][$size];
@@ -242,6 +249,7 @@ class M1Catalog
             ->setStatus(Status::STATUS_ENABLED)->setWebsiteIds([1])->setCategoryIds([$category])
             ->setStockData(['use_config_manage_stock' => 1, 'is_in_stock' => 1]);
         $product->setData(self::MATERIAL, $options[self::MATERIAL][$definition['material']]);
+        $product->setData(self::WIDTH, 20 + $k);
         $extension = $product->getExtensionAttributes();
         $extension->setConfigurableProductOptions($om->get(ConfigurableOptionsFactory::class)->create($attributes));
         $extension->setConfigurableProductLinks($childIds);
@@ -321,6 +329,42 @@ class M1Catalog
         }
 
         return $ids;
+    }
+
+    /**
+     * Filterable decimal attribute (price input, decimal backend) assigned to the default set.
+     *
+     * @param string $code
+     * @return void
+     */
+    private static function decimalAttribute(string $code): void
+    {
+        $om = Bootstrap::getObjectManager();
+        try {
+            $om->create(ProductAttributeRepositoryInterface::class)->get($code);
+
+            return;
+        } catch (NoSuchEntityException) {
+            // create below
+        }
+        /** @var Attribute $attribute */
+        $attribute = $om->get(AttributeFactory::class)->create();
+        $attribute->setData([
+            'attribute_code' => $code,
+            'entity_type_id' => (int) $om->get(EavConfig::class)->getEntityType('catalog_product')->getId(),
+            'frontend_input' => 'price',
+            'backend_type' => 'decimal',
+            'frontend_label' => ['Width'],
+            'is_user_defined' => 1,
+            'is_global' => 1,
+            'is_filterable' => 1,
+            'is_filterable_in_search' => 1,
+            'is_searchable' => 0,
+            'used_in_product_listing' => 0,
+        ]);
+        $attribute->save();
+        $set = $om->get(AttributeSetRepositoryInterface::class)->get(4);
+        $om->get(AttributeManagementInterface::class)->assign('catalog_product', 4, (int) $set->getDefaultGroupId(), $code, 920);
     }
 
     /**

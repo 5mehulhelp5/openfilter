@@ -38,6 +38,7 @@
         "magento/module-search": "^101.1.7",
         "magento/module-store": "^101.1.7",
         "magento/module-swatches": "^100.4.7",
+        "magento/module-tax": "^100.4.7",
         "magento/module-theme": "^101.1.7"
     },
     "suggest": {

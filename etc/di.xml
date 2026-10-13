@@ -84,6 +84,16 @@
             <argument name="filterItemFactory" xsi:type="object">Iranimij\OpenFilter\Model\Layer\Filter\ItemFactory</argument>
         </arguments>
     </type>
+    <type name="Iranimij\OpenFilter\Model\Layer\Filter\Price">
+        <arguments>
+            <argument name="filterItemFactory" xsi:type="object">Iranimij\OpenFilter\Model\Layer\Filter\ItemFactory</argument>
+        </arguments>
+    </type>
+    <type name="Iranimij\OpenFilter\Model\Layer\Filter\Decimal">
+        <arguments>
+            <argument name="filterItemFactory" xsi:type="object">Iranimij\OpenFilter\Model\Layer\Filter\ItemFactory</argument>
+        </arguments>
+    </type>
     <!-- Core filters OpenFilter keeps (category drill-down) link to canonical filter URLs too. -->
     <type name="Magento\CatalogSearch\Model\Layer\Filter\Category">
         <arguments>
@@ -107,6 +117,8 @@
         <arguments>
             <argument name="filters" xsi:type="array">
                 <item name="attribute" xsi:type="string">Iranimij\OpenFilter\Model\Layer\Filter\Attribute</item>
+                <item name="price" xsi:type="string">Iranimij\OpenFilter\Model\Layer\Filter\Price</item>
+                <item name="decimal" xsi:type="string">Iranimij\OpenFilter\Model\Layer\Filter\Decimal</item>
             </argument>
         </arguments>
     </virtualType>
@@ -114,6 +126,8 @@
         <arguments>
             <argument name="filters" xsi:type="array">
                 <item name="attribute" xsi:type="string">Iranimij\OpenFilter\Model\Layer\Filter\Attribute</item>
+                <item name="price" xsi:type="string">Iranimij\OpenFilter\Model\Layer\Filter\Price</item>
+                <item name="decimal" xsi:type="string">Iranimij\OpenFilter\Model\Layer\Filter\Decimal</item>
             </argument>
         </arguments>
     </virtualType>
@@ -123,5 +137,8 @@
     </type>
     <type name="Magento\Elasticsearch\SearchAdapter\Aggregation\Builder">
         <plugin name="openfilter_facet_counts" type="Iranimij\OpenFilter\Plugin\Search\AggregationBuilderPlugin"/>
+    </type>
+    <type name="Magento\Elasticsearch\SearchAdapter\Aggregation\Builder\Dynamic">
+        <plugin name="openfilter_slider_stats" type="Iranimij\OpenFilter\Plugin\Search\DynamicBucketPlugin"/>
     </type>
 </config>
