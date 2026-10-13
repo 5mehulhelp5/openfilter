@@ -50,6 +50,10 @@ class FilterActions extends Column
                     'href' => $this->urlBuilder->getUrl('openfilter/filter/edit', ['code' => $item['key']]),
                     'label' => __('Edit'),
                 ],
+                'why' => [
+                    'href' => $this->urlBuilder->getUrl('openfilter/filter/edit', ['code' => $item['key'], 'why' => 1]),
+                    'label' => __('Why is it not showing?'),
+                ],
             ];
         }
 

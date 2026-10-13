@@ -7,9 +7,13 @@
 -->
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <head>
+        <css src="Iranimij_OpenFilter::css/why.css"/>
+    </head>
     <body>
         <referenceContainer name="content">
             <uiComponent name="openfilter_filter_form"/>
+            <block class="Magento\Backend\Block\Template" name="openfilter.filter.why.script" template="Iranimij_OpenFilter::filter/why-script.phtml"/>
         </referenceContainer>
     </body>
 </page>

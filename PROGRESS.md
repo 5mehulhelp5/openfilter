@@ -48,8 +48,8 @@ Built as local branches while GitHub is off limits. Stack per repo (bottom first
 | S2 | `getList(SearchCriteria)` + Filters grid (inline edit, Show/Hide/Reset), `is_active` on `openfilter_attribute`, hidden filters leave the storefront | done locally: `feat/m2-s2-grid` |
 | S3 | Filter form (How it looks / behaves / SEO / Labels per store view), option URL names saved as one set, labels reach attribute filters on the storefront | done locally: `feat/m2-s3-form` |
 | S4 | Attribute edit fieldset (saved with the attribute; attribute saves clean OpenFilter's cache) | done locally: `feat/m2-s4-attribute` |
-| S5 | "Why is this filter not showing?" (`Model/Doctor`) | **next** |
-| S6 | First-run notice | open |
+| S5 | "Why is this filter not showing?" (`Model/Doctor`: store view + category checks with fixes, engine mapping and counts), grid row action, `magento/module-ui` requirement | done locally: `feat/m2-s5-why` |
+| S6 | First-run notice | **next** |
 | S7 | Done-when scenario, i18n, docs, screenshots, close | open |
 
 ## M1 slices (local, stacked on `feat/m0-s5-index-fields`)
