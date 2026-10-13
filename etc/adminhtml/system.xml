@@ -25,6 +25,14 @@
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
             </group>
+            <group id="search" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="0" showInStore="0">
+                <label>Search engine</label>
+                <field id="count_strategy" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+                    <label>How filter counts are computed</label>
+                    <comment>Automatic picks the fastest method proven for your search engine. Both methods show the same numbers.</comment>
+                    <source_model>Iranimij\OpenFilter\Model\Config\Source\CountStrategy</source_model>
+                </field>
+            </group>
         </section>
     </system>
 </config>

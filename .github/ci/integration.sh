@@ -31,6 +31,10 @@ composer config --no-plugins allow-plugins.laminas/laminas-dependency-plugin tru
 composer config --no-plugins allow-plugins.dealerdirect/phpcodesniffer-composer-installer true
 composer config --no-plugins allow-plugins.php-http/discovery true
 composer require --no-update --no-interaction "$package:1.0.0"
+# 2.4.7's project does not ship the Elasticsearch 8 engine module; add it for the ES8 leg (2.4.8+ include it).
+if [ "$SEARCH_ENGINE" = elasticsearch8 ] && ! grep -q '"magento/module-elasticsearch-8"' composer.lock 2>/dev/null; then
+  composer require --no-update --no-interaction "magento/module-elasticsearch-8:^101.0"
+fi
 # Composer 2.9 blocks packages with security advisories during resolution; 2.4.7 pins league/flysystem 2.x, so the
 # test project could not be built at all. This only affects the throwaway CI project, never a shop.
 composer config audit.block-insecure false || true
