@@ -31,6 +31,19 @@ composer config --no-plugins allow-plugins.laminas/laminas-dependency-plugin tru
 composer config --no-plugins allow-plugins.dealerdirect/phpcodesniffer-composer-installer true
 composer config --no-plugins allow-plugins.php-http/discovery true
 composer require --no-update --no-interaction "$package:1.0.0"
+# 2.4.7's project does not ship the Elasticsearch 8 engine module; add it for the ES8 leg (2.4.8+ include it).
+if [ "$SEARCH_ENGINE" = elasticsearch8 ] && ! grep -q '"magento/module-elasticsearch-8"' composer.lock 2>/dev/null; then
+  # Its product package requires the Elasticsearch 7 module, whose 7.x client conflicts with ES8's: replace it.
+  php -r '$f = "composer.json"; $c = json_decode(file_get_contents($f), true);
+    $c["replace"] = ($c["replace"] ?? []) + ["magento/module-elasticsearch-7" => "*"];
+    file_put_contents($f, json_encode($c, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n");'
+  composer require --no-update --no-interaction "magento/module-elasticsearch-8:^101.0"
+  # 2.4.7 sorts on _id, which Elasticsearch 8 refuses unless this cluster setting is on (Adobe's 2.4.7 + ES8 note);
+  # without it every catalog search fails and the adapter returns empty results.
+  curl -fsS -XPUT 'localhost:9200/_cluster/settings' -H 'Content-Type: application/json' \
+    -d '{"persistent":{"indices.id_field_data.enabled":true}}'
+  echo
+fi
 # Composer 2.9 blocks packages with security advisories during resolution; 2.4.7 pins league/flysystem 2.x, so the
 # test project could not be built at all. This only affects the throwaway CI project, never a shop.
 composer config audit.block-insecure false || true

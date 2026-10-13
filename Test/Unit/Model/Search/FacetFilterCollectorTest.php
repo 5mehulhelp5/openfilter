@@ -1,0 +1,101 @@
+<?php
+/**
+ * Copyright © Iman Aboheydary. All rights reserved.
+ * See LICENSE for license details (MIT).
+ */
+
+declare(strict_types=1);
+
+namespace Iranimij\OpenFilter\Test\Unit\Model\Search;
+
+use Iranimij\OpenFilter\Model\Search\FacetFilterCollector;
+use Magento\Elasticsearch\SearchAdapter\Filter\Builder as FilterBuilder;
+use Magento\Framework\Search\Request\Aggregation\DynamicBucket;
+use Magento\Framework\Search\Request\Aggregation\TermBucket;
+use Magento\Framework\Search\Request\Filter\Range;
+use Magento\Framework\Search\Request\Filter\Term;
+use Magento\Framework\Search\Request\Query\BoolExpression;
+use Magento\Framework\Search\Request\Query\Filter as FilterQuery;
+use Magento\Framework\Search\Request\Query\MatchQuery;
+use Magento\Framework\Search\RequestInterface;
+use PHPUnit\Framework\TestCase;
+
+class FacetFilterCollectorTest extends TestCase
+{
+    public function testCollectsActiveTermFiltersOfAggregatedFieldsInMustOnly(): void
+    {
+        $collector = new FacetFilterCollector($this->builder());
+        $query = new BoolExpression('catalog_view_container', 1, [
+            'category' => $this->filter(new Term('category_filter', '3', 'category_ids')),
+            'color' => $this->filter(new Term('color_filter', ['1', '2'], 'color')),
+            'nested' => $this->reference('nested', FilterQuery::REFERENCE_QUERY, new BoolExpression('inner', 1, [
+                'size' => $this->filter(new Term('size_filter', '7', 'size')),
+            ])),
+            'price' => $this->filter(new Range('price_filter', 'price', 10, 20)),
+            'search' => new MatchQuery('search', 'shirt', 1, []),
+            'no_bucket' => $this->filter(new Term('sku_filter', 'x', 'sku')),
+        ], [
+            'should_color' => $this->filter(new Term('should_filter', '4', 'material')),
+        ]);
+
+        $filters = $collector->collect($this->request('catalog_view_container', $query));
+
+        self::assertSame(['color', 'size'], array_map(static fn ($f) => $f->getField(), $filters));
+        self::assertSame('color_bucket', $filters[0]->getBucketName());
+        self::assertSame([['terms' => ['color' => ['1', '2']]]], $filters[0]->getClauses());
+    }
+
+    public function testOtherRequestsAreLeftAlone(): void
+    {
+        $query = new BoolExpression('graphql', 1, ['color' => $this->filter(new Term('color_filter', '1', 'color'))]);
+
+        self::assertSame([], (new FacetFilterCollector($this->builder()))->collect($this->request('graphql_product_search', $query)));
+    }
+
+    private function filter(Term|Range $filter): FilterQuery
+    {
+        return $this->reference($filter->getName() . '_query', FilterQuery::REFERENCE_FILTER, $filter);
+    }
+
+    /**
+     * Magento documents the reference as a string; at runtime it is the filter or query object.
+     *
+     * @param string $name
+     * @param string $type
+     * @param object $reference
+     * @return FilterQuery
+     */
+    private function reference(string $name, string $type, object $reference): FilterQuery
+    {
+        /** @var string $reference */
+        return new FilterQuery($name, 1, $type, $reference);
+    }
+
+    private function request(string $name, BoolExpression $query): RequestInterface
+    {
+        $request = $this->createStub(RequestInterface::class);
+        $request->method('getName')->willReturn($name);
+        $request->method('getQuery')->willReturn($query);
+        $request->method('getAggregation')->willReturn([
+            new TermBucket('color_bucket', 'color', []),
+            new TermBucket('size_bucket', 'size', []),
+            new TermBucket('material_bucket', 'material', []),
+            new TermBucket('category_bucket', 'category_ids', []),
+            new DynamicBucket('price_bucket', 'price', 'manual'),
+        ]);
+
+        return $request;
+    }
+
+    private function builder(): FilterBuilder
+    {
+        $builder = $this->createStub(FilterBuilder::class);
+        $builder->method('build')->willReturnCallback(static function (Term $term, string $condition): array {
+            $operator = is_array($term->getValue()) ? 'terms' : 'term';
+
+            return ['bool' => [$condition => [[$operator => [$term->getField() => $term->getValue()]]]]];
+        });
+
+        return $builder;
+    }
+}
