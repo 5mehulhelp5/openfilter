@@ -47,6 +47,21 @@ class Validator
     }
 
     /**
+     * Display types that fit the filter, in the order of FilterConfigInterface::DISPLAY_MODES (for forms).
+     *
+     * @param Filter $config
+     * @param int $optionCount number of options of a select attribute
+     * @return string[]
+     */
+    public function allowedModes(Filter $config, int $optionCount = 0): array
+    {
+        return array_values(array_filter(
+            Filter::DISPLAY_MODES,
+            fn (string $mode): bool => $this->fits($config, $mode, $optionCount)
+        ));
+    }
+
+    /**
      * @param Filter $config
      * @param string $mode
      * @param int $optionCount

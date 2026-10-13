@@ -76,4 +76,23 @@ class ValidatorTest extends TestCase
             self::assertStringContainsString('negative', $e->getMessage());
         }
     }
+
+    public function testAllowedModesListOnlyWhatFits(): void
+    {
+        $defaults = new \Iranimij\OpenFilter\Model\Config\Defaults();
+        $validator = new Validator();
+
+        self::assertSame(
+            ['list', 'swatch', 'dropdown'],
+            $validator->allowedModes($defaults->forAttribute('color', 93, 'select', 'visual', 10), 12)
+        );
+        self::assertSame(
+            ['list', 'toggle', 'dropdown'],
+            $validator->allowedModes($defaults->forAttribute('gift', 95, 'select', null, 10), 2)
+        );
+        self::assertSame(['slider', 'from_to'], $validator->allowedModes($defaults->forBuiltin('price')));
+        self::assertSame(['list', 'rating'], $validator->allowedModes($defaults->forBuiltin('rating')));
+        self::assertSame(['toggle'], $validator->allowedModes($defaults->forBuiltin('sale')));
+        self::assertSame(['slider', 'from_to'], $validator->allowedModes($defaults->forAttribute('weight', 80, 'decimal', null, 10)));
+    }
 }

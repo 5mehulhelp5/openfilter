@@ -169,4 +169,17 @@ class Attribute extends CoreAttribute implements OpenFilterInterface
 
         return $items;
     }
+
+    /**
+     * The filter's label: the merchant's label for this store view (Catalog > OpenFilter > Filters), else core's.
+     *
+     * @return string
+     */
+    public function getName()
+    {
+        $key = $this->getOpenFilterKey();
+        $label = $key === null ? null : $this->context->config($key)?->getLabel();
+
+        return $label !== null && $label !== '' ? $label : (string) parent::getName();
+    }
 }
