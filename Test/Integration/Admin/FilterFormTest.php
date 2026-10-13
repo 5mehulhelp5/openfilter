@@ -64,6 +64,18 @@ class FilterFormTest extends AbstractBackendController
         self::assertStringContainsString('openfilter_filter_form', $body);
         self::assertStringContainsString('"url_name_0":"gruen"', $body);
         self::assertStringContainsString('"option_label":"Blau"', $body);
+        self::assertStringContainsString('Why is this filter not showing?', $body);
+        self::assertStringContainsString('data-of-check=\\"url_names\\"', $body);
+    }
+
+    public function testTheWhyPanelIsPartOfTheFormAndAnswersAsJson(): void
+    {
+        $this->dispatch('backend/openfilter/filter/diagnose/code/' . self::CODE . '/store/' . $this->storeId());
+
+        $checks = json_decode($this->getResponse()->getBody(), true)['checks'] ?? [];
+        $codes = array_column($checks, 'code');
+        self::assertSame(['enabled', 'coexistence', 'shown', 'category_pages', 'search_pages', 'url_names'], array_slice($codes, 0, 6));
+        self::assertTrue($checks[0]['ok']);
     }
 
     public function testAnUnknownFilterGoesBackToTheGrid(): void
