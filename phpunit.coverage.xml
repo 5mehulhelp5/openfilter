@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Coverage job: unit tests against the module's own Composer dependencies (no Magento application).
+     Gate (07 · Build Brief §6): ≥ 85 % on Model/Url, Model/Seo, Model/Search, Model/Config, Model/Index. -->
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.5/phpunit.xsd"
+         colors="true"
+         bootstrap="Test/Unit/bootstrap-standalone.php"
+         cacheDirectory=".phpunit.cache">
+    <testsuites>
+        <testsuite name="Iranimij_OpenFilter unit">
+            <directory>Test/Unit</directory>
+        </testsuite>
+    </testsuites>
+    <source>
+        <include>
+            <directory suffix=".php">Model</directory>
+        </include>
+    </source>
+</phpunit>

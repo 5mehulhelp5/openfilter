@@ -1,0 +1,19 @@
+site_name: OpenFilter
+site_description: Layered navigation for Magento 2 and Hyvä. Free, MIT, Hyvä-native, built on OpenSearch.
+site_url: https://iranimij.github.io/openfilter/
+repo_url: https://github.com/iranimij/openfilter
+edit_uri: edit/main/docs/
+docs_dir: docs
+strict: true
+nav:
+  - Home: index.md
+  - Developers:
+      - Hyvä integration: hyva-integration.md
+      - Facet counts: facet-counts.md
+      - Index fields: index-fields.md
+theme:
+  name: readthedocs
+markdown_extensions:
+  - tables
+  - toc:
+      permalink: true

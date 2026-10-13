@@ -1,0 +1,14 @@
+includes:
+    - ../../bitexpert/phpstan-magento/extension.neon
+parameters:
+    level: 6
+    # Magento core PHPDoc types are often broader or narrower than the runtime values.
+    treatPhpDocTypesAsCertain: false
+    paths:
+        - .
+    excludePaths:
+        - vendor
+        # The integration test framework (Magento\TestFramework) is only autoloadable inside its own bootstrap.
+        - Test/Integration
+        # Fixture classes implement Magento\TestFramework interfaces, autoloadable only inside the integration bootstrap.
+        - Test/Fixture

@@ -1,0 +1,7 @@
+"OpenFilter","OpenFilter"
+"Filters","Filters"
+"General","General"
+"Enable OpenFilter","Enable OpenFilter"
+"Turns OpenFilter's layered navigation on for this scope. When off, Magento's own filters are shown.","Turns OpenFilter's layered navigation on for this scope. When off, Magento's own filters are shown."
+"Debug mode","Debug mode"
+"Adds data-of-* attributes to the filter markup and writes the facet count strategy to var/log/openfilter.log. Keep it off in production.","Adds data-of-* attributes to the filter markup and writes the facet count strategy to var/log/openfilter.log. Keep it off in production."

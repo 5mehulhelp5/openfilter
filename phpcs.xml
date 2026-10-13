@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<ruleset name="Iranimij_OpenFilter">
+    <description>Magento 2 coding standard, zero errors.</description>
+    <rule ref="Magento2"/>
+    <file>.</file>
+    <exclude-pattern>*/vendor/*</exclude-pattern>
+    <exclude-pattern>*/node_modules/*</exclude-pattern>
+    <arg name="extensions" value="php,phtml,xml,js,css"/>
+    <arg name="severity" value="8"/>
+    <arg name="colors"/>
+</ruleset>

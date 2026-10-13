@@ -1,0 +1,29 @@
+name: Compatibility report
+description: Tell us where OpenFilter works (or does not) so the README table stays honest
+labels: [compatibility]
+body:
+  - type: input
+    id: stack
+    attributes:
+      label: Stack
+      placeholder: "Magento 2.4.8-p5 / Mage-OS 1.2, PHP 8.3, Hyvä 1.4.2, OpenFilter 1.0.0"
+    validations:
+      required: true
+  - type: dropdown
+    id: theme
+    attributes:
+      label: Theme
+      options: [Hyvä default, Hyvä child theme, custom theme with the documented fallback, Luma]
+    validations:
+      required: true
+  - type: dropdown
+    id: result
+    attributes:
+      label: Result
+      options: [works out of the box, works with the documented fallback, does not work]
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes (other extensions, Varnish, CSP, MSI)

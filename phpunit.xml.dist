@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Local unit test run from a Magento root: vendor/bin/phpunit -c vendor/iranimij/openfilter/phpunit.xml.dist -->
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.5/phpunit.xsd"
+         colors="true"
+         bootstrap="Test/Unit/bootstrap.php"
+         cacheDirectory=".phpunit.cache">
+    <testsuites>
+        <testsuite name="Iranimij_OpenFilter unit">
+            <directory>Test/Unit</directory>
+        </testsuite>
+    </testsuites>
+    <source>
+        <include>
+            <directory suffix=".php">.</directory>
+        </include>
+        <exclude>
+            <directory>Test</directory>
+            <file>registration.php</file>
+        </exclude>
+    </source>
+</phpunit>

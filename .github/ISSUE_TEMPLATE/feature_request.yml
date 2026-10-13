@@ -1,0 +1,15 @@
+name: Feature request
+description: Suggest something new
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What filter or behaviour do you need and could not build?
+    validations:
+      required: true
+  - type: input
+    id: prior
+    attributes:
+      label: Which paid module has it?
+      description: Link to its public documentation only. Please do not paste code or screenshots of paid extensions.
