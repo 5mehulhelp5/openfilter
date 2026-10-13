@@ -21,6 +21,9 @@ class FilterConfigProvider
 {
     public const CACHE_KEY_PREFIX = 'openfilter_config_';
 
+    /** Key prefix for an attribute whose code equals a built-in code (sample data has "new" and "sale"). */
+    public const ATTRIBUTE_KEY_PREFIX = 'attribute:';
+
     /** @var array<int, array<string, FilterConfig>> */
     private array $loaded = [];
 
@@ -42,7 +45,8 @@ class FilterConfigProvider
      * Every filter of the store view, from the cache or built and cached.
      *
      * @param int $storeId
-     * @return array<string, FilterConfig> by code, in position order
+     * @return array<string, FilterConfig> by code (attributes named like a built-in: "attribute:<code>"),
+     *     in position order
      */
     public function getForStore(int $storeId): array
     {
@@ -55,7 +59,7 @@ class FilterConfigProvider
             $configs = [];
             foreach ($this->json->decode($cached) as $data) {
                 $config = new FilterConfig((array) $data);
-                $configs[$config->getCode()] = $config;
+                $configs[$this->keyOf($config)] = $config;
             }
 
             return $this->loaded[$storeId] = $configs;
@@ -144,9 +148,23 @@ class FilterConfigProvider
         );
         $byCode = [];
         foreach ($configs as $config) {
-            $byCode[$config->getCode()] = $config;
+            $byCode[$this->keyOf($config)] = $config;
         }
 
         return $byCode;
+    }
+
+    /**
+     * Map key of a filter: its code, prefixed for attributes that share a built-in's code.
+     *
+     * @param FilterConfigInterface $config
+     * @return string
+     */
+    public function keyOf(FilterConfigInterface $config): string
+    {
+        $code = $config->getCode();
+        $clash = !$config->isBuiltin() && in_array($code, FilterConfigInterface::BUILTIN_CODES, true);
+
+        return $clash ? self::ATTRIBUTE_KEY_PREFIX . $code : $code;
     }
 }

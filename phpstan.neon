@@ -12,3 +12,8 @@ parameters:
         - Test/Integration
         # Fixture classes implement Magento\TestFramework interfaces, autoloadable only inside the integration bootstrap.
         - Test/Fixture
+    # PHPUnit 12's attribute (used to allow mocks without expectations); PHPUnit 9/10 on Magento 2.4.7/2.4.8 ignore it at
+    # runtime, but the class is not there for analysis.
+    reportUnmatchedIgnoredErrors: false
+    ignoreErrors:
+        - '#Attribute class PHPUnit\\Framework\\Attributes\\AllowMockObjectsWithoutExpectations does not exist#'

@@ -29,7 +29,7 @@ class FilterConfigProviderTest extends TestCase
     protected function setUp(): void
     {
         $this->storage = $this->createMock(FilterConfigStorage::class);
-        $cache = $this->createMock(FrontendInterface::class);
+        $cache = $this->createStub(FrontendInterface::class);
         $cache->method('load')->willReturnCallback(fn (string $key) => $this->cacheData[$key] ?? false);
         $cache->method('save')->willReturnCallback(function (string $data, string $key, array $tags): bool {
             self::assertSame([CacheType::CACHE_TAG], $tags);
@@ -49,6 +49,8 @@ class FilterConfigProviderTest extends TestCase
                 'position' => 10, 'label' => 'Preis'],
             140 => ['attribute_id' => 140, 'code' => 'material', 'input_type' => 'multiselect', 'swatch_type' => null,
                 'position' => 30, 'label' => 'Material'],
+            150 => ['attribute_id' => 150, 'code' => 'new', 'input_type' => 'boolean', 'swatch_type' => null,
+                'position' => 40, 'label' => 'Set Product as New'],
         ]);
         $this->storage->expects(self::once())->method('attributeRows')->willReturn([
             140 => ['attribute_id' => '140', 'display_mode' => 'list', 'multiselect' => '0', 'logic' => 'or',
@@ -66,7 +68,13 @@ class FilterConfigProviderTest extends TestCase
 
         $configs = $this->provider->getForStore(1);
 
-        self::assertSame(['category', 'material', 'price', 'color', 'rating', 'stock', 'sale', 'new'], array_keys($configs));
+        self::assertSame(
+            ['category', 'material', 'price', 'color', 'attribute:new', 'rating', 'stock', 'sale', 'new'],
+            array_keys($configs)
+        );
+        self::assertSame('new', $configs['attribute:new']->getCode());
+        self::assertSame('toggle', $configs['attribute:new']->getDisplayMode());
+        self::assertTrue($configs['new']->isBuiltin());
         self::assertSame('Farbe', $configs['color']->getLabel());
         self::assertSame('swatch', $configs['color']->getDisplayMode());
         self::assertSame(5, $configs['material']->getPosition());
@@ -78,7 +86,7 @@ class FilterConfigProviderTest extends TestCase
         self::assertTrue($configs['stock']->isActive());
         self::assertSame('Auf Lager', $configs['stock']->getLabel());
         self::assertNull($configs['rating']->getLabel());
-        self::assertSame(['category', 'material', 'price', 'color', 'stock'],
+        self::assertSame(['category', 'material', 'price', 'color', 'attribute:new', 'stock'],
             array_keys($this->provider->getActive(1)));
 
         $fresh = new FilterConfigProvider($this->storage, new Defaults(), $this->cachedFrontend(), new SafeJson());

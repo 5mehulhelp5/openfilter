@@ -20,7 +20,7 @@ use Magento\Framework\Exception\NoSuchEntityException;
 interface FilterConfigRepositoryInterface
 {
     /**
-     * @param string $code attribute code or built-in code
+     * @param string $code built-in code or attribute code ("attribute:<code>" for an attribute named like a built-in)
      * @return FilterConfigInterface
      * @throws NoSuchEntityException when no filterable attribute or built-in has this code
      */

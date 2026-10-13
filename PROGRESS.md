@@ -38,8 +38,9 @@ Plan: `~/.claude/plans/pasted-content-id-b16b-read-https-app-n-glittery-aho.md` 
 | # | Slice | State |
 |---|---|---|
 | S1 | Schema (`openfilter_attribute`, `_attribute_store`, `_builtin`, `_builtin_store`), `FilterConfigInterface` + repository, per-store cache (cache type `openfilter`, enabled by a data patch) | done locally: `feat/m1-s1-config` |
-| S2 | Transliterator, slugs, data patches | in progress |
-| S3–S9 | codec, multi-value filters, strategies, stats, built-ins, normaliser + coexistence, budgets | open |
+| S2 | Transliterator, slugs (`openfilter_option_slug`, `_attribute_slug`), slug repository + cached map, observer for new options, patches DefaultFilterConfig / InitialSlugs | done locally: `feat/m1-s2-slugs` |
+| S3 | UrlCodec + FilterState | in progress |
+| S4–S9 | multi-value filters, strategies, stats, built-ins, normaliser + coexistence, budgets | open |
 
 ## M0 decisions (also in the Notion build log at close-out)
 
