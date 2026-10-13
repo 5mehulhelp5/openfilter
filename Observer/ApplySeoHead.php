@@ -10,6 +10,7 @@ namespace Iranimij\OpenFilter\Observer;
 
 use Iranimij\OpenFilter\Model\Layer\LayerContext;
 use Iranimij\OpenFilter\Model\Seo\CanonicalResolver;
+use Iranimij\OpenFilter\Model\Seo\CategoryUrl;
 use Iranimij\OpenFilter\Model\Seo\RobotsResolver;
 use Magento\Catalog\Model\Layer\Resolver as LayerResolver;
 use Magento\Framework\App\RequestInterface;
@@ -41,6 +42,7 @@ class ApplySeoHead implements ObserverInterface
      * @param RequestInterface $request
      * @param LayerResolver $layerResolver
      * @param Escaper $escaper
+     * @param CategoryUrl $categoryUrl
      */
     public function __construct(
         private readonly LayerContext $context,
@@ -49,7 +51,8 @@ class ApplySeoHead implements ObserverInterface
         private readonly PageConfig $pageConfig,
         private readonly RequestInterface $request,
         private readonly LayerResolver $layerResolver,
-        private readonly Escaper $escaper
+        private readonly Escaper $escaper,
+        private readonly CategoryUrl $categoryUrl
     ) {
     }
 
@@ -77,12 +80,12 @@ class ApplySeoHead implements ObserverInterface
         if ($searchPage) {
             return;
         }
-        $categoryUrl = (string) $this->layerResolver->get()->getCurrentCategory()->getUrl();
+        $categoryUrl = $this->categoryUrl->get($this->layerResolver->get()->getCurrentCategory(), $storeId);
         $page = $this->request->getParam('p');
         $url = $this->canonical->resolve(
             $state,
             $indexable,
-            strtok($categoryUrl, '?') ?: $categoryUrl,
+            $categoryUrl,
             is_scalar($page) ? max(1, (int) $page) : 1,
             $storeId
         );
