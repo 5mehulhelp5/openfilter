@@ -8,7 +8,10 @@ declare(strict_types=1);
 
 namespace Iranimij\OpenFilter\Test\Integration\Admin;
 
+use Iranimij\OpenFilter\Model\Admin\FirstRunNotice;
 use Magento\Backend\Model\Menu\Config as MenuConfig;
+use Magento\Framework\FlagManager;
+use Magento\Framework\Notification\MessageList;
 use Magento\TestFramework\TestCase\AbstractBackendController;
 
 /**
@@ -37,5 +40,32 @@ class FiltersPageTest extends AbstractBackendController
         self::assertNotNull($filters);
         self::assertSame('openfilter/filter/index', $filters->getAction());
         self::assertNotNull($menu->get('Magento_Catalog::catalog')?->getChildren()->get('Iranimij_OpenFilter::openfilter'));
+    }
+
+    public function testTheFirstRunNoticeShowsUntilTheDefaultsAreReviewed(): void
+    {
+        $flags = $this->_objectManager->get(FlagManager::class);
+        $flags->deleteFlag(FirstRunNotice::FLAG);
+        $notice = $this->_objectManager->get(MessageList::class)->getMessageByIdentity('openfilter_first_run');
+
+        self::assertNotNull($notice);
+        self::assertTrue($notice->isDisplayed());
+        self::assertStringContainsString('openfilter/filter/index/reviewed/1', $notice->getText());
+
+        $flags->saveFlag(FirstRunNotice::FLAG, '1');
+        self::assertFalse($this->_objectManager->create(FirstRunNotice::class)->isDisplayed());
+        $flags->deleteFlag(FirstRunNotice::FLAG);
+    }
+
+    public function testReviewDefaultsDismissesTheNotice(): void
+    {
+        $flags = $this->_objectManager->get(FlagManager::class);
+        $flags->deleteFlag(FirstRunNotice::FLAG);
+
+        $this->dispatch('backend/openfilter/filter/index/reviewed/1');
+
+        self::assertSame(200, $this->getResponse()->getHttpResponseCode());
+        self::assertSame('1', (string) $flags->getFlagData(FirstRunNotice::FLAG));
+        $flags->deleteFlag(FirstRunNotice::FLAG);
     }
 }
