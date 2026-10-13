@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © Iman Aboheydary. All rights reserved.
+ * See LICENSE for license details (MIT).
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
+    <menu>
+        <add id="Iranimij_OpenFilter::openfilter" title="OpenFilter" translate="title" module="Iranimij_OpenFilter"
+             sortOrder="55" parent="Magento_Catalog::catalog" resource="Iranimij_OpenFilter::openfilter"/>
+        <add id="Iranimij_OpenFilter::filters" title="Filters" translate="title" module="Iranimij_OpenFilter"
+             sortOrder="10" parent="Iranimij_OpenFilter::openfilter" action="openfilter/filter/index"
+             resource="Iranimij_OpenFilter::filters"/>
+        <add id="Iranimij_OpenFilter::settings" title="Settings" translate="title" module="Iranimij_OpenFilter"
+             sortOrder="20" parent="Iranimij_OpenFilter::openfilter" action="adminhtml/system_config/edit/section/openfilter"
+             resource="Iranimij_OpenFilter::config"/>
+    </menu>
+</config>
