@@ -11,6 +11,7 @@
         <arguments>
             <argument name="messages" xsi:type="array">
                 <item name="openfilter_coexistence" xsi:type="string">Iranimij\OpenFilter\Model\Coexistence\AdminNotice</item>
+                <item name="openfilter_first_run" xsi:type="string">Iranimij\OpenFilter\Model\Admin\FirstRunNotice</item>
             </argument>
         </arguments>
     </type>

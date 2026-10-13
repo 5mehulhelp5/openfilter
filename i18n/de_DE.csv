@@ -184,3 +184,4 @@
 "Turn ""Hide when only one option is left"" off, or give products other values.","Schalten Sie „Ausblenden, wenn nur eine Option übrig ist“ aus oder geben Sie Produkten andere Werte."
 "Why is it not showing?","Warum wird er nicht angezeigt?"
 "Why is this filter not showing?","Warum wird dieser Filter nicht angezeigt?"
+"OpenFilter found %1 filterable attributes and set sensible defaults: colours as swatches, sizes as text swatches, price as a slider, other lists as checkbox lists, yes/no attributes as switches. Rating, In stock, On sale and New are off until you switch them on. <a href=""%2"">Review defaults</a>","OpenFilter hat %1 filterbare Attribute gefunden und sinnvolle Standardwerte gesetzt: Farben als Farbfelder, Größen als Textfelder, Preis als Schieberegler, andere Listen als Auswahllisten, Ja/Nein-Attribute als Schalter. Bewertung, Auf Lager, Im Angebot und Neu sind aus, bis Sie sie einschalten. <a href=""%2"">Standardwerte prüfen</a>"
