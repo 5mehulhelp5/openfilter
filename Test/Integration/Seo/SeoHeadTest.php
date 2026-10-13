@@ -10,9 +10,11 @@ namespace Iranimij\OpenFilter\Test\Integration\Seo;
 
 use Iranimij\OpenFilter\Api\FilterConfigRepositoryInterface;
 use Iranimij\OpenFilter\Model\Config\FilterConfigProvider;
+use Iranimij\OpenFilter\Model\Seo\CategoryUrl;
 use Iranimij\OpenFilter\Model\Url\UrlCodec;
 use Iranimij\OpenFilter\Test\Integration\Catalog\M1Catalog;
 use Magento\Catalog\Api\CategoryRepositoryInterface;
+use Magento\Catalog\Model\Category;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\TestFramework\Helper\Bootstrap;
 use Magento\TestFramework\TestCase\AbstractController;
@@ -123,6 +125,28 @@ class SeoHeadTest extends AbstractController
         self::assertSame([], $this->canonicals());
     }
 
+    /**
+     * @magentoCache all enabled
+     */
+    public function testANewCategoryUrlKeyReachesTheCachedCanonical(): void
+    {
+        $om = Bootstrap::getObjectManager();
+        $om->get(CategoryUrl::class)->get($this->category(null), 1); // cached under the old URL
+        $repository = $om->get(CategoryRepositoryInterface::class);
+        $category = $this->category();
+        $old = (string) $category->getUrlKey();
+        $category->setStoreId(0)->setUrlKey('of-m1-renamed')->setData('save_rewrites_history', false);
+        $repository->save($category);
+        try {
+            $this->open([M1Catalog::COLOR => 'red,blue']);
+            self::assertStringEndsWith('of-m1-renamed.html', $this->canonicals()[0] ?? '');
+        } finally {
+            $category = $this->category();
+            $category->setStoreId(0)->setUrlKey($old)->setData('save_rewrites_history', false);
+            $repository->save($category);
+        }
+    }
+
     public function testGermanUrlNamesInTheCanonical(): void
     {
         Bootstrap::getObjectManager()->get(StoreManagerInterface::class)->setCurrentStore(M1Catalog::STORE);
@@ -201,8 +225,19 @@ class SeoHeadTest extends AbstractController
 
     private function categoryUrl(): string
     {
-        return (string) Bootstrap::getObjectManager()->get(CategoryRepositoryInterface::class)
-            ->get(self::$catalog['category'])->getUrl();
+        return (string) $this->category(null)->getUrl();
+    }
+
+    /**
+     * @param int|null $storeId 0 to save default values, null for the current store view
+     */
+    private function category(?int $storeId = 0): Category
+    {
+        /** @var Category $category */
+        $category = Bootstrap::getObjectManager()->create(CategoryRepositoryInterface::class)
+            ->get(self::$catalog['category'], $storeId);
+
+        return $category;
     }
 
     private function repository(): FilterConfigRepositoryInterface
