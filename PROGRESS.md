@@ -4,7 +4,7 @@ Fine-grained checkpoint for the OpenFilter build. Updated after every local slic
 
 ## Current milestone
 
-**M2 · Admin: in progress locally, 2026-10-13 (started 11:10, inside working hours).** Plan `~/.claude/plans/pasted-content-id-0cbc-read-https-app-n-deep-muffin.md` (approved; Iman's three questions taken with the recommendations); ledger `openfilter-dev-env/modules/M2-ledger.md`. Stack `feat/m2-s1-config` → … on `feat/m1-s9-close`; dev-env `test/m2-e2e` on `test/m1-e2e`. After 18:00: M0 S7, then the M1 push (below), then push the M2 stack.
+**M2 · Admin: all slices done locally (S1–S7), 2026-10-13 ~12:45, inside working hours.** Plan `~/.claude/plans/pasted-content-id-0cbc-read-https-app-n-deep-muffin.md` (approved; Iman's three questions taken with the recommendations); ledger `openfilter-dev-env/modules/M2-ledger.md`. Stack `feat/m2-s1-config` → `s2-grid` → `s3-form` → `s4-attribute` → `s5-why` → `s6-first-run` → `s7-close` on `feat/m1-s9-close`; dev-env `test/m2-e2e` on `test/m1-e2e`. M2's "done when" holds locally: Playwright admin specs pass (11) and the automated merchant scenario turns colour into a multi-select swatch filter with a search box in **4.9 s** (limit 120 s), with the storefront link for a second colour keeping the first. Waiting for after hours: M0 S7, the M1 push, then the M2 push (below).
 
 **M1 · Search engine core: all slices done locally (S1–S9), 2026-10-13 11:10, inside working hours.** Waiting for after hours: M0 S7, then the M1 push (below). M1's "done when" holds locally: counts = brute force (and = an engine-independent catalog model) on simple and configurable products, 3 customer groups, 2 store views, category and search pages, both strategies; a category page with 3 active filters costs 1 search request (SingleQuery) and 0 extra MySQL queries (`BudgetTest`). CI confirmation after hours.
 
@@ -38,7 +38,12 @@ Built as local branches while GitHub is off limits. Stack per repo (bottom first
 **M1 push, right after M0 S7 (same evening, still after hours):**
 5. openfilter: push the stack `feat/m1-s1-config` → `s2-slugs` → `s3-codec` → `s4-layer-filters` → `s5-strategies` → `s6-stats` → `s7-builtins` → `s8-normaliser` → `s9-close` (each based on the previous; S1 based on `feat/m0-s5-index-fields`, retargeted to `main` once M0 is merged); one PR per slice into the GitHub milestone "M1 Search engine core". dev-env: push `test/m1-e2e` (based on `test/m0-e2e`).
 6. `gh workflow run CI --ref feat/m1-s9-close` (full matrix: Model/Search, Model/Index, Model/Layer touched); the M1 rows of `docs/facet-counts.md` get the CI run link. If a leg fails on 2.4.7/2.4.8 or ES8, fix on the lowest slice that introduced it and rebase the stack.
-7. Merge in order after green (retarget each next PR to `main` before merging its base; never delete a branch another open PR uses as its base), e2e on dev-env green, update this file and the build log, then stop. M2 starts in a new chat.
+7. Merge in order after green (retarget each next PR to `main` before merging its base; never delete a branch another open PR uses as its base), e2e on dev-env green, update this file and the build log.
+
+**M2 push, right after the M1 merge (same evening, still after hours; Iman: merge M2 too when CI is green):**
+8. Rebase `feat/m2-s1-config` … `feat/m2-s7-close` onto `main` (`git rebase --onto main feat/m1-s9-close feat/m2-s1-config`, then each next slice onto the previous), and dev-env `test/m2-e2e` onto dev-env `main`; rerun unit + PHPCS + PHPStan locally after the rebase.
+9. Push the stack, one PR per slice into GitHub milestone "M2 Admin" (S1 based on `main`, each next on the previous); PR CI on each; `gh workflow run CI --ref feat/m2-s7-close` once (full matrix: no Model/Search|Index|Layer change except the FilterList plugin's hidden-filter check in `Plugin/Layer` and `Model/Layer` label names, so the full matrix is required by 07 §5).
+10. Merge in order after green, e2e on dev-env green (incl. admin specs), update this file and the build log, M2 report with CI links. M3 starts in a new chat.
 
 ## M2 slices (local, stacked on `feat/m1-s9-close`)
 
@@ -50,7 +55,7 @@ Built as local branches while GitHub is off limits. Stack per repo (bottom first
 | S4 | Attribute edit fieldset (saved with the attribute; attribute saves clean OpenFilter's cache) | done locally: `feat/m2-s4-attribute` |
 | S5 | "Why is this filter not showing?" (`Model/Doctor`: store view + category checks with fixes, engine mapping and counts), grid row action, `magento/module-ui` requirement | done locally: `feat/m2-s5-why` |
 | S6 | First-run notice (system message until "Review defaults") | done locally: `feat/m2-s6-first-run` |
-| S7 | Done-when scenario, i18n, docs, screenshots, close | **next** |
+| S7 | Done-when scenario (4.9 s), docs `admin.md`, screenshots `docs/m2-screenshots` (6), i18n en_US + de_DE complete, close | done locally: `feat/m2-s7-close`; dev-env `test/m2-e2e` |
 
 ## M1 slices (local, stacked on `feat/m0-s5-index-fields`)
 
@@ -93,14 +98,16 @@ Plan: `~/.claude/plans/pasted-content-id-b16b-read-https-app-n-glittery-aho.md` 
 
 | Repo | Unit | Integration | Other |
 |---|---|---|---|
+| openfilter (M2 local) | 244 / 953 assertions | 109 / 376 on 2.4.9 + OpenSearch 2.5 (M1 72 + Admin 37: settings 3, page/menu/ACL/first-run 5, grid 9, form 9, attribute fieldset 6, diagnosis 5) | PHPCS zero, PHPStan 6 clean, coverage Search 90.6 % / Config 95.6 % / Url 99.4 % / Index 100 % / Doctor 99.2 % (gate ≥ 85 %, Model/Doctor added), mkdocs --strict ok, `setup:di:compile` ok |
 | openfilter (M1 local) | 171 / 565 assertions | 72 / 254 on 2.4.9 + OpenSearch 2.5 (M0 26, config 4, slugs 5, layer 2, M1 counts 9, sliders 5, built-ins 6, normalisation + coexistence 10, budget 5) | PHPCS zero, PHPStan 6 clean, coverage Search 90.6 % / Config 100 % / Url 99.3 % / Index 100 % (gate ≥ 85 %), mkdocs --strict ok, `setup:di:compile` ok |
 | openfilter (M0 local) | 24 / 105 assertions | 26 / 58 (skeleton 4, DisjunctiveCounts 18, IndexHooks 4) on 2.4.9 + OpenSearch 2.5 | PHPCS zero, PHPStan 6 clean, coverage `Model` 99.2 % (gate ≥ 85 % on Model/Search, Model/Config), mkdocs --strict ok |
 | openfilter-hyva (M0 local) | 4 / 21 | 1 / 3 | PHPCS zero, PHPStan 6 clean |
-| openfilter-dev-env | — | — | Playwright 18 (17 desktop: smoke 6, hyva-layered-nav 5, facet-counts 1, m1-filters 5; admin login setup 1); screenshots project 4 (not a gate); M1 screenshots `docs/m1-screenshots` (4) |
+| openfilter-dev-env (M2) | — | — | Playwright 29 (17 desktop + admin setup 1 + admin 11: m2-config 1, m2-grid 4, m2-filter-form 3, m2-attribute 1, m2-why 1, m2-colour-swatch 1); M2 screenshots `docs/m2-screenshots` (6) |
+| openfilter-dev-env (M1) | — | — | Playwright 18 (17 desktop: smoke 6, hyva-layered-nav 5, facet-counts 1, m1-filters 5; admin login setup 1); screenshots project 4 (not a gate); M1 screenshots `docs/m1-screenshots` (4) |
 
 ## Open questions for Iman
 
-None blocking. FYI: the M0 and M1 "done when" CI checks (full matrix) can only run after 18:00. The three M1 questions were answered with the recommendations; say so if you want another choice (tax per product class, a hard time gate now, or a price range list on stock Hyvä).
+None blocking. M2: Iman's three questions taken with the recommendations (`is_active` on `openfilter_attribute`; `getList` + `FilterConfigSearchResultsInterface`, `getAll()` kept; merge M2 tonight when green). Iman asked (12:05) whether competitors were compared and whether OpenFilter goes beyond them: answered (research + 03 · Feature Superset, public docs only; 1.0 = parity + unique edges by design, 1.1/1.2 carry the superset); pulling 1.1 items into 1.0 is his call. FYI: the M0 and M1 "done when" CI checks (full matrix) can only run after 18:00. The three M1 questions were answered with the recommendations; say so if you want another choice (tax per product class, a hard time gate now, or a price range list on stock Hyvä).
 
 ## Known failing or skipped tests
 
@@ -108,7 +115,7 @@ None blocking. FYI: the M0 and M1 "done when" CI checks (full matrix) can only r
 
 ## Fixture gotchas (see openfilter-dev-env README)
 
-Docker has 7.6 GB: stop the `openlabel` stack (`warden env stop` in openlabel-dev-env) before starting `openfilter`; never run integration tests and Playwright at once. After `warden env up` of a new env, Traefik may answer "404 page not found" until `docker restart traefik`. After `setup:di:compile` (e.g. `bin/install-modules`), delete `generated/metadata` before integration tests or the sandbox install fails. Composer `--no-plugins` in the container; OpenSearch pinned to 2.5.0 (Apple Silicon); CSP enforce flag set via SQL. Stock Hyvä 1.4 filter groups use `x-defer="intersect"`: Playwright must scroll a group into view before opening it. Local PHPStan: `vendor/bin/phpstan analyse -c modules/phpstan-local.neon` in php-fpm (php-debug lacks the generated code); new factories need `setup:di:compile` first. The fixture runs uncompiled DI from the config cache: after editing `di.xml`, `bin/magento cache:flush` (a stale merged config showed "Cannot instantiate interface … FrontendInterface"). Coverage locally: `XDEBUG_MODE=coverage` in `php-debug`. The host has no `var/`: pipe one-off PHP scripts through stdin (`warden env exec -T php-fpm bash -lc 'cd /var/www/html && php' < script.php`).
+Docker has 7.6 GB: stop the `openlabel` stack (`warden env stop` in openlabel-dev-env) before starting `openfilter`; never run integration tests and Playwright at once. After `warden env up` of a new env, Traefik may answer "404 page not found" until `docker restart traefik`. After `setup:di:compile` (e.g. `bin/install-modules`), delete `generated/metadata` before integration tests or the sandbox install fails. Composer `--no-plugins` in the container; OpenSearch pinned to 2.5.0 (Apple Silicon); CSP enforce flag set via SQL. Stock Hyvä 1.4 filter groups use `x-defer="intersect"`: Playwright must scroll a group into view before opening it. Local PHPStan: `vendor/bin/phpstan analyse -c modules/phpstan-local.neon` in php-fpm (php-debug lacks the generated code); new factories need `setup:di:compile` first. The fixture runs uncompiled DI from the config cache: after editing `di.xml`, `bin/magento cache:flush` (a stale merged config showed "Cannot instantiate interface … FrontendInterface"). Coverage locally: `XDEBUG_MODE=coverage` in `php-debug` with `phpunit.xml.dist` (`phpunit.coverage.xml` is CI's standalone run). After changing a controller's constructor or return type, delete `generated/code/Iranimij/OpenFilter` and `dev/tests/integration/tmp/sandbox-*/generated/code/Iranimij` (stale interceptors). Admin Playwright specs snapshot and restore the OpenFilter tables; run `--project=admin-chromium` (serial). The host has no `var/`: pipe one-off PHP scripts through stdin (`warden env exec -T php-fpm bash -lc 'cd /var/www/html && php' < script.php`).
 
 ## Last CI run
 

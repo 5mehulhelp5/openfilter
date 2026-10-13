@@ -40,7 +40,7 @@ class Index extends Action implements HttpGetActionInterface
      */
     public function execute(): Page
     {
-        if ($this->getRequest()->getParam('reviewed')) {
+        if ($this->getRequest()->getParam('reviewed') && !$this->flags->getFlagData(FirstRunNotice::FLAG)) {
             $this->flags->saveFlag(FirstRunNotice::FLAG, '1');
         }
         /** @var Page $page adminhtml pages are backend pages */
