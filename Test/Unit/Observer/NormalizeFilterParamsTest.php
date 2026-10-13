@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace Iranimij\OpenFilter\Test\Unit\Observer;
 
+use Iranimij\OpenFilter\Model\Config;
 use Iranimij\OpenFilter\Model\Layer\LayerContext;
 use Iranimij\OpenFilter\Model\Seo\MaxFiltersGuard;
 use Iranimij\OpenFilter\Model\Url\FilterState;
@@ -22,10 +23,19 @@ use Magento\Framework\Event;
 use Magento\Framework\Event\Observer;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
 #[AllowMockObjectsWithoutExpectations]
 class NormalizeFilterParamsTest extends TestCase
 {
+    private LoggerInterface $logger;
+
+    protected function setUp(): void
+    {
+        $this->logger = new NullLogger();
+    }
+
     public function testRedirectsWithThePageKeptWhenOnlyTheOrderChanged(): void
     {
         $response = $this->createMock(HttpResponse::class);
@@ -84,6 +94,9 @@ class NormalizeFilterParamsTest extends TestCase
         $flag = $this->createMock(ActionFlag::class);
         $flag->expects(self::once())->method('set')->with('', ActionInterface::FLAG_NO_DISPATCH, '1');
 
+        $this->logger = $this->createMock(LoggerInterface::class);
+        $this->logger->expects(self::once())->method('info')
+            ->with(self::stringContains('max values guard: 1 values requested, 302 to canonical|'));
         // Even a canonical URL is cut: the guard comes before the normaliser, one hop to the final URL.
         $this->observer(
             ['redirect' => false, 'changed' => false, 'drop' => ['price_from', 'price_to']],
@@ -105,7 +118,7 @@ class NormalizeFilterParamsTest extends TestCase
         ?FilterState $truncated = null
     ): NormalizeFilterParams {
         $normalizer = $this->createStub(ParamNormalizer::class);
-        $normalizer->method('check')->willReturn($result + ['state' => new FilterState()]);
+        $normalizer->method('check')->willReturn($result + ['state' => new FilterState(['color' => ['1']])]);
         $context = $this->createStub(LayerContext::class);
         $context->method('isActive')->willReturn($active);
         $context->method('urlFor')->willReturnCallback(
@@ -115,7 +128,10 @@ class NormalizeFilterParamsTest extends TestCase
         $guard = $this->createStub(MaxFiltersGuard::class);
         $guard->method('truncate')->willReturn($truncated);
 
-        return new NormalizeFilterParams($normalizer, $context, $flag, $response, $guard);
+        $config = $this->createStub(Config::class);
+        $config->method('isDebug')->willReturn(true);
+
+        return new NormalizeFilterParams($normalizer, $context, $flag, $response, $guard, $config, $this->logger);
     }
 
     /**
