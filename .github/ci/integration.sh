@@ -63,5 +63,7 @@ cp phpunit.xml.dist phpunit.xml
 echo "::endgroup::"
 
 echo "::group::Integration tests"
-php -d memory_limit=-1 ../../../vendor/bin/phpunit -c phpunit.xml "../../../vendor/$package/Test/Integration"
+# PHPUNIT_GROUPS: "--exclude-group performance" for the matrix (default), "--group performance" for the timing job.
+# shellcheck disable=SC2086
+php -d memory_limit=-1 ../../../vendor/bin/phpunit -c phpunit.xml ${PHPUNIT_GROUPS:---exclude-group performance} "../../../vendor/$package/Test/Integration"
 echo "::endgroup::"
