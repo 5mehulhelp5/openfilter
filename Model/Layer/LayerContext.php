@@ -187,7 +187,8 @@ class LayerContext
                 $keep[$name] = (string) $value;
             }
         }
-        $base = $this->url->getUrl('*/*/*', ['_use_rewrite' => true, '_current' => false]);
+        // _current keeps route parameters (catalog/category/view/id/12 without a URL rewrite); the query goes.
+        $base = $this->url->getUrl('*/*/*', ['_use_rewrite' => true, '_current' => true]);
 
         return $this->codec->urlFor($state, strtok($base, '?') ?: $base, $keep, $storeId);
     }

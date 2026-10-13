@@ -44,8 +44,8 @@ Plan: `~/.claude/plans/pasted-content-id-b16b-read-https-app-n-glittery-aho.md` 
 | S5 | M1 catalog fixture (simple + configurable, 3 groups, 2 store views), counts = brute force = catalog model for both strategies on category and search pages, `var/log/openfilter.log` channel | done locally: `feat/m1-s5-strategies` |
 | S6 | Price + decimal sliders: range filters are facet filters, bounds from the same request (`DynamicBucketPlugin`), display currency + tax (`PriceBoundsConverter`), OpenFilter `Price`/`Decimal` filters (core fallback when off) | done locally: `feat/m1-s6-stats` |
 | S7 | Built-ins: rating, in stock (MSI-aware), on sale per group/website, new (query-time dates); index providers + mapping; clauses + counts in the same request as facet filters; reindex triggers | done locally: `feat/m1-s7-builtins` |
-| S8 | 301 normaliser + coexistence | in progress |
-| S9 | strategies, stats, built-ins, normaliser + coexistence, budgets | open |
+| S8 | `ParamNormalizer` + predispatch observer: 301 to canonical filter URLs on category/search pages (GET/HEAD, sort kept, page reset only when values were dropped); coexistence `Detector` (ElasticSuite, Live Search) switches OpenFilter off via `Config::isEnabled()` + admin notice | done locally: `feat/m1-s8-normaliser` |
+| S9 | Budgets, coverage, docs, Playwright, close | in progress |
 
 ## M0 decisions (also in the Notion build log at close-out)
 

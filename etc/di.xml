@@ -20,6 +20,11 @@
     <preference for="Iranimij\OpenFilter\Api\FilterStateInterface" type="Iranimij\OpenFilter\Model\Url\FilterState"/>
 
     <type name="Iranimij\OpenFilter\Model\Search\QueryState" shared="true"/>
+    <type name="Iranimij\OpenFilter\Model\Config">
+        <arguments>
+            <argument name="detector" xsi:type="object">Iranimij\OpenFilter\Model\Coexistence\Detector</argument>
+        </arguments>
+    </type>
 
     <type name="Iranimij\OpenFilter\Model\Config\FilterConfigProvider">
         <arguments>
