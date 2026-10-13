@@ -7,10 +7,17 @@ docs_dir: docs
 strict: true
 nav:
   - Home: index.md
+  - Install: install.md
   - Filters: filters.md
   - Admin: admin.md
   - Storefront: storefront.md
   - Filter URLs: url-format.md
+  - SEO rules: seo.md
+  - Command line: cli.md
+  - Import and export: import-export.md
+  - Troubleshooting: troubleshooting.md
+  - Other search modules: coexistence.md
+  - Upgrade and uninstall: upgrade-uninstall.md
   - Developers:
       - Hyvä integration: hyva-integration.md
       - Facet counts: facet-counts.md
