@@ -4,6 +4,8 @@ Fine-grained checkpoint for the OpenFilter build. Updated after every local slic
 
 ## Current milestone
 
+**M2 · Admin: in progress locally, 2026-10-13 (started 11:10, inside working hours).** Plan `~/.claude/plans/pasted-content-id-0cbc-read-https-app-n-deep-muffin.md` (approved; Iman's three questions taken with the recommendations); ledger `openfilter-dev-env/modules/M2-ledger.md`. Stack `feat/m2-s1-config` → … on `feat/m1-s9-close`; dev-env `test/m2-e2e` on `test/m1-e2e`. After 18:00: M0 S7, then the M1 push (below), then push the M2 stack.
+
 **M1 · Search engine core: all slices done locally (S1–S9), 2026-10-13 11:10, inside working hours.** Waiting for after hours: M0 S7, then the M1 push (below). M1's "done when" holds locally: counts = brute force (and = an engine-independent catalog model) on simple and configurable products, 3 customer groups, 2 store views, category and search pages, both strategies; a category page with 3 active filters costs 1 search request (SingleQuery) and 0 extra MySQL queries (`BudgetTest`). CI confirmation after hours.
 
 **M0 · Foundation + search spike: local slices done (S0–S6), S7 (after hours) open.** Started 2026-10-13 08:30, full-run mode ("don't ask, make the plan and start"); plan `~/.claude/plans/i-wanna-create-a-elegant-comet.md`; ledger `openfilter-dev-env/modules/M0-ledger.md`. M0's "done when" needs CI green on the full matrix with OpenSearch, which can only run after 18:00.
@@ -37,6 +39,18 @@ Built as local branches while GitHub is off limits. Stack per repo (bottom first
 5. openfilter: push the stack `feat/m1-s1-config` → `s2-slugs` → `s3-codec` → `s4-layer-filters` → `s5-strategies` → `s6-stats` → `s7-builtins` → `s8-normaliser` → `s9-close` (each based on the previous; S1 based on `feat/m0-s5-index-fields`, retargeted to `main` once M0 is merged); one PR per slice into the GitHub milestone "M1 Search engine core". dev-env: push `test/m1-e2e` (based on `test/m0-e2e`).
 6. `gh workflow run CI --ref feat/m1-s9-close` (full matrix: Model/Search, Model/Index, Model/Layer touched); the M1 rows of `docs/facet-counts.md` get the CI run link. If a leg fails on 2.4.7/2.4.8 or ES8, fix on the lowest slice that introduced it and rebase the stack.
 7. Merge in order after green (retarget each next PR to `main` before merging its base; never delete a branch another open PR uses as its base), e2e on dev-env green, update this file and the build log, then stop. M2 starts in a new chat.
+
+## M2 slices (local, stacked on `feat/m1-s9-close`)
+
+| # | Slice | State |
+|---|---|---|
+| S1 | System config (AJAX, filters open by default, price step, nofollow threshold, max active values; full_page invalidated on change; server-side number validation), menu Catalog › OpenFilter › Filters / Settings, admin route | done locally: `feat/m2-s1-config` |
+| S2 | `getList(SearchCriteria)` + Filters grid (inline edit, Show/Hide/Reset), `is_active` on `openfilter_attribute` | **next** |
+| S3 | Filter form (How it looks / behaves / SEO / Labels per store view), option URL names saved as one set | open |
+| S4 | Attribute edit fieldset | open |
+| S5 | "Why is this filter not showing?" (`Model/Doctor`) | open |
+| S6 | First-run notice | open |
+| S7 | Done-when scenario, i18n, docs, screenshots, close | open |
 
 ## M1 slices (local, stacked on `feat/m0-s5-index-fields`)
 
