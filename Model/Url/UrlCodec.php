@@ -1,0 +1,230 @@
+<?php
+/**
+ * Copyright © Iman Aboheydary. All rights reserved.
+ * See LICENSE for license details (MIT).
+ */
+
+declare(strict_types=1);
+
+namespace Iranimij\OpenFilter\Model\Url;
+
+use Iranimij\OpenFilter\Api\Data\FilterConfigInterface as Filter;
+use Iranimij\OpenFilter\Api\FilterStateInterface;
+use Iranimij\OpenFilter\Api\UrlCodecInterface;
+use Iranimij\OpenFilter\Model\Config\FilterConfigProvider;
+
+/**
+ * Query parameters <-> filter state (Spec UrlCodec). Reads only the cached config and URL names: no SQL.
+ */
+class UrlCodec implements UrlCodecInterface
+{
+    public const TYPE_OPTIONS = 'options';
+    public const TYPE_BOOLEAN = 'boolean';
+    public const TYPE_RANGE = 'range';
+    public const TYPE_RATING = 'rating';
+    public const TYPE_TOGGLE = 'toggle';
+
+    /**
+     * @var array<int, array<string, array{param: string, type: string, multiselect: bool,
+     *     options: array<int, string>, bySlug: array<string, int>}>>
+     */
+    private array $lookups = [];
+
+    /**
+     * @param FilterConfigProvider $configProvider
+     * @param SlugProvider $slugProvider
+     * @param Range $range
+     */
+    public function __construct(
+        private readonly FilterConfigProvider $configProvider,
+        private readonly SlugProvider $slugProvider,
+        private readonly Range $range
+    ) {
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function decode(array $params, int $storeId): FilterStateInterface
+    {
+        $values = [];
+        foreach ($this->lookup($storeId) as $key => $filter) {
+            $raw = $params[$filter['param']] ?? null;
+            if (is_array($raw)) {
+                $raw = implode(',', array_filter($raw, 'is_scalar'));
+            }
+            if (!is_scalar($raw)) {
+                continue;
+            }
+            $tokens = array_values(array_filter(
+                array_map(static fn (string $t): string => strtolower(trim($t)), explode(',', (string) $raw)),
+                static fn (string $t): bool => $t !== ''
+            ));
+            $decoded = $this->decodeTokens($filter, $tokens);
+            if ($decoded !== []) {
+                $values[$key] = $decoded;
+            }
+        }
+
+        return new FilterState($values);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function encode(FilterStateInterface $state, int $storeId): array
+    {
+        $params = [];
+        foreach ($this->lookup($storeId) as $key => $filter) {
+            $values = $state->get($key);
+            if ($values === []) {
+                continue;
+            }
+            if ($filter['type'] === self::TYPE_OPTIONS) {
+                $position = array_flip(array_keys($filter['options']));
+                usort($values, static fn (string $a, string $b): int =>
+                    [$position[(int) $a] ?? PHP_INT_MAX, (int) $a] <=> [$position[(int) $b] ?? PHP_INT_MAX, (int) $b]);
+                $values = array_map(static fn (string $id): string => $filter['options'][(int) $id] ?? $id, $values);
+            }
+            $params[$filter['param']] = implode(',', $values);
+        }
+
+        return $params;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getParameterNames(int $storeId): array
+    {
+        $names = [];
+        foreach ($this->lookup($storeId) as $key => $filter) {
+            $names[$filter['param']] = $key;
+        }
+
+        return $names;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function urlFor(FilterStateInterface $state, string $baseUrl, array $keep, int $storeId): string
+    {
+        $params = $this->encode($state, $storeId);
+        foreach (array_diff_key($keep, $this->getParameterNames($storeId)) as $name => $value) {
+            $params[(string) $name] = (string) $value;
+        }
+        if ($params === []) {
+            return $baseUrl;
+        }
+        $query = [];
+        foreach ($params as $name => $value) {
+            $query[] = rawurlencode($name) . '=' . str_replace('%2C', ',', rawurlencode($value));
+        }
+
+        return $baseUrl . (str_contains($baseUrl, '?') ? '&' : '?') . implode('&', $query);
+    }
+
+    /**
+     * Forgets the per-store lookups (after a config or URL name change in the same process).
+     *
+     * @return void
+     */
+    public function reset(): void
+    {
+        $this->lookups = [];
+    }
+
+    /**
+     * @param array{param: string, type: string, multiselect: bool, options: array<int, string>,
+     *     bySlug: array<string, int>} $filter
+     * @param string[] $tokens
+     * @return string[]
+     */
+    private function decodeTokens(array $filter, array $tokens): array
+    {
+        if ($tokens === []) {
+            return [];
+        }
+        switch ($filter['type']) {
+            case self::TYPE_OPTIONS:
+                $ids = [];
+                foreach ($tokens as $token) {
+                    $id = $filter['bySlug'][$token]
+                        ?? (ctype_digit($token) && isset($filter['options'][(int) $token]) ? (int) $token : null);
+                    if ($id !== null) {
+                        $ids[(string) $id] = (string) $id;
+                    }
+                }
+                $ids = array_values($ids);
+
+                return $filter['multiselect'] ? $ids : array_slice($ids, 0, 1);
+            case self::TYPE_BOOLEAN:
+                return in_array($tokens[0], ['0', '1'], true) ? [$tokens[0]] : [];
+            case self::TYPE_RANGE:
+                $range = $this->range->normalise($tokens[0]);
+
+                return $range === null ? [] : [$range];
+            case self::TYPE_RATING:
+                return ctype_digit($tokens[0]) ? [(string) min(5, max(1, (int) $tokens[0]))] : [];
+            default:
+                return $tokens[0] === '1' ? ['1'] : [];
+        }
+    }
+
+    /**
+     * Parameter, type and option names of every active filter, in position order.
+     *
+     * @param int $storeId
+     * @return array<string, array{param: string, type: string, multiselect: bool, options: array<int, string>,
+     *     bySlug: array<string, int>}>
+     */
+    private function lookup(int $storeId): array
+    {
+        if (isset($this->lookups[$storeId])) {
+            return $this->lookups[$storeId];
+        }
+        $slugs = $this->slugProvider->forStore($storeId);
+        $lookup = [];
+        foreach ($this->configProvider->getActive($storeId) as $key => $config) {
+            $type = $this->typeOf($config);
+            if ($type === null) {
+                continue;
+            }
+            $attributeId = (int) $config->getAttributeId();
+            $options = $type === self::TYPE_OPTIONS ? ($slugs['options'][$attributeId] ?? []) : [];
+            $lookup[$key] = [
+                'param' => $config->isBuiltin() ? $config->getCode()
+                    : ($slugs['attributes'][$attributeId] ?? $config->getCode()),
+                'type' => $type,
+                'multiselect' => $config->isMultiselect(),
+                'options' => $options,
+                'bySlug' => array_flip($options),
+            ];
+        }
+
+        return $this->lookups[$storeId] = $lookup;
+    }
+
+    /**
+     * @param Filter $config
+     * @return string|null null for filters the codec does not handle (category: core's `cat`)
+     */
+    private function typeOf(Filter $config): ?string
+    {
+        if ($config->isBuiltin()) {
+            return match ($config->getCode()) {
+                Filter::BUILTIN_PRICE => self::TYPE_RANGE,
+                Filter::BUILTIN_RATING => self::TYPE_RATING,
+                Filter::BUILTIN_CATEGORY => null,
+                default => self::TYPE_TOGGLE,
+            };
+        }
+
+        return match ($config->getInputType()) {
+            'decimal' => self::TYPE_RANGE,
+            'boolean' => self::TYPE_BOOLEAN,
+            default => self::TYPE_OPTIONS,
+        };
+    }
+}

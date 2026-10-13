@@ -89,7 +89,7 @@ class SlugStorage
     }
 
     /**
-     * Effective option slugs of every attribute in a store view.
+     * Effective option slugs of every attribute in a store view, in option sort order (the canonical value order).
      *
      * @param int $storeId
      * @return array<int, array<int, string>> attribute id => option id => slug
@@ -97,9 +97,11 @@ class SlugStorage
     public function optionSlugsForStore(int $storeId): array
     {
         $connection = $this->connection();
-        $select = $connection->select()->from($this->table(self::TABLE_OPTION))
-            ->where('store_id IN (?)', array_unique([0, $storeId]))
-            ->order(['store_id ASC', 'attribute_id ASC', 'option_id ASC']);
+        $select = $connection->select()
+            ->from(['s' => $this->table(self::TABLE_OPTION)])
+            ->join(['o' => $this->table('eav_attribute_option')], 'o.option_id = s.option_id', [])
+            ->where('s.store_id IN (?)', array_unique([0, $storeId]))
+            ->order(['s.store_id ASC', 's.attribute_id ASC', 'o.sort_order ASC', 's.option_id ASC']);
         $slugs = [];
         foreach ($connection->fetchAll($select) as $row) {
             $slugs[(int) $row['attribute_id']][(int) $row['option_id']] = (string) $row['slug'];
