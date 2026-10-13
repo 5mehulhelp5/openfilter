@@ -10,7 +10,7 @@ namespace Iranimij\OpenFilter\Setup\Patch\Data;
 
 use Iranimij\OpenFilter\Api\Data\FilterConfigInterface;
 use Iranimij\OpenFilter\Model\Config\Defaults;
-use Iranimij\OpenFilter\Model\Config\FilterConfigStorage;
+use Iranimij\OpenFilter\Model\ResourceModel\FilterConfigStorage;
 use Magento\Framework\Setup\Patch\DataPatchInterface;
 
 /**

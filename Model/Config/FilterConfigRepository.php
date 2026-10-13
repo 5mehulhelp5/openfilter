@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace Iranimij\OpenFilter\Model\Config;
 
+use Iranimij\OpenFilter\Model\ResourceModel\FilterConfigStorage;
 use Iranimij\OpenFilter\Api\Data\FilterConfigInterface;
 use Iranimij\OpenFilter\Api\FilterConfigRepositoryInterface;
 use Magento\Framework\App\Cache\TypeListInterface;

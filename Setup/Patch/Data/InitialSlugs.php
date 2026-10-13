@@ -9,9 +9,9 @@ declare(strict_types=1);
 namespace Iranimij\OpenFilter\Setup\Patch\Data;
 
 use Iranimij\OpenFilter\Api\SlugRepositoryInterface;
-use Iranimij\OpenFilter\Model\Config\FilterConfigStorage;
+use Iranimij\OpenFilter\Model\ResourceModel\FilterConfigStorage;
 use Iranimij\OpenFilter\Model\Url\SlugProvider;
-use Iranimij\OpenFilter\Model\Url\SlugStorage;
+use Iranimij\OpenFilter\Model\ResourceModel\SlugStorage;
 use Magento\Framework\Setup\Patch\DataPatchInterface;
 
 /**

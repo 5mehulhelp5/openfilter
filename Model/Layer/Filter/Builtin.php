@@ -124,9 +124,11 @@ class Builtin extends AbstractFilter implements OpenFilterInterface
      */
     private function label(string $value): string
     {
-        return $this->code() === Filter::BUILTIN_RATING
-            ? (string) __('%1 stars & up', $value)
-            : $this->getName();
+        if ($this->code() !== Filter::BUILTIN_RATING) {
+            return $this->getName();
+        }
+
+        return $value === '1' ? (string) __('%1 star & up', $value) : (string) __('%1 stars & up', $value);
     }
 
     /**

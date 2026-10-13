@@ -12,7 +12,7 @@ use Iranimij\Base\Serializer\SafeJson;
 use Iranimij\OpenFilter\Model\Cache\Type as CacheType;
 use Iranimij\OpenFilter\Model\Config\Defaults;
 use Iranimij\OpenFilter\Model\Config\FilterConfigProvider;
-use Iranimij\OpenFilter\Model\Config\FilterConfigStorage;
+use Iranimij\OpenFilter\Model\ResourceModel\FilterConfigStorage;
 use Magento\Framework\Cache\FrontendInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;

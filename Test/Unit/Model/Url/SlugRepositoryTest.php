@@ -11,7 +11,7 @@ namespace Iranimij\OpenFilter\Test\Unit\Model\Url;
 use Iranimij\OpenFilter\Model\Url\SlugGenerator;
 use Iranimij\OpenFilter\Model\Url\SlugProvider;
 use Iranimij\OpenFilter\Model\Url\SlugRepository;
-use Iranimij\OpenFilter\Model\Url\SlugStorage;
+use Iranimij\OpenFilter\Model\ResourceModel\SlugStorage;
 use Iranimij\OpenFilter\Model\Url\Transliterator;
 use Magento\Framework\App\Cache\TypeListInterface;
 use Magento\Framework\Cache\FrontendInterface;

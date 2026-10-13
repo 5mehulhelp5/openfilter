@@ -4,6 +4,8 @@ Fine-grained checkpoint for the OpenFilter build. Updated after every local slic
 
 ## Current milestone
 
+**M1 · Search engine core: all slices done locally (S1–S9), 2026-10-13 11:10, inside working hours.** Waiting for after hours: M0 S7, then the M1 push (below). M1's "done when" holds locally: counts = brute force (and = an engine-independent catalog model) on simple and configurable products, 3 customer groups, 2 store views, category and search pages, both strategies; a category page with 3 active filters costs 1 search request (SingleQuery) and 0 extra MySQL queries (`BudgetTest`). CI confirmation after hours.
+
 **M0 · Foundation + search spike: local slices done (S0–S6), S7 (after hours) open.** Started 2026-10-13 08:30, full-run mode ("don't ask, make the plan and start"); plan `~/.claude/plans/i-wanna-create-a-elegant-comet.md`; ledger `openfilter-dev-env/modules/M0-ledger.md`. M0's "done when" needs CI green on the full matrix with OpenSearch, which can only run after 18:00.
 
 ## M0 slices
@@ -29,7 +31,12 @@ Built as local branches while GitHub is off limits. Stack per repo (bottom first
 1. `gh repo create iranimij/{openfilter,openfilter-hyva,openfilter-hyva-bundle,openfilter-dev-env} --public` (MIT, descriptions as in composer.json); push `main` of each; enable auto-merge and delete-branch-on-merge; branch protection on `main` with the required check `ci-ok` (bundle and dev-env: their own checks, as for OpenLabel).
 2. GitHub milestones on `openfilter` (and the same set on openfilter-hyva / openfilter-dev-env): M0 Foundation + search spike (due 2026-10-15), M1 Search engine core (10-19), M2 Admin (10-22), M3 Hyvä render + AJAX + mobile (10-26), M4 SEO, CLI, docs, 1.0.0 (10-29), M5 1.1 superset (11-12), M6 1.2 professional edge (11-26); one tracking issue per milestone with the slice list from 04 · Roadmap.
 3. Push `feat/m0-s4-facet-counts` and `feat/m0-s5-index-fields` (base: S4) and dev-env `test/m0-e2e`; open PRs; `gh workflow run CI --ref feat/m0-s5-index-fields` (full matrix: the spike touches `Model/Search`); fill the evidence table in `docs/facet-counts.md` from the matrix; if a leg fails for SingleQuery only, map that engine to PerAttribute in `etc/di.xml` and record it.
-4. Merge in order (retarget S5 to `main` before merging S4), e2e on dev-env green (Hyvä 1.4.2 + 1.5.2), update this file and the build log, M0 report, then stop. M1 starts in a new chat.
+4. Merge in order (retarget S5 to `main` before merging S4), e2e on dev-env green (Hyvä 1.4.2 + 1.5.2), update this file and the build log, M0 report.
+
+**M1 push, right after M0 S7 (same evening, still after hours):**
+5. openfilter: push the stack `feat/m1-s1-config` → `s2-slugs` → `s3-codec` → `s4-layer-filters` → `s5-strategies` → `s6-stats` → `s7-builtins` → `s8-normaliser` → `s9-close` (each based on the previous; S1 based on `feat/m0-s5-index-fields`, retargeted to `main` once M0 is merged); one PR per slice into the GitHub milestone "M1 Search engine core". dev-env: push `test/m1-e2e` (based on `test/m0-e2e`).
+6. `gh workflow run CI --ref feat/m1-s9-close` (full matrix: Model/Search, Model/Index, Model/Layer touched); the M1 rows of `docs/facet-counts.md` get the CI run link. If a leg fails on 2.4.7/2.4.8 or ES8, fix on the lowest slice that introduced it and rebase the stack.
+7. Merge in order after green (retarget each next PR to `main` before merging its base; never delete a branch another open PR uses as its base), e2e on dev-env green, update this file and the build log, then stop. M2 starts in a new chat.
 
 ## M1 slices (local, stacked on `feat/m0-s5-index-fields`)
 
@@ -45,7 +52,17 @@ Plan: `~/.claude/plans/pasted-content-id-b16b-read-https-app-n-glittery-aho.md` 
 | S6 | Price + decimal sliders: range filters are facet filters, bounds from the same request (`DynamicBucketPlugin`), display currency + tax (`PriceBoundsConverter`), OpenFilter `Price`/`Decimal` filters (core fallback when off) | done locally: `feat/m1-s6-stats` |
 | S7 | Built-ins: rating, in stock (MSI-aware), on sale per group/website, new (query-time dates); index providers + mapping; clauses + counts in the same request as facet filters; reindex triggers | done locally: `feat/m1-s7-builtins` |
 | S8 | `ParamNormalizer` + predispatch observer: 301 to canonical filter URLs on category/search pages (GET/HEAD, sort kept, page reset only when values were dropped); coexistence `Detector` (ElasticSuite, Live Search) switches OpenFilter off via `Config::isEnabled()` + admin notice | done locally: `feat/m1-s8-normaliser` |
-| S9 | Budgets, coverage, docs, Playwright, close | in progress |
+| S9 | `BudgetTest` (1 search request with 3 filters; SQL equal to core; time recorded), coverage gate + `Model/Url`, `Model/Index` (table access moved to `Model/ResourceModel`), docs `filters.md` + `url-format.md`, Playwright `m1-filters.spec.ts`, screenshots `docs/m1-screenshots`, fixture built-ins on | done locally: `feat/m1-s9-close`; dev-env `test/m1-e2e` |
+
+## M1 decisions (also in the Notion build log)
+
+- Iman's questions answered with the recommendations (no reply needed to proceed): slider tax uses the store's default product tax class rate; ≤ 15 ms server time recorded in M1, hard gate in M4; stock Hyvä shows the active price range only until M3's slider template.
+- Order change: codec (S3) before the multi-value filters; normaliser late (S8).
+- OpenFilter's attribute, price, decimal and built-in filters enter through the `filters` argument of `categoryFilterList` / `searchFilterList` and a `FilterList` plugin, never preferences; core filters remain the fallback when OpenFilter is off or steps aside (ElasticSuite, Live Search).
+- Built-ins and sliders are facet filters too: every count and bound ignores its own filter, in one search request; core's price-interval requests are replaced by the request's own `extended_stats`.
+- Storefront reads no tables for settings, URL names or tax: cache type `openfilter` (enabled by a data patch), tax rate cached per store and group for one hour.
+- Table access lives in `Model/ResourceModel` (integration-tested); the unit coverage gate covers the logic namespaces.
+- Test harness: core keeps per-process state (shared search criteria builder, indexer attribute list); tests reset it (`SearchIndexReset`, fresh builder per collection) and dispatch one page per test.
 
 ## M0 decisions (also in the Notion build log at close-out)
 
@@ -62,13 +79,14 @@ Plan: `~/.claude/plans/pasted-content-id-b16b-read-https-app-n-glittery-aho.md` 
 
 | Repo | Unit | Integration | Other |
 |---|---|---|---|
+| openfilter (M1 local) | 171 / 565 assertions | 72 / 254 on 2.4.9 + OpenSearch 2.5 (M0 26, config 4, slugs 5, layer 2, M1 counts 9, sliders 5, built-ins 6, normalisation + coexistence 10, budget 5) | PHPCS zero, PHPStan 6 clean, coverage Search 90.6 % / Config 100 % / Url 99.3 % / Index 100 % (gate ≥ 85 %), mkdocs --strict ok, `setup:di:compile` ok |
 | openfilter (M0 local) | 24 / 105 assertions | 26 / 58 (skeleton 4, DisjunctiveCounts 18, IndexHooks 4) on 2.4.9 + OpenSearch 2.5 | PHPCS zero, PHPStan 6 clean, coverage `Model` 99.2 % (gate ≥ 85 % on Model/Search, Model/Config), mkdocs --strict ok |
 | openfilter-hyva (M0 local) | 4 / 21 | 1 / 3 | PHPCS zero, PHPStan 6 clean |
-| openfilter-dev-env | — | — | Playwright 13 (12 desktop: smoke 6, hyva-layered-nav 5, facet-counts 1; admin login setup 1); screenshots project 4 (not a gate) |
+| openfilter-dev-env | — | — | Playwright 18 (17 desktop: smoke 6, hyva-layered-nav 5, facet-counts 1, m1-filters 5; admin login setup 1); screenshots project 4 (not a gate); M1 screenshots `docs/m1-screenshots` (4) |
 
 ## Open questions for Iman
 
-None blocking. FYI: the M0 "done when" (CI green on the full matrix) can only be checked after 18:00 today.
+None blocking. FYI: the M0 and M1 "done when" CI checks (full matrix) can only run after 18:00. The three M1 questions were answered with the recommendations; say so if you want another choice (tax per product class, a hard time gate now, or a price range list on stock Hyvä).
 
 ## Known failing or skipped tests
 
@@ -76,7 +94,7 @@ None blocking. FYI: the M0 "done when" (CI green on the full matrix) can only be
 
 ## Fixture gotchas (see openfilter-dev-env README)
 
-Docker has 7.6 GB: stop the `openlabel` stack (`warden env stop` in openlabel-dev-env) before starting `openfilter`; never run integration tests and Playwright at once. After `warden env up` of a new env, Traefik may answer "404 page not found" until `docker restart traefik`. After `setup:di:compile` (e.g. `bin/install-modules`), delete `generated/metadata` before integration tests or the sandbox install fails. Composer `--no-plugins` in the container; OpenSearch pinned to 2.5.0 (Apple Silicon); CSP enforce flag set via SQL. Stock Hyvä 1.4 filter groups use `x-defer="intersect"`: Playwright must scroll a group into view before opening it. Local PHPStan: `vendor/bin/phpstan analyse -c modules/phpstan-local.neon` in php-fpm (php-debug lacks the generated code).
+Docker has 7.6 GB: stop the `openlabel` stack (`warden env stop` in openlabel-dev-env) before starting `openfilter`; never run integration tests and Playwright at once. After `warden env up` of a new env, Traefik may answer "404 page not found" until `docker restart traefik`. After `setup:di:compile` (e.g. `bin/install-modules`), delete `generated/metadata` before integration tests or the sandbox install fails. Composer `--no-plugins` in the container; OpenSearch pinned to 2.5.0 (Apple Silicon); CSP enforce flag set via SQL. Stock Hyvä 1.4 filter groups use `x-defer="intersect"`: Playwright must scroll a group into view before opening it. Local PHPStan: `vendor/bin/phpstan analyse -c modules/phpstan-local.neon` in php-fpm (php-debug lacks the generated code); new factories need `setup:di:compile` first. The fixture runs uncompiled DI from the config cache: after editing `di.xml`, `bin/magento cache:flush` (a stale merged config showed "Cannot instantiate interface … FrontendInterface"). Coverage locally: `XDEBUG_MODE=coverage` in `php-debug`. The host has no `var/`: pipe one-off PHP scripts through stdin (`warden env exec -T php-fpm bash -lc 'cd /var/www/html && php' < script.php`).
 
 ## Last CI run
 
