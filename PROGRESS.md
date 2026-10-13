@@ -31,6 +31,16 @@ Built as local branches while GitHub is off limits. Stack per repo (bottom first
 3. Push `feat/m0-s4-facet-counts` and `feat/m0-s5-index-fields` (base: S4) and dev-env `test/m0-e2e`; open PRs; `gh workflow run CI --ref feat/m0-s5-index-fields` (full matrix: the spike touches `Model/Search`); fill the evidence table in `docs/facet-counts.md` from the matrix; if a leg fails for SingleQuery only, map that engine to PerAttribute in `etc/di.xml` and record it.
 4. Merge in order (retarget S5 to `main` before merging S4), e2e on dev-env green (Hyvä 1.4.2 + 1.5.2), update this file and the build log, M0 report, then stop. M1 starts in a new chat.
 
+## M1 slices (local, stacked on `feat/m0-s5-index-fields`)
+
+Plan: `~/.claude/plans/pasted-content-id-b16b-read-https-app-n-glittery-aho.md` (approved 2026-10-13 09:20). Ledger: `openfilter-dev-env/modules/M1-ledger.md`. Each slice is its own branch `feat/m1-sN-*`, stacked.
+
+| # | Slice | State |
+|---|---|---|
+| S1 | Schema (`openfilter_attribute`, `_attribute_store`, `_builtin`, `_builtin_store`), `FilterConfigInterface` + repository, per-store cache (cache type `openfilter`, enabled by a data patch) | done locally: `feat/m1-s1-config` |
+| S2 | Transliterator, slugs, data patches | in progress |
+| S3–S9 | codec, multi-value filters, strategies, stats, built-ins, normaliser + coexistence, budgets | open |
+
 ## M0 decisions (also in the Notion build log at close-out)
 
 - Iman's instructions 2026-10-13: full run without questions; D3–D8 and D13 recommendations adopted as decided; GitHub only after hours; one chat per milestone; both modules depend on and use the shared core `iranimij/module-base`.

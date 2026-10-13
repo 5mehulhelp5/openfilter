@@ -1,0 +1,72 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © Iman Aboheydary. All rights reserved.
+ * See LICENSE for license details (MIT).
+ */
+-->
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+    <table name="openfilter_attribute" resource="default" engine="innodb" comment="OpenFilter settings per filterable attribute">
+        <column xsi:type="smallint" name="attribute_id" unsigned="true" nullable="false" comment="Attribute ID"/>
+        <column xsi:type="varchar" name="display_mode" length="16" nullable="false" default="list" comment="Display mode"/>
+        <column xsi:type="smallint" name="multiselect" unsigned="true" nullable="false" default="1" comment="Several values (OR)"/>
+        <column xsi:type="varchar" name="logic" length="8" nullable="false" default="or" comment="Logic within the attribute"/>
+        <column xsi:type="smallint" name="visible_options" unsigned="true" nullable="false" default="6" comment="Options before Show more (0 = all)"/>
+        <column xsi:type="smallint" name="search_threshold" unsigned="true" nullable="false" default="12" comment="Search box above this many options (0 = never)"/>
+        <column xsi:type="smallint" name="expanded" unsigned="true" nullable="true" comment="Null = automatic, 1 open, 0 closed"/>
+        <column xsi:type="varchar" name="sort_by" length="16" nullable="false" default="position" comment="Option order"/>
+        <column xsi:type="smallint" name="hide_single_option" unsigned="true" nullable="false" default="1" comment="Hide a filter with one option"/>
+        <column xsi:type="smallint" name="seo_indexable" unsigned="true" nullable="false" default="0" comment="Single-value pages indexable"/>
+        <column xsi:type="int" name="position_override" nullable="true" comment="Null = attribute position"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="attribute_id"/>
+        </constraint>
+        <constraint xsi:type="foreign" referenceId="OPENFILTER_ATTR_ATTR_ID_EAV_ATTR_ATTR_ID" table="openfilter_attribute"
+                    column="attribute_id" referenceTable="eav_attribute" referenceColumn="attribute_id" onDelete="CASCADE"/>
+    </table>
+    <table name="openfilter_attribute_store" resource="default" engine="innodb" comment="OpenFilter labels per store view">
+        <column xsi:type="smallint" name="attribute_id" unsigned="true" nullable="false" comment="Attribute ID"/>
+        <column xsi:type="smallint" name="store_id" unsigned="true" nullable="false" comment="Store ID"/>
+        <column xsi:type="varchar" name="label_override" length="255" nullable="true" comment="Label override"/>
+        <column xsi:type="text" name="tooltip" nullable="true" comment="Tooltip (1.1)"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="attribute_id"/>
+            <column name="store_id"/>
+        </constraint>
+        <constraint xsi:type="foreign" referenceId="OPENFILTER_ATTR_STORE_ATTR_ID_EAV_ATTR_ATTR_ID" table="openfilter_attribute_store"
+                    column="attribute_id" referenceTable="eav_attribute" referenceColumn="attribute_id" onDelete="CASCADE"/>
+        <constraint xsi:type="foreign" referenceId="OPENFILTER_ATTRIBUTE_STORE_STORE_ID_STORE_STORE_ID" table="openfilter_attribute_store"
+                    column="store_id" referenceTable="store" referenceColumn="store_id" onDelete="CASCADE"/>
+    </table>
+    <table name="openfilter_builtin" resource="default" engine="innodb" comment="OpenFilter built-in filters">
+        <column xsi:type="varchar" name="code" length="16" nullable="false" comment="rating, stock, sale, new, price, category"/>
+        <column xsi:type="smallint" name="is_active" unsigned="true" nullable="false" default="0" comment="Shown on the storefront"/>
+        <column xsi:type="varchar" name="display_mode" length="16" nullable="false" default="list" comment="Display mode"/>
+        <column xsi:type="smallint" name="multiselect" unsigned="true" nullable="false" default="0" comment="Several values (OR)"/>
+        <column xsi:type="varchar" name="logic" length="8" nullable="false" default="or" comment="Logic"/>
+        <column xsi:type="smallint" name="visible_options" unsigned="true" nullable="false" default="6" comment="Options before Show more"/>
+        <column xsi:type="smallint" name="search_threshold" unsigned="true" nullable="false" default="12" comment="Search box threshold"/>
+        <column xsi:type="smallint" name="expanded" unsigned="true" nullable="true" comment="Null = automatic"/>
+        <column xsi:type="varchar" name="sort_by" length="16" nullable="false" default="position" comment="Option order"/>
+        <column xsi:type="smallint" name="hide_single_option" unsigned="true" nullable="false" default="1" comment="Hide with one option"/>
+        <column xsi:type="smallint" name="seo_indexable" unsigned="true" nullable="false" default="0" comment="Single-value pages indexable"/>
+        <column xsi:type="int" name="position_override" nullable="true" comment="Null = default position"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="code"/>
+        </constraint>
+    </table>
+    <table name="openfilter_builtin_store" resource="default" engine="innodb" comment="OpenFilter built-in filter labels per store view">
+        <column xsi:type="varchar" name="code" length="16" nullable="false" comment="Built-in code"/>
+        <column xsi:type="smallint" name="store_id" unsigned="true" nullable="false" comment="Store ID"/>
+        <column xsi:type="varchar" name="label" length="255" nullable="true" comment="Label"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="code"/>
+            <column name="store_id"/>
+        </constraint>
+        <constraint xsi:type="foreign" referenceId="OPENFILTER_BUILTIN_STORE_CODE_OPENFILTER_BUILTIN_CODE" table="openfilter_builtin_store"
+                    column="code" referenceTable="openfilter_builtin" referenceColumn="code" onDelete="CASCADE"/>
+        <constraint xsi:type="foreign" referenceId="OPENFILTER_BUILTIN_STORE_STORE_ID_STORE_STORE_ID" table="openfilter_builtin_store"
+                    column="store_id" referenceTable="store" referenceColumn="store_id" onDelete="CASCADE"/>
+    </table>
+</schema>
