@@ -31,6 +31,9 @@ composer config --no-plugins allow-plugins.laminas/laminas-dependency-plugin tru
 composer config --no-plugins allow-plugins.dealerdirect/phpcodesniffer-composer-installer true
 composer config --no-plugins allow-plugins.php-http/discovery true
 composer require --no-update --no-interaction "$package:1.0.0"
+# Composer 2.9 blocks packages with security advisories during resolution; 2.4.7 pins league/flysystem 2.x, so the
+# test project could not be built at all. This only affects the throwaway CI project, never a shop.
+composer config audit.block-insecure false || true
 composer install --no-interaction --no-progress --prefer-dist \
   || { echo "composer install failed, retrying once"; composer clear-cache; composer install --no-interaction --no-progress --prefer-dist; }
 echo "::endgroup::"
@@ -38,6 +41,7 @@ echo "::endgroup::"
 echo "::group::Test framework configuration ($SEARCH_ENGINE)"
 cd dev/tests/integration
 php -r '
+  require "framework/Magento/TestFramework/Bootstrap.php"; // the template reads its admin constants
   $c = require "etc/install-config-mysql.php.dist";
   foreach (array_keys($c) as $k) {
       if (preg_match("/^(amqp|opensearch|elasticsearch|consumers-wait)/", $k)) { unset($c[$k]); }
