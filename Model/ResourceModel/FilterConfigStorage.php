@@ -234,6 +234,31 @@ class FilterConfigStorage
     }
 
     /**
+     * Label overrides of one filter by store id (0 = all store views), as stored.
+     *
+     * @param int|null $attributeId the attribute, or null for a built-in
+     * @param string $code built-in code (used when $attributeId is null)
+     * @return array<int, string>
+     */
+    public function labelOverrides(?int $attributeId, string $code): array
+    {
+        $connection = $this->connection();
+        $select = $attributeId !== null
+            ? $connection->select()->from($this->table(self::TABLE_ATTRIBUTE_STORE), ['store_id', 'label_override'])
+                ->where('attribute_id = ?', $attributeId)
+                ->where("label_override IS NOT NULL AND label_override <> ''")
+            : $connection->select()->from($this->table(self::TABLE_BUILTIN_STORE), ['store_id', 'label'])
+                ->where('code = ?', $code)
+                ->where("label IS NOT NULL AND label <> ''");
+        $labels = [];
+        foreach ($connection->fetchPairs($select) as $storeId => $label) {
+            $labels[(int) $storeId] = (string) $label;
+        }
+
+        return $labels;
+    }
+
+    /**
      * @param string $frontendInput
      * @param string $backendType
      * @return string select, multiselect, boolean, decimal (or the raw frontend input)

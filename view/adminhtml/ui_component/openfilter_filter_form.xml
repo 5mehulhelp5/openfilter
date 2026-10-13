@@ -1,0 +1,290 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © Iman Aboheydary. All rights reserved.
+ * See LICENSE for license details (MIT).
+ */
+-->
+<form xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
+    <argument name="data" xsi:type="array">
+        <item name="js_config" xsi:type="array">
+            <item name="provider" xsi:type="string">openfilter_filter_form.openfilter_filter_form_data_source</item>
+        </item>
+        <item name="label" xsi:type="string" translate="true">Filter</item>
+        <item name="template" xsi:type="string">templates/form/collapsible</item>
+    </argument>
+    <settings>
+        <buttons>
+            <button name="back" class="Iranimij\OpenFilter\Block\Adminhtml\Filter\Edit\BackButton"/>
+            <button name="reset" class="Iranimij\OpenFilter\Block\Adminhtml\Filter\Edit\ResetButton"/>
+            <button name="save" class="Iranimij\OpenFilter\Block\Adminhtml\Filter\Edit\SaveButton"/>
+        </buttons>
+        <namespace>openfilter_filter_form</namespace>
+        <dataScope>data</dataScope>
+        <deps>
+            <dep>openfilter_filter_form.openfilter_filter_form_data_source</dep>
+        </deps>
+    </settings>
+    <dataSource name="openfilter_filter_form_data_source">
+        <argument name="data" xsi:type="array">
+            <item name="js_config" xsi:type="array">
+                <item name="component" xsi:type="string">Magento_Ui/js/form/provider</item>
+            </item>
+        </argument>
+        <settings>
+            <submitUrl path="openfilter/filter/save"/>
+        </settings>
+        <aclResource>Iranimij_OpenFilter::filters</aclResource>
+        <dataProvider class="Iranimij\OpenFilter\Ui\DataProvider\FilterForm" name="openfilter_filter_form_data_source">
+            <settings>
+                <requestFieldName>code</requestFieldName>
+                <primaryFieldName>key</primaryFieldName>
+            </settings>
+        </dataProvider>
+    </dataSource>
+    <fieldset name="looks" sortOrder="10">
+        <settings>
+            <label translate="true">How it looks</label>
+            <collapsible>false</collapsible>
+        </settings>
+        <field name="key" formElement="input" sortOrder="1">
+            <settings>
+                <dataType>text</dataType>
+                <visible>false</visible>
+            </settings>
+        </field>
+        <field name="display_mode" formElement="select" sortOrder="10">
+            <settings>
+                <dataType>text</dataType>
+                <label translate="true">Looks like</label>
+                <notice translate="true">Only the types that fit this attribute are listed. Swatches need an attribute with swatches; sliders need a number attribute.</notice>
+                <validation>
+                    <rule name="required-entry" xsi:type="boolean">true</rule>
+                </validation>
+            </settings>
+        </field>
+    </fieldset>
+    <fieldset name="behaves" sortOrder="20">
+        <settings>
+            <label translate="true">How it behaves</label>
+            <collapsible>false</collapsible>
+        </settings>
+        <field name="active" formElement="checkbox" sortOrder="10">
+            <settings>
+                <dataType>boolean</dataType>
+                <label translate="true">Show on the storefront</label>
+            </settings>
+            <formElements>
+                <checkbox>
+                    <settings>
+                        <valueMap>
+                            <map name="false" xsi:type="string">0</map>
+                            <map name="true" xsi:type="string">1</map>
+                        </valueMap>
+                        <prefer>toggle</prefer>
+                    </settings>
+                </checkbox>
+            </formElements>
+        </field>
+        <field name="multiselect" formElement="checkbox" sortOrder="20">
+            <settings>
+                <dataType>boolean</dataType>
+                <label translate="true">Shoppers can pick several values</label>
+                <notice translate="true">Products matching any of the picked values are shown.</notice>
+            </settings>
+            <formElements>
+                <checkbox>
+                    <settings>
+                        <valueMap>
+                            <map name="false" xsi:type="string">0</map>
+                            <map name="true" xsi:type="string">1</map>
+                        </valueMap>
+                        <prefer>toggle</prefer>
+                    </settings>
+                </checkbox>
+            </formElements>
+        </field>
+        <field name="visible_options" formElement="input" sortOrder="30">
+            <settings>
+                <dataType>text</dataType>
+                <label translate="true">Options before "Show more"</label>
+                <notice translate="true">0 = show all options.</notice>
+                <validation>
+                    <rule name="required-entry" xsi:type="boolean">true</rule>
+                    <rule name="validate-digits" xsi:type="boolean">true</rule>
+                </validation>
+            </settings>
+        </field>
+        <field name="search_threshold" formElement="input" sortOrder="40">
+            <settings>
+                <dataType>text</dataType>
+                <label translate="true">Search box from this many options</label>
+                <notice translate="true">Long lists get a search box at the top. 0 = never.</notice>
+                <validation>
+                    <rule name="required-entry" xsi:type="boolean">true</rule>
+                    <rule name="validate-digits" xsi:type="boolean">true</rule>
+                </validation>
+            </settings>
+        </field>
+        <field name="expanded" formElement="select" sortOrder="50">
+            <settings>
+                <dataType>text</dataType>
+                <label translate="true">Open when the page loads</label>
+            </settings>
+            <formElements>
+                <select>
+                    <settings>
+                        <options class="Iranimij\OpenFilter\Model\Config\Source\Expanded"/>
+                    </settings>
+                </select>
+            </formElements>
+        </field>
+        <field name="sort_by" formElement="select" sortOrder="60">
+            <settings>
+                <dataType>text</dataType>
+                <label translate="true">Option order</label>
+            </settings>
+            <formElements>
+                <select>
+                    <settings>
+                        <options class="Iranimij\OpenFilter\Model\Config\Source\SortBy"/>
+                    </settings>
+                </select>
+            </formElements>
+        </field>
+        <field name="hide_single_option" formElement="checkbox" sortOrder="70">
+            <settings>
+                <dataType>boolean</dataType>
+                <label translate="true">Hide when only one option is left</label>
+                <notice translate="true">A picked option always stays visible, so shoppers can remove it.</notice>
+            </settings>
+            <formElements>
+                <checkbox>
+                    <settings>
+                        <valueMap>
+                            <map name="false" xsi:type="string">0</map>
+                            <map name="true" xsi:type="string">1</map>
+                        </valueMap>
+                        <prefer>toggle</prefer>
+                    </settings>
+                </checkbox>
+            </formElements>
+        </field>
+        <field name="position_override" formElement="input" sortOrder="80">
+            <settings>
+                <dataType>text</dataType>
+                <label translate="true">Position</label>
+                <validation>
+                    <rule name="validate-number" xsi:type="boolean">true</rule>
+                </validation>
+            </settings>
+        </field>
+    </fieldset>
+    <fieldset name="seo" sortOrder="30">
+        <settings>
+            <label translate="true">SEO</label>
+            <collapsible>true</collapsible>
+            <opened>true</opened>
+        </settings>
+        <field name="seo_indexable" formElement="checkbox" sortOrder="10">
+            <settings>
+                <dataType>boolean</dataType>
+                <label translate="true">Let Google index pages filtered by this</label>
+                <notice translate="true">Only pages with exactly one value of this filter are indexed (for example "Red" t-shirts). Pages with more values always ask search engines not to index them.</notice>
+            </settings>
+            <formElements>
+                <checkbox>
+                    <settings>
+                        <valueMap>
+                            <map name="false" xsi:type="string">0</map>
+                            <map name="true" xsi:type="string">1</map>
+                        </valueMap>
+                        <prefer>toggle</prefer>
+                    </settings>
+                </checkbox>
+            </formElements>
+        </field>
+        <field name="url_name" formElement="input" sortOrder="20">
+            <settings>
+                <dataType>text</dataType>
+                <label translate="true">URL name</label>
+                <notice translate="true">The name of this filter in URLs, for example ?color=red. Changing it changes published URLs.</notice>
+                <validation>
+                    <rule name="required-entry" xsi:type="boolean">true</rule>
+                </validation>
+            </settings>
+        </field>
+        <dynamicRows name="option_urls" sortOrder="30">
+            <settings>
+                <label translate="true">URL names of the options</label>
+                <addButton>false</addButton>
+                <dndConfig>
+                    <param name="enabled" xsi:type="boolean">false</param>
+                </dndConfig>
+                <componentType>dynamicRows</componentType>
+                <additionalClasses>
+                    <class name="admin__field-wide">true</class>
+                </additionalClasses>
+            </settings>
+            <container name="record" component="Magento_Ui/js/dynamic-rows/record">
+                <argument name="data" xsi:type="array">
+                    <item name="config" xsi:type="array">
+                        <item name="isTemplate" xsi:type="boolean">true</item>
+                        <item name="is_collection" xsi:type="boolean">true</item>
+                        <item name="componentType" xsi:type="string">container</item>
+                    </item>
+                </argument>
+                <field name="option_id" formElement="input" sortOrder="10">
+                    <settings>
+                        <dataType>text</dataType>
+                        <visible>false</visible>
+                    </settings>
+                </field>
+                <field name="option_label" formElement="input" sortOrder="20">
+                    <settings>
+                        <dataType>text</dataType>
+                        <label translate="true">Option</label>
+                        <disabled>true</disabled>
+                    </settings>
+                </field>
+                <field name="url_name_0" formElement="input" sortOrder="30">
+                    <settings>
+                        <dataType>text</dataType>
+                        <label translate="true">URL name (all store views)</label>
+                    </settings>
+                </field>
+                <field name="regenerate" formElement="checkbox" sortOrder="900">
+                    <settings>
+                        <dataType>boolean</dataType>
+                        <label translate="true">Generate again from the label</label>
+                    </settings>
+                    <formElements>
+                        <checkbox>
+                            <settings>
+                                <valueMap>
+                                    <map name="false" xsi:type="string">0</map>
+                                    <map name="true" xsi:type="string">1</map>
+                                </valueMap>
+                            </settings>
+                        </checkbox>
+                    </formElements>
+                </field>
+            </container>
+        </dynamicRows>
+    </fieldset>
+    <fieldset name="labels" sortOrder="40">
+        <settings>
+            <label translate="true">Labels per store view</label>
+            <collapsible>true</collapsible>
+            <opened>true</opened>
+        </settings>
+        <field name="label_0" formElement="input" sortOrder="10">
+            <settings>
+                <dataType>text</dataType>
+                <label translate="true">Label for all store views</label>
+                <notice translate="true">Empty = the attribute's own label.</notice>
+            </settings>
+        </field>
+    </fieldset>
+</form>
