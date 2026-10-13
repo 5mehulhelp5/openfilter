@@ -9,6 +9,8 @@
 .of-group__title::-webkit-details-marker{display:none}
 .of-group__title::after{content:"";flex:none;inline-size:.5rem;block-size:.5rem;margin-inline-start:auto;border-inline-end:2px solid currentColor;border-block-end:2px solid currentColor;transform:rotate(45deg)}
 .of-group[open]>.of-group__title::after{transform:rotate(225deg)}
+[dir=rtl] .of-group__title::after{transform:rotate(-45deg)}
+[dir=rtl] .of-group[open]>.of-group__title::after{transform:rotate(-225deg)}
 .of-group__active{font-size:.875rem;font-weight:400;color:var(--of-muted)}
 .of-group__body{padding-block-end:.75rem}
 .of-options{margin:0;padding:0;list-style:none}
