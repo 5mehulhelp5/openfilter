@@ -28,6 +28,12 @@ class LayerContextTest extends TestCase
     {
         $defaults = new Defaults();
         $configProvider = $this->createStub(FilterConfigProvider::class);
+        $configProvider->method('getForStore')->willReturn([
+            'category' => $defaults->forBuiltin('category')->with(['active' => false]),
+            'price' => $defaults->forBuiltin('price')->with(['attribute_id' => 77]),
+            'color' => $defaults->forAttribute('color', 93, 'select', 'visual', 10),
+            'size' => $defaults->forAttribute('size', 144, 'select', 'text', 20)->with(['active' => false]),
+        ]);
         $configProvider->method('getActive')->willReturn([
             'price' => $defaults->forBuiltin('price')->with(['attribute_id' => 77]),
             'color' => $defaults->forAttribute('color', 93, 'select', 'visual', 10),
@@ -57,6 +63,11 @@ class LayerContextTest extends TestCase
         $context = new LayerContext($config, $configProvider, $stateProvider, $codec, $storeManager, $request, $url);
 
         self::assertTrue($context->isActive());
+        self::assertTrue($context->isHidden(144, null), 'size hidden by the merchant');
+        self::assertFalse($context->isHidden(93, null));
+        self::assertFalse($context->isHidden(500, null), 'not an OpenFilter filter: left to core');
+        self::assertTrue($context->isHidden(null, 'category'));
+        self::assertFalse($context->isHidden(null, 'price'));
         self::assertSame('color', $context->keyForAttribute(93));
         self::assertNull($context->keyForAttribute(77), 'price is a built-in, not an attribute filter');
         self::assertSame('farbe', $context->parameterFor('color'));

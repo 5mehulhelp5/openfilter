@@ -113,10 +113,8 @@ class FilterConfig implements FilterConfigInterface
             ->setSortBy($config->getSortBy())
             ->setHideSingleOption($config->isHideSingleOption())
             ->setSeoIndexable($config->isSeoIndexable())
-            ->setPositionOverride($config->getPositionOverride());
-        if ($copy->isBuiltin()) {
-            $copy->setActive($config->isActive());
-        }
+            ->setPositionOverride($config->getPositionOverride())
+            ->setActive($config->isActive());
 
         return $copy;
     }
@@ -130,6 +128,19 @@ class FilterConfig implements FilterConfigInterface
     public function with(array $data): self
     {
         return new self(array_replace($this->data, $data));
+    }
+
+    /**
+     * Unique map key: the code, or "attribute:<code>" for an attribute named like a built-in.
+     *
+     * @return string
+     */
+    public function getKey(): string
+    {
+        $code = $this->getCode();
+        $clash = !$this->isBuiltin() && in_array($code, self::BUILTIN_CODES, true);
+
+        return $clash ? FilterConfigProvider::ATTRIBUTE_KEY_PREFIX . $code : $code;
     }
 
     /**

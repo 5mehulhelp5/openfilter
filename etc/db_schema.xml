@@ -19,6 +19,7 @@
         <column xsi:type="smallint" name="hide_single_option" unsigned="true" nullable="false" default="1" comment="Hide a filter with one option"/>
         <column xsi:type="smallint" name="seo_indexable" unsigned="true" nullable="false" default="0" comment="Single-value pages indexable"/>
         <column xsi:type="int" name="position_override" nullable="true" comment="Null = attribute position"/>
+        <column xsi:type="smallint" name="is_active" unsigned="true" nullable="false" default="1" comment="Shown on the storefront"/>
         <constraint xsi:type="primary" referenceId="PRIMARY">
             <column name="attribute_id"/>
         </constraint>
