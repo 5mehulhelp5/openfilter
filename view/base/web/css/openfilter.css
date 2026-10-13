@@ -87,7 +87,7 @@ html.of-locked{overflow:hidden}
 .of-sr{position:absolute;inline-size:1px;block-size:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 @media (scripting:none){.of-search,.of-slider__ranges,.of-slider__output{display:none}}
 @media (scripting:enabled){.of-slider--js .of-slider__apply{display:none}}
-@media (max-width:767.98px) and (scripting:enabled){.of-drawer--js:not([data-of-modal]){display:none}.of-state__bar{position:sticky;inset-block-start:0;z-index:5;display:block;padding-block:.5rem;background:var(--of-surface)}}
+@media (max-width:767.98px) and (scripting:enabled){.of-drawer--js:not([data-of-modal]){display:none}.of-state__bar{position:sticky;inset-block-start:0;z-index:5;display:block;padding-block:.5rem;background:var(--of-surface)}html.of-inline .of-drawer--js:not([data-of-modal]){display:block}html.of-inline .of-state__bar{display:none}}
 @keyframes of-pulse{50%{opacity:.35}}
 @media (prefers-reduced-motion:reduce){.of-results.of-loading::before{animation:none}}
 @media (pointer:coarse){.of-filters,.of-state{--of-row:2.75rem}}
