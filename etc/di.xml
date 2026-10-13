@@ -57,6 +57,51 @@
         </arguments>
     </type>
 
+    <!-- Layered navigation: OpenFilter's filter models (core ones stay for anything OpenFilter does not handle). -->
+    <virtualType name="Iranimij\OpenFilter\Model\Layer\Filter\ItemFactory" type="Magento\Catalog\Model\Layer\Filter\ItemFactory">
+        <arguments>
+            <argument name="instanceName" xsi:type="string">Iranimij\OpenFilter\Model\Layer\Filter\Item</argument>
+        </arguments>
+    </virtualType>
+    <type name="Iranimij\OpenFilter\Model\Layer\Filter\Attribute">
+        <arguments>
+            <argument name="filterItemFactory" xsi:type="object">Iranimij\OpenFilter\Model\Layer\Filter\ItemFactory</argument>
+        </arguments>
+    </type>
+    <!-- Core filters OpenFilter keeps (category drill-down) link to canonical filter URLs too. -->
+    <type name="Magento\CatalogSearch\Model\Layer\Filter\Category">
+        <arguments>
+            <argument name="filterItemFactory" xsi:type="object">Iranimij\OpenFilter\Model\Layer\Filter\ItemFactory</argument>
+        </arguments>
+    </type>
+    <type name="Magento\CatalogSearch\Model\Layer\Filter\Price">
+        <arguments>
+            <argument name="filterItemFactory" xsi:type="object">Iranimij\OpenFilter\Model\Layer\Filter\ItemFactory</argument>
+        </arguments>
+    </type>
+    <type name="Magento\CatalogSearch\Model\Layer\Filter\Decimal">
+        <arguments>
+            <argument name="filterItemFactory" xsi:type="object">Iranimij\OpenFilter\Model\Layer\Filter\ItemFactory</argument>
+        </arguments>
+    </type>
+    <type name="Magento\Swatches\Block\LayeredNavigation\RenderLayered">
+        <plugin name="openfilter_swatch_links" type="Iranimij\OpenFilter\Plugin\Swatches\RenderLayeredPlugin"/>
+    </type>
+    <virtualType name="categoryFilterList">
+        <arguments>
+            <argument name="filters" xsi:type="array">
+                <item name="attribute" xsi:type="string">Iranimij\OpenFilter\Model\Layer\Filter\Attribute</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="searchFilterList">
+        <arguments>
+            <argument name="filters" xsi:type="array">
+                <item name="attribute" xsi:type="string">Iranimij\OpenFilter\Model\Layer\Filter\Attribute</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
     <type name="Magento\Elasticsearch\ElasticAdapter\SearchAdapter\Mapper">
         <plugin name="openfilter_facet_counts" type="Iranimij\OpenFilter\Plugin\Search\MapperPlugin"/>
     </type>
