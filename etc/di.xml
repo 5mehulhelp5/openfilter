@@ -10,7 +10,21 @@
     <preference for="Iranimij\OpenFilter\Api\FacetCountStrategyInterface"
                 type="Iranimij\OpenFilter\Model\Search\Strategy\SingleQuery"/>
 
+    <preference for="Iranimij\OpenFilter\Api\FilterConfigRepositoryInterface"
+                type="Iranimij\OpenFilter\Model\Config\FilterConfigRepository"/>
+
     <type name="Iranimij\OpenFilter\Model\Search\QueryState" shared="true"/>
+
+    <type name="Iranimij\OpenFilter\Model\Config\FilterConfigProvider">
+        <arguments>
+            <argument name="cache" xsi:type="object">Iranimij\OpenFilter\Model\Cache\Type</argument>
+        </arguments>
+    </type>
+    <type name="Iranimij\OpenFilter\Model\Config\FilterConfigRepository">
+        <arguments>
+            <argument name="cache" xsi:type="object">Iranimij\OpenFilter\Model\Cache\Type</argument>
+        </arguments>
+    </type>
 
     <type name="Iranimij\OpenFilter\Model\Search\StrategyResolver">
         <arguments>
