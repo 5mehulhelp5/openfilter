@@ -78,11 +78,13 @@ Any link with `data-of-link` inside the regions uses the swap. After every swap 
 
 | Token | Default | Used for |
 |---|---|---|
-| `--of-accent` | `#1d4ed8` | selection, slider, focus ring, Apply |
-| `--of-muted` | `#4b5563` | counts, captions |
-| `--of-border` | `#d1d5db` | lines, swatch frames, track |
-| `--of-surface` | `#fff` | drawer and button backgrounds |
-| `--of-radius` | `.375rem` | corners |
+| `--of-accent` | `#1d4ed8` | selection, slider, focus ring, Apply, "Show more" |
+| `--of-muted` | `#6b7280` | counts, captions |
+| `--of-border` | `#e5e7eb` | card borders, swatch frames, track |
+| `--of-control` | `#9ca3af` | checkbox frames, hover borders |
+| `--of-surface` | `#fff` | filter cards, drawer and button backgrounds |
+| `--of-radius` | `.375rem` | corners of controls |
+| `--of-card-radius` | `.5rem` | corners of the filter cards |
 | `--of-gap` | `.5rem` | spacing |
 | `--of-row` | `2rem` (`2.75rem` on touch screens) | option row height |
 

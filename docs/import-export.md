@@ -1,0 +1,39 @@
+# Import and export
+
+Move filter settings, labels and URL names between installations (staging to production, one shop to the next) as JSON.
+
+```bash
+bin/magento openfilter:config:export -o openfilter.json
+bin/magento openfilter:config:import openfilter.json --dry-run   # lists every change, writes nothing
+bin/magento openfilter:config:import openfilter.json
+```
+
+## Format (schema 1)
+
+```json
+{
+    "schema": 1,
+    "filters": {
+        "color": {
+            "settings": {"display_mode": "swatch", "multiselect": true, "logic": "or", "visible_options": 6,
+                "search_threshold": 12, "expanded": null, "sort_by": "position", "hide_single_option": true,
+                "seo_indexable": true, "position_override": null, "active": true},
+            "labels": {"de": "Farbe"},
+            "url_name": {"admin": "color"},
+            "options": {"Red": {"admin": "red", "de": "rot"}}
+        },
+        "rating": {"settings": {"active": true}}
+    }
+}
+```
+
+- Filters are keyed by attribute code or built-in code (`price`, `rating`, `stock`, `sale`, `new`, `category`); an attribute named like a built-in is `attribute:<code>`.
+- Store views are keyed by store code; `admin` means all store views.
+- Options are keyed by their admin label. When an attribute has several options with the same label, they are numbered in option order: `"Wool #1"`, `"Wool #2"`.
+- Every section and setting is optional: a file may contain only what it changes.
+
+## All or nothing
+
+The import first checks the whole file: schema, known filters, store views and options, value types, URL name format. Then it writes every filter inside one database transaction through the same rules as the admin (display types that fit the attribute, URL names unique per attribute and store view). If any value is refused, nothing is written and the command lists the reason and exits with `1`.
+
+`--dry-run` runs the same checks and writes inside a transaction it always rolls back, so URL name collisions are found exactly as in a real import. OpenFilter's cache is cleaned afterwards; Magento may show "full page cache invalidated" as after any admin save.
