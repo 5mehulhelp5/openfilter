@@ -23,6 +23,8 @@ Built as local branches while GitHub is off limits. Stack per repo (bottom first
 
 ## Exact next step
 
+**Iman, 2026-10-13 09:15: start M1 locally now, push after hours.** M1 slices are built as local branches stacked on `feat/m0-s5-index-fields` (openfilter) and `test/m0-e2e` (dev-env), with the same local gates as CI (PHPCS, PHPStan 6, unit + coverage, integration on the fixture's OpenSearch, Playwright). Deviation from 07 §5 ("do not start a milestone before the previous done-when passes"), accepted by Iman: only M0's CI matrix is pending; if it finds a version issue, fix it on the M0 branch and rebase the M1 stack. M0 S7 then runs at the first after-hours moment, and the M1 stack is pushed right after it (full matrix on the top branch).
+
 **S7, after 18:00 Europe/Berlin (check `openfilter-dev-env/bin/after-hours` first):**
 1. `gh repo create iranimij/{openfilter,openfilter-hyva,openfilter-hyva-bundle,openfilter-dev-env} --public` (MIT, descriptions as in composer.json); push `main` of each; enable auto-merge and delete-branch-on-merge; branch protection on `main` with the required check `ci-ok` (bundle and dev-env: their own checks, as for OpenLabel).
 2. GitHub milestones on `openfilter` (and the same set on openfilter-hyva / openfilter-dev-env): M0 Foundation + search spike (due 2026-10-15), M1 Search engine core (10-19), M2 Admin (10-22), M3 Hyvä render + AJAX + mobile (10-26), M4 SEO, CLI, docs, 1.0.0 (10-29), M5 1.1 superset (11-12), M6 1.2 professional edge (11-26); one tracking issue per milestone with the slice list from 04 · Roadmap.
