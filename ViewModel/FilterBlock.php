@@ -10,6 +10,7 @@ namespace Iranimij\OpenFilter\ViewModel;
 
 use Iranimij\OpenFilter\Api\Data\FilterConfigInterface;
 use Iranimij\OpenFilter\Model\Config;
+use Iranimij\OpenFilter\Model\Layer\Filter\AbstractRangeFilter;
 use Iranimij\OpenFilter\Model\Layer\Filter\Item;
 use Iranimij\OpenFilter\Model\Layer\Filter\OpenFilterInterface;
 use Iranimij\OpenFilter\Model\Layer\LayerContext;
@@ -31,10 +32,12 @@ class FilterBlock implements ArgumentInterface
     /**
      * @param LayerContext $context
      * @param Config $config
+     * @param Slider $slider
      */
     public function __construct(
         private readonly LayerContext $context,
-        private readonly Config $config
+        private readonly Config $config,
+        private readonly Slider $slider
     ) {
     }
 
@@ -49,10 +52,14 @@ class FilterBlock implements ArgumentInterface
         $expandedByDefault = $this->config->getExpandedGroups($this->context->storeId());
         $groups = [];
         foreach ($filters as $filter) {
-            if (!$filter instanceof AbstractFilter || (int) $filter->getItemsCount() === 0) {
+            if (!$filter instanceof AbstractFilter) {
                 continue;
             }
-            $groups[] = $this->group($filter, count($groups) < $expandedByDefault);
+            $slider = $filter instanceof AbstractRangeFilter ? $this->slider->forFilter($filter) : null;
+            if ($slider === null && (int) $filter->getItemsCount() === 0) {
+                continue;
+            }
+            $groups[] = $this->group($filter, count($groups) < $expandedByDefault, $slider);
         }
 
         return $groups;
@@ -72,15 +79,19 @@ class FilterBlock implements ArgumentInterface
     /**
      * @param AbstractFilter $filter
      * @param bool $openByPosition
+     * @param Data\Slider|null $slider
      * @return Data\FilterGroup
      */
-    private function group(AbstractFilter $filter, bool $openByPosition): Data\FilterGroup
+    private function group(AbstractFilter $filter, bool $openByPosition, ?Data\Slider $slider): Data\FilterGroup
     {
         $key = $filter instanceof OpenFilterInterface ? $filter->getOpenFilterKey() : null;
         $config = $key === null ? null : $this->context->config($key);
         $requestVar = (string) $filter->getRequestVar();
         $options = array_map(fn ($item): Data\FilterOption => $this->option($item), array_values($filter->getItems()));
         $selected = array_filter($options, static fn (Data\FilterOption $option): bool => $option->isSelected());
+        if ($slider !== null) {
+            $options = []; // the slider shows the range; the active range is a chip
+        }
         $configured = $config?->getExpanded();
 
         return new Data\FilterGroup(
@@ -93,7 +104,8 @@ class FilterBlock implements ArgumentInterface
             $selected !== [] || ($configured ?? $openByPosition),
             $config?->getVisibleOptions() ?? 0,
             $config !== null && count($options) > $config->getSearchThreshold(),
-            $options
+            $options,
+            $slider
         );
     }
 

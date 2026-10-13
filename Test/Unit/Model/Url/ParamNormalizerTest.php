@@ -38,7 +38,19 @@ class ParamNormalizerTest extends TestCase
             'junk value' => [['color' => 'red,nonsense'], true, true],
             'only junk' => [['color' => 'nonsense'], true, true],
             'range normalised' => [['price' => '80-20'], true, false],
+            'range from a form (no JavaScript)' => [['price_from' => '20', 'price_to' => '50'], true, false],
+            'open range from a form' => [['price_from' => '20', 'price_to' => ''], true, false],
+            'empty range form' => [['price_from' => '', 'price_to' => ''], true, false],
         ];
+    }
+
+    public function testRangeFormFieldsFoldIntoTheFilterParameterAndAreDropped(): void
+    {
+        $result = $this->normalizer()->check(['color' => 'red', 'price_from' => '20', 'price_to' => '50', 'q' => 'x'], 1);
+
+        self::assertSame(['20-50'], $result['state']->get('price'));
+        self::assertSame(['price_from', 'price_to'], $result['drop']);
+        self::assertSame([], $this->normalizer()->check(['color' => 'red'], 1)['drop']);
     }
 
     /**

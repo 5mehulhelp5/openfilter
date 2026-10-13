@@ -48,6 +48,9 @@ class NormalizationTest extends AbstractController
             'junk resets the page' => [[$color => 'red,nonsense', 'p' => '3'], "?$color=red"],
             'only junk' => [[$color => 'nonsense'], ''],
             'array syntax' => [[$color => ['blue', 'red']], "?$color=red,blue"],
+            'range form without JavaScript' => [[$color => 'red', 'price_from' => '20', 'price_to' => '40'], "?$color=red&price=20-40"],
+            'open range form' => [['price_from' => '', 'price_to' => '40'], '?price=-40'],
+            'empty range form' => [[$color => 'red', 'price_from' => '', 'price_to' => ''], "?$color=red"],
         ];
     }
 
