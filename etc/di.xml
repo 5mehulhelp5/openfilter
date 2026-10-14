@@ -195,4 +195,42 @@
     <type name="Magento\Elasticsearch\SearchAdapter\Aggregation\Builder\Dynamic">
         <plugin name="openfilter_slider_stats" type="Iranimij\OpenFilter\Plugin\Search\DynamicBucketPlugin"/>
     </type>
+
+    <!-- Console commands (M4); heavy services through proxies so bin/magento starts fast. -->
+    <type name="Magento\Framework\Console\CommandList">
+        <arguments>
+            <argument name="commands" xsi:type="array">
+                <item name="openfilter_doctor" xsi:type="object">Iranimij\OpenFilter\Console\Command\Doctor</item>
+                <item name="openfilter_slugs_generate" xsi:type="object">Iranimij\OpenFilter\Console\Command\SlugsGenerate</item>
+                <item name="openfilter_config_export" xsi:type="object">Iranimij\OpenFilter\Console\Command\ConfigExport</item>
+                <item name="openfilter_config_import" xsi:type="object">Iranimij\OpenFilter\Console\Command\ConfigImport</item>
+            </argument>
+        </arguments>
+    </type>
+    <type name="Iranimij\OpenFilter\Console\Command\Doctor">
+        <arguments>
+            <argument name="report" xsi:type="object">Iranimij\OpenFilter\Model\Doctor\Report\Proxy</argument>
+        </arguments>
+    </type>
+    <type name="Iranimij\OpenFilter\Console\Command\SlugsGenerate">
+        <arguments>
+            <argument name="provider" xsi:type="object">Iranimij\OpenFilter\Model\Config\FilterConfigProvider\Proxy</argument>
+            <argument name="slugs" xsi:type="object">Iranimij\OpenFilter\Api\SlugRepositoryInterface\Proxy</argument>
+        </arguments>
+    </type>
+    <type name="Iranimij\OpenFilter\Console\Command\ConfigExport">
+        <arguments>
+            <argument name="exporter" xsi:type="object">Iranimij\OpenFilter\Model\Transfer\Exporter\Proxy</argument>
+        </arguments>
+    </type>
+    <type name="Iranimij\OpenFilter\Console\Command\ConfigImport">
+        <arguments>
+            <argument name="importer" xsi:type="object">Iranimij\OpenFilter\Model\Transfer\Importer\Proxy</argument>
+        </arguments>
+    </type>
+    <type name="Iranimij\OpenFilter\Model\Transfer\Importer">
+        <arguments>
+            <argument name="logger" xsi:type="object">Iranimij\OpenFilter\Model\Logger</argument>
+        </arguments>
+    </type>
 </config>

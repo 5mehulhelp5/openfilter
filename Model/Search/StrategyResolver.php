@@ -49,16 +49,38 @@ class StrategyResolver
      */
     public function resolve(): FacetCountStrategyInterface
     {
-        $code = $this->reader->getString(self::XML_PATH_STRATEGY, ScopeConfigInterface::SCOPE_TYPE_DEFAULT, null);
-        $engine = $this->reader->getString('catalog/search/engine', ScopeConfigInterface::SCOPE_TYPE_DEFAULT, null);
-        if (!isset($this->strategies[$code])) {
-            $code = $this->autoByEngine[$engine] ?? self::PER_ATTRIBUTE;
-        }
+        $code = $this->code();
         if (!$this->logged && $this->config->isDebug()) {
-            $this->logger->info(sprintf('OpenFilter facet count strategy: %s (engine %s)', $code, $engine));
+            $this->logger->info(sprintf('OpenFilter facet count strategy: %s (engine %s)', $code, $this->engine()));
             $this->logged = true;
         }
 
         return $this->strategies[$code] ?? $this->strategies[self::PER_ATTRIBUTE];
+    }
+
+    /**
+     * Code of the strategy in use: the configured one, or for "auto" the one proven for the search engine.
+     *
+     * @return string
+     */
+    public function code(): string
+    {
+        $code = $this->reader->getString(self::XML_PATH_STRATEGY, ScopeConfigInterface::SCOPE_TYPE_DEFAULT, null);
+        if (isset($this->strategies[$code])) {
+            return $code;
+        }
+        $code = $this->autoByEngine[$this->engine()] ?? self::PER_ATTRIBUTE;
+
+        return isset($this->strategies[$code]) ? $code : self::PER_ATTRIBUTE;
+    }
+
+    /**
+     * The configured search engine.
+     *
+     * @return string
+     */
+    public function engine(): string
+    {
+        return $this->reader->getString('catalog/search/engine', ScopeConfigInterface::SCOPE_TYPE_DEFAULT, null);
     }
 }
