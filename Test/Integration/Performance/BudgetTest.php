@@ -20,7 +20,7 @@ use Magento\TestFramework\TestCase\AbstractController;
  * M1 "done when" budgets on full category page renders (02 · Architecture §10): three active filters cost one
  * search request with SingleQuery, and OpenFilter adds no MySQL queries (settings and URL names come from the
  * cache). One dispatch per test (fresh application each), caches warmed by the first test. Server time is
- * recorded, not gated (CI timing is noisy; hard gate in M4).
+ * recorded here; the hard time gate is ServerTimeTest (group "performance", its own CI job).
  *
  * @magentoAppArea frontend
  * @magentoDbIsolation disabled
