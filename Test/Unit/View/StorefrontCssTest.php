@@ -37,6 +37,7 @@ class StorefrontCssTest extends TestCase
     {
         $css = $this->css();
         self::assertStringNotContainsString('!important', $css);
+        $css = (string) preg_replace('/@keyframes[^{]*\{(?:[^{}]*\{[^{}]*\})*[^{}]*\}/', '', $css); // keyframe steps
         $css = (string) preg_replace('/@(?:media|supports)[^{]*\{/', '}', $css); // at-rule preludes are not selectors
         preg_match_all('/(?:^|})\s*([^{}]+)\{/', $css, $rules);
         foreach ($rules[1] as $selectorList) {
