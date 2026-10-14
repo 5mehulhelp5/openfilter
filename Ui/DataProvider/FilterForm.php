@@ -138,6 +138,9 @@ class FilterForm extends AbstractDataProvider
             $options[] = ['value' => $mode, 'label' => $labels[$mode]];
         }
         $meta['looks']['children']['display_mode']['arguments']['data']['config']['options'] = $options;
+        if ($this->request->getParam('why')) {
+            $meta['why']['arguments']['data']['config']['opened'] = true;
+        }
         $meta['behaves']['children']['position_override']['arguments']['data']['config']['notice'] = __(
             'Empty = the position from layered navigation (now %1). Lower numbers come first.',
             $config->getPosition()

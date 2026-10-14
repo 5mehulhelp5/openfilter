@@ -1,0 +1,60 @@
+<?php
+/**
+ * Copyright © Iman Aboheydary. All rights reserved.
+ * See LICENSE for license details (MIT).
+ */
+
+/** @var \Iranimij\OpenFilter\Block\Adminhtml\Filter\WhyPanel $block */
+/** @var \Magento\Framework\Escaper $escaper */
+$defaultStore = $block->getDefaultStoreId();
+$options = [
+    'url' => $block->getDiagnoseUrl(),
+    'okLabel' => (string) __('OK'),
+    'failLabel' => (string) __('Problem'),
+    'linkLabel' => (string) __('Fix it here'),
+    'errorText' => (string) __('The check could not run. Reload the page and try again.'),
+];
+?>
+<div class="of-why" data-of-why="<?= $escaper->escapeHtmlAttr(json_encode($options)) ?>">
+    <p class="of-why-intro"><?= $escaper->escapeHtml(__('Each line is a condition the filter needs. The first problem is usually the answer.')) ?></p>
+    <div class="of-why-controls admin__field-control">
+        <label class="of-why-label">
+            <span><?= $escaper->escapeHtml(__('Store view')) ?></span>
+            <select class="admin__control-select" data-of-why-store>
+                <?php foreach ($block->getStores() as $id => $name): ?>
+                    <option value="<?= (int) $id ?>"<?= $id === $defaultStore ? ' selected' : '' ?>><?= $escaper->escapeHtml($name) ?></option>
+                <?php endforeach; ?>
+            </select>
+        </label>
+        <label class="of-why-label">
+            <span><?= $escaper->escapeHtml(__('Category page')) ?></span>
+            <select class="admin__control-select" data-of-why-category>
+                <option value=""><?= $escaper->escapeHtml(__('No category: store view checks only')) ?></option>
+                <?php foreach ($block->getCategories() as $id => $path): ?>
+                    <option value="<?= (int) $id ?>"><?= $escaper->escapeHtml($path) ?></option>
+                <?php endforeach; ?>
+            </select>
+        </label>
+        <button type="button" class="action-secondary" data-of-why-run>
+            <span><?= $escaper->escapeHtml(__('Check again')) ?></span>
+        </button>
+    </div>
+    <ul class="of-why-checks" data-of-why-checks aria-live="polite">
+        <?php foreach ($block->getInitialChecks() as $check): ?>
+            <?php $row = $check->toArray(); ?>
+            <li class="of-why-check <?= $row['ok'] ? '_ok' : '_fail' ?>" data-of-check="<?= $escaper->escapeHtmlAttr($row['code']) ?>">
+                <span class="of-why-state"><?= $escaper->escapeHtml($row['ok'] ? __('OK') : __('Problem')) ?></span>
+                <strong><?= $escaper->escapeHtml($row['title']) ?></strong>
+                <?php if ($row['detail'] !== ''): ?>
+                    <span class="of-why-detail"><?= $escaper->escapeHtml($row['detail']) ?></span>
+                <?php endif; ?>
+                <?php if ($row['fix'] !== null): ?>
+                    <span class="of-why-fix"><?= $escaper->escapeHtml($row['fix']) ?></span>
+                <?php endif; ?>
+                <?php if ($row['url'] !== null): ?>
+                    <a class="of-why-link" href="<?= $escaper->escapeUrl($row['url']) ?>"><?= $escaper->escapeHtml(__('Fix it here')) ?></a>
+                <?php endif; ?>
+            </li>
+        <?php endforeach; ?>
+    </ul>
+</div>

@@ -273,6 +273,16 @@
             </container>
         </dynamicRows>
     </fieldset>
+    <fieldset name="why" sortOrder="5">
+        <settings>
+            <label translate="true">Why is this filter not showing?</label>
+            <collapsible>true</collapsible>
+            <opened>false</opened>
+        </settings>
+        <htmlContent name="why_panel">
+            <block class="Iranimij\OpenFilter\Block\Adminhtml\Filter\WhyPanel" name="openfilter.filter.why" template="Iranimij_OpenFilter::filter/why.phtml"/>
+        </htmlContent>
+    </fieldset>
     <fieldset name="labels" sortOrder="40">
         <settings>
             <label translate="true">Labels per store view</label>

@@ -234,6 +234,37 @@ class FilterConfigStorage
     }
 
     /**
+     * Layered navigation flags of a product attribute (null when there is no such attribute).
+     *
+     * @param int $attributeId
+     * @return array{code: string, input: string, is_filterable: int, is_filterable_in_search: int}|null
+     */
+    public function attributeFlags(int $attributeId): ?array
+    {
+        $connection = $this->connection();
+        $row = $connection->fetchRow(
+            $connection->select()
+                ->from(['e' => $this->table('eav_attribute')], ['attribute_code', 'frontend_input'])
+                ->join(
+                    ['c' => $this->table('catalog_eav_attribute')],
+                    'c.attribute_id = e.attribute_id',
+                    ['is_filterable', 'is_filterable_in_search']
+                )
+                ->where('e.attribute_id = ?', $attributeId)
+        );
+        if (!is_array($row)) {
+            return null;
+        }
+
+        return [
+            'code' => (string) $row['attribute_code'],
+            'input' => (string) $row['frontend_input'],
+            'is_filterable' => (int) $row['is_filterable'],
+            'is_filterable_in_search' => (int) $row['is_filterable_in_search'],
+        ];
+    }
+
+    /**
      * Label overrides of one filter by store id (0 = all store views), as stored.
      *
      * @param int|null $attributeId the attribute, or null for a built-in

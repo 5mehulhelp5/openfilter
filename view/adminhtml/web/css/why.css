@@ -1,0 +1,14 @@
+/**
+ * Copyright © Iman Aboheydary. All rights reserved.
+ * See LICENSE for license details (MIT).
+ */
+.of-why-controls { display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-end; margin-block: 1rem; }
+.of-why-label { display: flex; flex-direction: column; gap: .25rem; max-inline-size: 28rem; }
+.of-why-checks { list-style: none; margin: 0; padding: 0; }
+.of-why-check { display: grid; grid-template-columns: 6rem 1fr; gap: .25rem 1rem; padding-block: .75rem; border-block-end: 1px solid #e3e3e3; }
+.of-why-check > :not(.of-why-state) { grid-column: 2; }
+.of-why-state { grid-row: span 4; font-weight: 600; }
+.of-why-check._ok .of-why-state { color: #185b00; }
+.of-why-check._fail .of-why-state { color: #e22626; }
+.of-why-detail { color: #303030; }
+.of-why-fix { color: #303030; font-style: italic; }
