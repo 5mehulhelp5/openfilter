@@ -15,6 +15,7 @@ use Iranimij\OpenFilter\Model\Config;
 use Magento\Framework\Module\Manager as ModuleManager;
 use Magento\Framework\Notification\MessageInterface;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
 
 class CoexistenceTest extends TestCase
 {
@@ -31,6 +32,19 @@ class CoexistenceTest extends TestCase
         self::assertStringContainsString('ElasticSuite provides the layered navigation', (string) $notice->getText());
         self::assertSame('openfilter_coexistence', $notice->getIdentity());
         self::assertSame(MessageInterface::SEVERITY_NOTICE, $notice->getSeverity());
+    }
+
+    public function testDebugModeLogsWhyOpenFilterStepsAsideOnce(): void
+    {
+        $reader = $this->createStub(TypedReader::class);
+        $reader->method('getBool')->willReturn(true);
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects(self::once())->method('info')
+            ->with('OpenFilter steps aside: ElasticSuite provides the layered navigation.');
+        $config = new Config($reader, $this->detector(['Smile_ElasticsuiteCatalog']), $logger);
+
+        self::assertFalse($config->isEnabled());
+        self::assertFalse($config->isEnabled());
     }
 
     public function testLiveSearchToo(): void
