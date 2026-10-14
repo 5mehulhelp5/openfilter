@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace Iranimij\OpenFilter\Model\Layer\Filter;
 
 use Iranimij\OpenFilter\Model\Layer\LayerContext;
+use Iranimij\OpenFilter\Model\Layer\RangeListItems;
 use Iranimij\OpenFilter\Model\Search\PriceBounds;
 use Iranimij\OpenFilter\Model\Url\Range;
 use Magento\Catalog\Model\Layer;
@@ -34,6 +35,7 @@ class Decimal extends AbstractRangeFilter
      * @param DataBuilder $itemDataBuilder
      * @param LayerContext $context
      * @param Range $range
+     * @param RangeListItems $rangeListItems
      * @param PriceBounds $bounds
      * @param CoreDecimalFactory $coreDecimalFactory
      * @param array<string, mixed> $data
@@ -45,11 +47,21 @@ class Decimal extends AbstractRangeFilter
         DataBuilder $itemDataBuilder,
         LayerContext $context,
         Range $range,
+        RangeListItems $rangeListItems,
         private readonly PriceBounds $bounds,
         private readonly CoreDecimalFactory $coreDecimalFactory,
         array $data = []
     ) {
-        parent::__construct($filterItemFactory, $storeManager, $layer, $itemDataBuilder, $context, $range, $data);
+        parent::__construct(
+            $filterItemFactory,
+            $storeManager,
+            $layer,
+            $itemDataBuilder,
+            $context,
+            $range,
+            $rangeListItems,
+            $data
+        );
         $key = $this->getOpenFilterKey();
         $this->_requestVar = ($key !== null ? $this->context->parameterFor($key) : null)
             ?? (string) $this->getAttributeModel()->getAttributeCode();
@@ -92,6 +104,14 @@ class Decimal extends AbstractRangeFilter
     protected function toIndex(float $display): float
     {
         return $display;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function toDisplay(float $index): float
+    {
+        return $index;
     }
 
     /**

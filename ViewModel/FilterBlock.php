@@ -58,7 +58,9 @@ class FilterBlock implements ArgumentInterface
             if (!$filter instanceof AbstractFilter) {
                 continue;
             }
-            $slider = $filter instanceof AbstractRangeFilter ? $this->slider->forFilter($filter) : null;
+            $slider = $filter instanceof AbstractRangeFilter && !$filter->isRangeList()
+                ? $this->slider->forFilter($filter)
+                : null;
             if ($slider === null && (int) $filter->getItemsCount() === 0) {
                 continue;
             }

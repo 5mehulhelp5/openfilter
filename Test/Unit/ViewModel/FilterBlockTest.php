@@ -155,6 +155,22 @@ class FilterBlockTest extends TestCase
         self::assertSame([], $groups[0]->getOptions());
     }
 
+    public function testARangeListShowsItsRangesAsOptionsInsteadOfASlider(): void
+    {
+        $this->configs['price'] = new FilterConfig(['code' => 'price', 'display_mode' => FilterConfigInterface::DISPLAY_RANGES]);
+        $this->sliders = ['price' => new SliderData('price', 10.0, 90.0, 1.0, null, null, 'EUR', 'en-US', '/c', [], '/c?price=x', '/c')];
+
+        $groups = $this->block()->groups([$this->rangeFilter('price', 'Price', true, [
+            $this->item('€0.00 - €49.99', '0-50', 7, '/c?price=0-50', false),
+            $this->item('€50.00 and above', '50-', 3, '/c?price=50-', true),
+        ])]);
+
+        self::assertNull($groups[0]->getSlider());
+        self::assertSame(FilterConfigInterface::DISPLAY_RANGES, $groups[0]->getDisplay());
+        self::assertSame(['0-50', '50-'], array_map(static fn ($o) => $o->getValue(), $groups[0]->getOptions()));
+        self::assertTrue($groups[0]->isMultiselect());
+    }
+
     public function testTotalSelectedCountsEveryGroup(): void
     {
         $this->configs['a'] = new FilterConfig(['code' => 'a']);
@@ -216,14 +232,20 @@ class FilterBlockTest extends TestCase
         return $filter;
     }
 
-    private function rangeFilter(string $key, string $name): Price
+    /**
+     * @param CoreItem[] $items
+     */
+    private function rangeFilter(string $key, string $name, bool $rangeList = false, array $items = []): Price
     {
         $filter = $this->getMockBuilder(Price::class)->disableOriginalConstructor()
-            ->onlyMethods(['getOpenFilterKey', 'getName', 'getItems', 'getItemsCount', 'getRequestVar'])->getMock();
+            ->onlyMethods(['getOpenFilterKey', 'getName', 'getItems', 'getItemsCount', 'getRequestVar', 'isRangeList', 'isMultiselect'])
+            ->getMock();
         $filter->method('getOpenFilterKey')->willReturn($key);
         $filter->method('getName')->willReturn($name);
-        $filter->method('getItems')->willReturn([]);
-        $filter->method('getItemsCount')->willReturn(0);
+        $filter->method('getItems')->willReturn($items);
+        $filter->method('getItemsCount')->willReturn(count($items));
+        $filter->method('isRangeList')->willReturn($rangeList);
+        $filter->method('isMultiselect')->willReturn($rangeList);
         $filter->method('getRequestVar')->willReturn($key);
 
         return $filter;

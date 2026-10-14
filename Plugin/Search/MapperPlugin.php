@@ -14,6 +14,7 @@ use Iranimij\OpenFilter\Model\Search\BuiltinFilters;
 use Iranimij\OpenFilter\Model\Search\FacetFilter;
 use Iranimij\OpenFilter\Model\Search\FacetFilterCollector;
 use Iranimij\OpenFilter\Model\Search\QueryState;
+use Iranimij\OpenFilter\Model\Search\RangeListQuery;
 use Iranimij\OpenFilter\Model\Search\StrategyResolver;
 use Magento\Elasticsearch\ElasticAdapter\SearchAdapter\Mapper;
 use Magento\Framework\Search\RequestInterface;
@@ -33,6 +34,7 @@ class MapperPlugin
      * @param QueryState $state
      * @param BuiltinFilters $builtins
      * @param AndLogic $andLogic attributes set to "all of the picked values"
+     * @param RangeListQuery $rangeLists filters shown as a list of ranges
      */
     public function __construct(
         private readonly Config $config,
@@ -40,7 +42,8 @@ class MapperPlugin
         private readonly StrategyResolver $resolver,
         private readonly QueryState $state,
         private readonly BuiltinFilters $builtins,
-        private readonly AndLogic $andLogic
+        private readonly AndLogic $andLogic,
+        private readonly RangeListQuery $rangeLists
     ) {
     }
 
@@ -60,6 +63,7 @@ class MapperPlugin
         foreach ($allOf as $clause) {
             $query['body']['query']['bool']['must'][] = $clause;
         }
+        [$query, $filters] = $this->rangeLists->apply($query, $filters);
         foreach ($this->builtins->forRequest() as $builtin) {
             $query['body']['aggregations'][$builtin['bucket']] = $builtin['aggregation'];
             if ($builtin['clause'] !== null) {

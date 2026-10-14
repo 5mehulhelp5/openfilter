@@ -10,6 +10,7 @@ namespace Iranimij\OpenFilter\Model\Layer\Filter;
 
 use Iranimij\OpenFilter\Api\Data\FilterConfigInterface as Filter;
 use Iranimij\OpenFilter\Model\Layer\LayerContext;
+use Iranimij\OpenFilter\Model\Layer\RangeListItems;
 use Iranimij\OpenFilter\Model\Search\PriceBoundsConverter;
 use Iranimij\OpenFilter\Model\Url\Range;
 use Magento\Catalog\Model\Layer;
@@ -33,6 +34,7 @@ class Price extends AbstractRangeFilter
      * @param DataBuilder $itemDataBuilder
      * @param LayerContext $context
      * @param Range $range
+     * @param RangeListItems $rangeListItems
      * @param PriceBoundsConverter $converter
      * @param PriceCurrencyInterface $priceCurrency
      * @param CorePriceFactory $corePriceFactory
@@ -45,12 +47,22 @@ class Price extends AbstractRangeFilter
         DataBuilder $itemDataBuilder,
         LayerContext $context,
         Range $range,
+        RangeListItems $rangeListItems,
         private readonly PriceBoundsConverter $converter,
         private readonly PriceCurrencyInterface $priceCurrency,
         private readonly CorePriceFactory $corePriceFactory,
         array $data = []
     ) {
-        parent::__construct($filterItemFactory, $storeManager, $layer, $itemDataBuilder, $context, $range, $data);
+        parent::__construct(
+            $filterItemFactory,
+            $storeManager,
+            $layer,
+            $itemDataBuilder,
+            $context,
+            $range,
+            $rangeListItems,
+            $data
+        );
         $this->_requestVar = Filter::BUILTIN_PRICE;
     }
 
@@ -94,6 +106,24 @@ class Price extends AbstractRangeFilter
     protected function toDisplayRange(float $min, float $max): array
     {
         return $this->converter->displayRange($min, $max);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function toDisplay(float $index): float
+    {
+        return $this->converter->toDisplay($index);
+    }
+
+    /**
+     * A closed price range of the list ends a cent below its upper bound, as Magento's own ranges do.
+     *
+     * @inheritDoc
+     */
+    protected function rangeLabel(?float $from, ?float $to): string
+    {
+        return $this->label($from, $to === null ? null : $to - 0.01);
     }
 
     /**

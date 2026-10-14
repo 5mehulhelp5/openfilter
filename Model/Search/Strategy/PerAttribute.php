@@ -51,23 +51,35 @@ class PerAttribute implements FacetCountStrategyInterface
      */
     public function prepareResponse(array $query, array $response, array $facetFilters): array
     {
+        $byField = [];
         foreach ($facetFilters as $filter) {
-            $bucket = $filter->getBucketName();
-            $countQuery = $this->clauses->without($query, [$filter]);
-            if ($countQuery === null || !isset($query['body']['aggregations'][$bucket])) {
+            $byField[$filter->getField()][] = $filter;
+        }
+        foreach ($byField as $filters) {
+            $countQuery = $this->clauses->without($query, $filters);
+            $aggregations = [];
+            foreach ($filters as $filter) {
+                $bucket = $filter->getBucketName();
+                if (isset($query['body']['aggregations'][$bucket])) {
+                    $aggregations[$bucket] = $query['body']['aggregations'][$bucket];
+                }
+            }
+            if ($countQuery === null || $aggregations === []) {
                 continue;
             }
             $countQuery['body']['from'] = 0;
             $countQuery['body']['size'] = 0;
             unset($countQuery['body']['sort']);
-            $countQuery['body']['aggregations'] = [$bucket => $query['body']['aggregations'][$bucket]];
+            $countQuery['body']['aggregations'] = $aggregations;
             $connection = $this->connectionManager->getConnection();
             if (!method_exists($connection, 'query')) {
                 continue;
             }
             $result = $connection->query($countQuery);
-            if (isset($result['aggregations'][$bucket])) {
-                $response['aggregations'][$bucket] = $result['aggregations'][$bucket];
+            foreach (array_keys($aggregations) as $bucket) {
+                if (isset($result['aggregations'][$bucket])) {
+                    $response['aggregations'][$bucket] = $result['aggregations'][$bucket];
+                }
             }
         }
 

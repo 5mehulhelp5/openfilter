@@ -74,4 +74,41 @@ class PerAttributeTest extends TestCase
             new FacetFilter('size', 'size_bucket', [['term' => ['size' => 7]]]),
         ]));
     }
+
+    public function testOneRequestPerFieldCountsEveryBucketOfThatField(): void
+    {
+        $price = ['range' => ['price_0_1' => ['gte' => 0.0]]];
+        $query = ['body' => [
+            'query' => ['bool' => ['must' => [$price]]],
+            'aggregations' => ['price_bucket' => ['extended_stats' => []], 'of_ranges_price' => ['range' => []]],
+        ]];
+        $connection = new class {
+            /** @var array<int, array<string, mixed>> */
+            public array $sent = [];
+
+            /**
+             * @param array<string, mixed> $query
+             * @return array<string, mixed>
+             */
+            public function query(array $query): array
+            {
+                $this->sent[] = $query;
+
+                return ['aggregations' => ['price_bucket' => ['n' => 1], 'of_ranges_price' => ['n' => 2]]];
+            }
+        };
+        $manager = $this->createStub(ConnectionManager::class);
+        $manager->method('getConnection')->willReturn($connection);
+        $filters = [
+            new FacetFilter('price', 'price_bucket', [$price]),
+            new FacetFilter('price', 'of_ranges_price', []),
+        ];
+
+        $response = (new PerAttribute(new QueryClauses(), $manager))->prepareResponse($query, ['aggregations' => []], $filters);
+
+        self::assertCount(1, $connection->sent);
+        self::assertSame([], $connection->sent[0]['body']['query']['bool']['must']);
+        self::assertSame(['price_bucket', 'of_ranges_price'], array_keys($connection->sent[0]['body']['aggregations']));
+        self::assertSame(['price_bucket' => ['n' => 1], 'of_ranges_price' => ['n' => 2]], $response['aggregations']);
+    }
 }
