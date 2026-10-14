@@ -61,9 +61,21 @@ define(['jquery'], function ($) {
                     category: root.find('[data-of-why-category]').val()
                 }
             }).done(function (response) {
+                var preview = root.find('[data-of-why-preview]')[0],
+                    link;
+
                 list.replaceChildren.apply(list, (response.checks || []).map(function (check) {
                     return item(check, options);
                 }));
+                preview.replaceChildren();
+                if (response.preview) {
+                    link = document.createElement('a');
+                    link.href = response.preview;
+                    link.target = '_blank';
+                    link.rel = 'noopener';
+                    link.textContent = options.previewLabel;
+                    preview.appendChild(link);
+                }
             }).fail(function () {
                 var li = document.createElement('li');
 

@@ -14,6 +14,10 @@ One row per filter: label, code, type (attribute or built-in), how it looks, sev
 - **Mass actions**: *Show on the storefront*, *Hide from the storefront*, *Reset to defaults* (labels per store view and URL names are kept). Hiding a filter never changes the attribute's own "Use in Layered Navigation" setting, so it stays in the grid.
 - Row actions: **Edit** and **Why is it not showing?**
 
+## Sort filters (1.1)
+
+Catalog › OpenFilter › Filters › **Sort filters** lists every filter in its storefront order. Drag a filter by its handle, or use **Move up** / **Move down** (keyboard friendly: focus stays on the button and the new place is announced). **Save order** writes the positions 10, 20, 30… in one go (the gaps leave room for a filter later); the grid's *Position* column and the form show the same numbers.
+
 ## Filter form
 
 | Section | Settings |
@@ -21,6 +25,7 @@ One row per filter: label, code, type (attribute or built-in), how it looks, sev
 | Why is this filter not showing? | the checks below, for any store view and category page |
 | How it looks | display type: only the types that fit the attribute are offered (swatches need swatch data, sliders and ranges a number attribute or price, the on/off switch a Yes/No attribute or a list with two options, the category tree the category filter); **Ranges** (price and number filters, 1.1): a list such as `0-50,50-100,100-`, empty = automatic; **Category tree levels** (category filter, 1.1): 1–5 |
 | How it behaves | show on the storefront, several values, **Products must match** (option filters, 1.1): *any* of the picked values (more products) or *all* of them (fewer products, for features a product has several of), options before "Show more" (0 = all), search box from N options (0 = never), open when the page loads (automatic / open / closed), option order, hide when only one option is left, position (empty = the attribute's position) |
+| Where it shows (1.1) | *In every category* (default), *Only in these categories* or *In every category except these*, with Magento's category picker; a category counts with the categories below it; search result pages always show the filter |
 | SEO | "Let Google index pages filtered by this" (single-value pages only), URL name of the filter, URL names of the options |
 | Label and tooltip | the label for all store views (empty = the attribute's label) and a tooltip (a short plain-text hint shoppers open next to the filter name, 1.1), or the chosen store view's own label and tooltip |
 
@@ -69,7 +74,7 @@ Each line is a condition the filter needs, with what was found and how to fix it
 | Products in *category* match this filter | no visible product of the category has a value (counted by the search engine) |
 | More than one option has products here | one option only and "Hide when only one option is left" is on |
 
-The same checks power `bin/magento openfilter:doctor` (1.0).
+The same checks power `bin/magento openfilter:doctor` (1.0). With a category picked, **Open this category on the storefront** (1.1) opens that category in the chosen store view in a new tab, to see the filter where shoppers do.
 
 ## Settings
 

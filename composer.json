@@ -44,7 +44,8 @@
         "magento/module-swatches": "^100.4.7",
         "magento/module-tax": "^100.4.7",
         "magento/module-theme": "^101.1.7",
-        "magento/module-ui": "^101.2.7"
+        "magento/module-ui": "^101.2.7",
+        "magento/module-url-rewrite": "^102.0"
     },
     "suggest": {
         "iranimij/openfilter-hyva": "Storefront rendering for Hyvä themes (AJAX, mobile drawer, sliders)"

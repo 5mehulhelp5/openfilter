@@ -21,6 +21,10 @@ class FilterConfigStorage
     public const TABLE_ATTRIBUTE_STORE = 'openfilter_attribute_store';
     public const TABLE_BUILTIN = 'openfilter_builtin';
     public const TABLE_BUILTIN_STORE = 'openfilter_builtin_store';
+    public const TABLE_FILTER_CATEGORY = 'openfilter_filter_category';
+
+    /** Table values of openfilter_filter_category.mode by FilterConfigInterface category mode. */
+    private const CATEGORY_MODES = ['only' => 'show', 'except' => 'hide'];
 
     /**
      * @param ResourceConnection $resource
@@ -303,6 +307,45 @@ class FilterConfigStorage
             ['code' => $code, 'store_id' => $storeId, $column => $value],
             [$column]
         );
+    }
+
+    /**
+     * Where filters show on category pages (1.1), by filter key; filters without rows show everywhere.
+     *
+     * @return array<string, array{mode: string, ids: int[]}>
+     */
+    public function categoryRules(): array
+    {
+        $connection = $this->connection();
+        $modes = array_flip(self::CATEGORY_MODES);
+        $rules = [];
+        foreach ($connection->fetchAll($connection->select()->from($this->table(self::TABLE_FILTER_CATEGORY))) as $row) {
+            $key = (string) $row['filter_key'];
+            $rules[$key]['mode'] = $modes[(string) $row['mode']] ?? 'all';
+            $rules[$key]['ids'][] = (int) $row['category_id'];
+        }
+
+        return $rules;
+    }
+
+    /**
+     * @param string $key filter key
+     * @param string $mode all, only or except
+     * @param int[] $categoryIds
+     * @return void
+     */
+    public function saveCategoryRule(string $key, string $mode, array $categoryIds): void
+    {
+        $table = $this->table(self::TABLE_FILTER_CATEGORY);
+        $this->connection()->delete($table, ['filter_key = ?' => $key]);
+        if (!isset(self::CATEGORY_MODES[$mode]) || $categoryIds === []) {
+            return;
+        }
+        $rows = array_map(
+            static fn (int $id): array => ['filter_key' => $key, 'category_id' => $id, 'mode' => self::CATEGORY_MODES[$mode]],
+            array_values(array_unique($categoryIds))
+        );
+        $this->connection()->insertMultiple($table, $rows);
     }
 
     /**

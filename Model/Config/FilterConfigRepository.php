@@ -119,6 +119,9 @@ class FilterConfigRepository implements FilterConfigRepositoryInterface
         } elseif ($attributeId !== null) {
             $this->storage->saveAttribute($attributeId, $row + ['is_active' => (int) $merged->isActive()]);
         }
+        // Always written: the config being saved may be the provider's own cached object, so comparing with the
+        // "current" one could see no change.
+        $this->storage->saveCategoryRule($this->provider->keyOf($current), $merged->getCategoryMode(), $merged->getCategoryIds());
         $this->clean();
 
         return $this->current($this->provider->keyOf($config));

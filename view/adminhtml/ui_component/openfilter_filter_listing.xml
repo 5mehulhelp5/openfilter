@@ -18,6 +18,10 @@
                 <url path="adminhtml/system_config/edit/section/openfilter"/>
                 <label translate="true">Settings</label>
             </button>
+            <button name="sort">
+                <url path="openfilter/filter/sort"/>
+                <label translate="true">Sort filters</label>
+            </button>
         </buttons>
         <spinner>openfilter_filter_columns</spinner>
         <deps>

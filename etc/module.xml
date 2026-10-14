@@ -21,6 +21,7 @@
             <module name="Magento_Swatches"/>
             <module name="Magento_Tax"/>
             <module name="Magento_Ui"/>
+            <module name="Magento_UrlRewrite"/>
         </sequence>
     </module>
 </config>

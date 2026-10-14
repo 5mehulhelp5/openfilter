@@ -220,6 +220,81 @@
             </settings>
         </field>
     </fieldset>
+    <fieldset name="where" sortOrder="25">
+        <settings>
+            <label translate="true">Where it shows</label>
+            <collapsible>true</collapsible>
+            <opened>false</opened>
+        </settings>
+        <field name="category_mode" formElement="select" sortOrder="10">
+            <settings>
+                <dataType>text</dataType>
+                <label translate="true">Show this filter</label>
+                <notice translate="true">On category pages; a category counts with the categories below it. Search result pages always show the filter.</notice>
+                <switcherConfig>
+                    <rules>
+                        <rule name="0">
+                            <value>all</value>
+                            <actions>
+                                <action name="0">
+                                    <target>openfilter_filter_form.openfilter_filter_form.where.category_ids</target>
+                                    <callback>hide</callback>
+                                </action>
+                            </actions>
+                        </rule>
+                        <rule name="1">
+                            <value>only</value>
+                            <actions>
+                                <action name="0">
+                                    <target>openfilter_filter_form.openfilter_filter_form.where.category_ids</target>
+                                    <callback>show</callback>
+                                </action>
+                            </actions>
+                        </rule>
+                        <rule name="2">
+                            <value>except</value>
+                            <actions>
+                                <action name="0">
+                                    <target>openfilter_filter_form.openfilter_filter_form.where.category_ids</target>
+                                    <callback>show</callback>
+                                </action>
+                            </actions>
+                        </rule>
+                    </rules>
+                    <enabled>true</enabled>
+                </switcherConfig>
+            </settings>
+            <formElements>
+                <select>
+                    <settings>
+                        <options class="Iranimij\OpenFilter\Model\Config\Source\CategoryMode"/>
+                    </settings>
+                </select>
+            </formElements>
+        </field>
+        <field name="category_ids" component="Magento_Catalog/js/components/new-category" formElement="select" sortOrder="20">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="filterOptions" xsi:type="boolean">true</item>
+                    <item name="chipsEnabled" xsi:type="boolean">true</item>
+                    <item name="multiple" xsi:type="boolean">true</item>
+                    <item name="levelsVisibility" xsi:type="string">1</item>
+                    <item name="elementTmpl" xsi:type="string">ui/grid/filters/elements/ui-select</item>
+                </item>
+            </argument>
+            <settings>
+                <dataType>text</dataType>
+                <label translate="true">Categories</label>
+            </settings>
+            <formElements>
+                <select>
+                    <settings>
+                        <options class="Magento\Catalog\Ui\Component\Product\Form\Categories\Options"/>
+                    </settings>
+                </select>
+            </formElements>
+        </field>
+    </fieldset>
     <fieldset name="seo" sortOrder="30">
         <settings>
             <label translate="true">SEO</label>
