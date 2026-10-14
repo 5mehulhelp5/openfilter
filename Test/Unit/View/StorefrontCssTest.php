@@ -51,6 +51,20 @@ class StorefrontCssTest extends TestCase
         }
     }
 
+    public function testMediaQueriesComeAfterThePlainRulesTheyOverride(): void
+    {
+        $lines = array_values(array_filter(array_map('trim', explode("\n", $this->css()))));
+        $first = null;
+        foreach ($lines as $index => $line) {
+            if (str_starts_with($line, '@')) {
+                $first ??= $index;
+            } elseif ($first !== null) {
+                self::fail("plain rule after an at-rule (equal specificity: the later rule wins): $line");
+            }
+        }
+        self::assertNotNull($first);
+    }
+
     public function testStaysWithinTheBudget(): void
     {
         self::assertLessThanOrEqual(4096, strlen((string) gzencode((string) file_get_contents(self::FILE), 9)));
