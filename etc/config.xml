@@ -11,8 +11,17 @@
         <openfilter>
             <general>
                 <enabled>1</enabled>
+                <ajax>1</ajax>
                 <debug>0</debug>
             </general>
+            <display>
+                <expanded_groups>3</expanded_groups>
+                <price_step>1</price_step>
+            </display>
+            <seo>
+                <nofollow_threshold>2</nofollow_threshold>
+                <max_active_values>5</max_active_values>
+            </seo>
             <search>
                 <count_strategy>auto</count_strategy>
             </search>
