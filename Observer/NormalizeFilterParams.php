@@ -52,7 +52,11 @@ class NormalizeFilterParams implements ObserverInterface
             return;
         }
         $page = $request->getQuery('p');
-        $url = $this->context->urlFor($result['state'], $result['changed'] || !is_scalar($page) ? [] : ['p' => (string) $page]);
+        $override = array_fill_keys($result['drop'] ?? [], null);
+        if (!$result['changed'] && is_scalar($page)) {
+            $override['p'] = (string) $page;
+        }
+        $url = $this->context->urlFor($result['state'], $override);
         $this->actionFlag->set('', ActionInterface::FLAG_NO_DISPATCH, '1');
         $this->response->setRedirect($url, 301);
     }
