@@ -61,7 +61,7 @@ class FilterConfigTest extends TestCase
         self::assertSame('dropdown', $builtin->getDisplayMode());
         self::assertSame('stock', $builtin->getCode());
         $attribute = (new FilterConfig(['code' => 'color']))->withBehaviourOf($config->setActive(false));
-        self::assertTrue($attribute->isActive(), 'attributes are always active');
+        self::assertFalse($attribute->isActive(), 'attributes can be hidden too (M2)');
         self::assertNotSame($config, $config->with(['label' => 'x']));
         self::assertSame('x', $config->with(['label' => 'x'])->getLabel());
         self::assertFalse($config->isBuiltin());

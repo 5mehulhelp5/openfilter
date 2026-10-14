@@ -125,7 +125,9 @@ class FilterConfigProvider
                 $attribute['position']
             );
             if (isset($rows[$id])) {
-                $config = $config->with(array_intersect_key($rows[$id], $behaviour));
+                $config = $config->with(
+                    array_intersect_key($rows[$id], $behaviour) + ['active' => $rows[$id]['is_active'] ?? true]
+                );
             }
             $configs[] = $config->with(['label' => $labels['attributes'][$id] ?? $attribute['label']]);
         }
@@ -163,9 +165,10 @@ class FilterConfigProvider
      */
     public function keyOf(FilterConfigInterface $config): string
     {
-        $code = $config->getCode();
-        $clash = !$config->isBuiltin() && in_array($code, FilterConfigInterface::BUILTIN_CODES, true);
+        $key = $config instanceof FilterConfig
+            ? $config
+            : new FilterConfig(['code' => $config->getCode(), 'builtin' => $config->isBuiltin()]);
 
-        return $clash ? self::ATTRIBUTE_KEY_PREFIX . $code : $code;
+        return $key->getKey();
     }
 }

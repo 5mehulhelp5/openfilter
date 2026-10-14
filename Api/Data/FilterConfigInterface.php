@@ -207,7 +207,8 @@ interface FilterConfigInterface
     public function setPositionOverride(?int $position): self;
 
     /**
-     * Whether the filter is shown (attributes: always; built-ins: switched on by the merchant).
+     * Whether the filter is shown on the storefront (attributes: unless hidden by the merchant; built-ins: switched on
+     * by the merchant). Hiding never changes the attribute's own "Use in layered navigation" setting.
      *
      * @return bool
      */

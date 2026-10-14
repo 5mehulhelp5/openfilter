@@ -92,6 +92,28 @@ class LayerContext
     }
 
     /**
+     * Whether the merchant hid this filter in Catalog > OpenFilter > Filters (an attribute by id, or the price or
+     * category built-in by code). Unknown filters are not hidden: they stay with core.
+     *
+     * @param int|null $attributeId
+     * @param string|null $builtinCode
+     * @return bool
+     */
+    public function isHidden(?int $attributeId, ?string $builtinCode = null): bool
+    {
+        foreach ($this->configProvider->getForStore($this->storeId()) as $config) {
+            $match = $builtinCode !== null
+                ? $config->isBuiltin() && $config->getCode() === $builtinCode
+                : !$config->isBuiltin() && $config->getAttributeId() === $attributeId;
+            if ($match) {
+                return !$config->isActive();
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Provider key of an attribute's filter by attribute code.
      *
      * @param string $attributeCode

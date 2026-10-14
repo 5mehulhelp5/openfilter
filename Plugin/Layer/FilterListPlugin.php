@@ -16,10 +16,11 @@ use Iranimij\OpenFilter\Model\Search\BuiltinFilters;
 use Magento\Catalog\Model\Layer;
 use Magento\Catalog\Model\Layer\Filter\AbstractFilter;
 use Magento\Catalog\Model\Layer\FilterList;
+use Magento\Eav\Model\Entity\Attribute\AbstractAttribute;
 
 /**
- * Adds the switched-on built-in filters to category and search filter lists, and orders every filter by
- * OpenFilter's positions (category first, toggles after the attributes unless moved).
+ * Adds the switched-on built-in filters to category and search filter lists, leaves out the filters the merchant
+ * hid, and orders every filter by OpenFilter's positions (category first, toggles after the attributes unless moved).
  */
 class FilterListPlugin
 {
@@ -57,7 +58,10 @@ class FilterListPlugin
                 $this->builtins[$id][] = $this->builtinFactory->create(['layer' => $layer, 'data' => ['code' => $code]]);
             }
         }
-        $all = array_merge($filters, $this->builtins[$id]);
+        $all = array_merge(
+            array_filter($filters, fn (AbstractFilter $filter): bool => !$this->isHidden($filter)),
+            $this->builtins[$id]
+        );
         $positions = [];
         foreach ($all as $index => $filter) {
             $positions[$index] = [$this->position($filter), $index];
@@ -65,6 +69,28 @@ class FilterListPlugin
         uksort($all, static fn (int $a, int $b): int => $positions[$a] <=> $positions[$b]);
 
         return array_values($all);
+    }
+
+    /**
+     * Attribute, price and category filters the merchant hid (built-ins come from activeCodes() already).
+     *
+     * @param AbstractFilter $filter
+     * @return bool
+     */
+    private function isHidden(AbstractFilter $filter): bool
+    {
+        if (!$filter->hasData('attribute_model')) {
+            return $this->context->isHidden(null, Filter::BUILTIN_CATEGORY);
+        }
+        $attribute = $filter->getData('attribute_model');
+        if (!$attribute instanceof AbstractAttribute) {
+            return false;
+        }
+        if ($attribute->getAttributeCode() === Filter::BUILTIN_PRICE) {
+            return $this->context->isHidden(null, Filter::BUILTIN_PRICE);
+        }
+
+        return $this->context->isHidden((int) $attribute->getAttributeId());
     }
 
     /**

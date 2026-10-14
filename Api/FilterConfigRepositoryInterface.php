@@ -9,6 +9,8 @@ declare(strict_types=1);
 namespace Iranimij\OpenFilter\Api;
 
 use Iranimij\OpenFilter\Api\Data\FilterConfigInterface;
+use Iranimij\OpenFilter\Api\Data\FilterConfigSearchResultsInterface;
+use Magento\Framework\Api\SearchCriteriaInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 
@@ -39,6 +41,17 @@ interface FilterConfigRepositoryInterface
      * @return FilterConfigInterface[]
      */
     public function getAll(): array;
+
+    /**
+     * Filters matching the criteria (admin scope labels, never null). Fields: key (unique: "attribute:<code>" for an
+     * attribute named like a built-in), code, label, builtin, attribute_id, input_type, display_mode, multiselect,
+     * visible_options, search_threshold, expanded, sort_by, hide_single_option, seo_indexable, position_override,
+     * position, active.
+     *
+     * @param SearchCriteriaInterface $searchCriteria
+     * @return FilterConfigSearchResultsInterface
+     */
+    public function getList(SearchCriteriaInterface $searchCriteria): FilterConfigSearchResultsInterface;
 
     /**
      * @param FilterConfigInterface $config
