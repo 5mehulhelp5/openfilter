@@ -184,3 +184,4 @@
 "Turn ""Hide when only one option is left"" off, or give products other values.","Turn ""Hide when only one option is left"" off, or give products other values."
 "Why is it not showing?","Why is it not showing?"
 "Why is this filter not showing?","Why is this filter not showing?"
+"OpenFilter found %1 filterable attributes and set sensible defaults: colours as swatches, sizes as text swatches, price as a slider, other lists as checkbox lists, yes/no attributes as switches. Rating, In stock, On sale and New are off until you switch them on. <a href=""%2"">Review defaults</a>","OpenFilter found %1 filterable attributes and set sensible defaults: colours as swatches, sizes as text swatches, price as a slider, other lists as checkbox lists, yes/no attributes as switches. Rating, In stock, On sale and New are off until you switch them on. <a href=""%2"">Review defaults</a>"

@@ -9,7 +9,9 @@ declare(strict_types=1);
 namespace Iranimij\OpenFilter\Controller\Adminhtml\Filter;
 
 use Magento\Backend\App\Action;
+use Iranimij\OpenFilter\Model\Admin\FirstRunNotice;
 use Magento\Framework\App\Action\HttpGetActionInterface;
+use Magento\Framework\FlagManager;
 use Magento\Backend\Model\View\Result\Page;
 use Magento\Framework\View\Result\PageFactory;
 
@@ -23,10 +25,12 @@ class Index extends Action implements HttpGetActionInterface
     /**
      * @param Action\Context $context
      * @param PageFactory $pageFactory
+     * @param FlagManager $flags
      */
     public function __construct(
         Action\Context $context,
-        private readonly PageFactory $pageFactory
+        private readonly PageFactory $pageFactory,
+        private readonly FlagManager $flags
     ) {
         parent::__construct($context);
     }
@@ -36,6 +40,9 @@ class Index extends Action implements HttpGetActionInterface
      */
     public function execute(): Page
     {
+        if ($this->getRequest()->getParam('reviewed')) {
+            $this->flags->saveFlag(FirstRunNotice::FLAG, '1');
+        }
         /** @var Page $page adminhtml pages are backend pages */
         $page = $this->pageFactory->create();
         $page->setActiveMenu('Iranimij_OpenFilter::filters');
