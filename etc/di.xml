@@ -249,4 +249,17 @@
             <argument name="logger" xsi:type="object">Iranimij\OpenFilter\Model\Logger</argument>
         </arguments>
     </type>
+    <!-- 1.1: indexable filter pages in Magento's XML sitemap (Model\Sitemap\FilterPages; off by default). -->
+    <type name="Magento\Sitemap\Model\ItemProvider\Composite">
+        <arguments>
+            <argument name="itemProviders" xsi:type="array">
+                <item name="openfilterProvider" xsi:type="object">Iranimij\OpenFilter\Model\Sitemap\FilterPages</item>
+            </argument>
+        </arguments>
+    </type>
+    <type name="Iranimij\OpenFilter\Model\Sitemap\FilterPages">
+        <arguments>
+            <argument name="categoryConfig" xsi:type="object">Magento\Sitemap\Model\ItemProvider\CategoryConfigReader</argument>
+        </arguments>
+    </type>
 </config>

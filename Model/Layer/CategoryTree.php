@@ -85,6 +85,24 @@ class CategoryTree
     }
 
     /**
+     * Ids of a category and the categories above it, up to the store's root (for "Where it shows").
+     *
+     * @param int $id
+     * @param int $storeId
+     * @return int[]
+     */
+    public function pathIds(int $id, int $storeId): array
+    {
+        $tree = $this->forStore($storeId);
+        $path = [];
+        for ($node = $id; isset($tree[$node]); $node = $tree[$node]['parent']) {
+            $path[] = $node;
+        }
+
+        return array_reverse($path);
+    }
+
+    /**
      * Whether $id is an active category below $rootId.
      *
      * @param int $id

@@ -220,7 +220,7 @@
 "Category tree","Category tree"
 "Category tree levels","Category tree levels"
 "Empty = the tooltip for all store views.","Empty = the tooltip for all store views."
-"For example <code>{filters} {category} | {store}</code>. {category} = category name or search term, {filters} = the active values (""Red, Blue""), {store} = store name. Empty = Magento's title. Up to 60 characters show in search results.","For example <code>{filters} {category} | {store}</code>. {category} = category name or search term, {filters} = the active values (""Red, Blue""), {store} = store name. Empty = Magento's title. Up to 60 characters show in search results."
+"For example <code>{filters} {category} | {store}</code>. {category} = category name, {filters} = the active values (""Red, Blue""), {store} = store name. Empty = Magento's title. Up to 60 characters show in search results.","For example <code>{filters} {category} | {store}</code>. {category} = category name, {filters} = the active values (""Red, Blue""), {store} = store name. Empty = Magento's title. Up to 60 characters show in search results."
 "For example <code>{filters} {category}</code>. Empty = the category name.","For example <code>{filters} {category}</code>. Empty = the category name."
 "Heading (H1) of filtered pages","Heading (H1) of filtered pages"
 "Keep the sidebar in view while scrolling","Keep the sidebar in view while scrolling"

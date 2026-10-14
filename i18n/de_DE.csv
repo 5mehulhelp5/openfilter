@@ -220,7 +220,7 @@
 "Category tree","Kategoriebaum"
 "Category tree levels","Ebenen des Kategoriebaums"
 "Empty = the tooltip for all store views.","Leer = der Hinweis für alle Store Views."
-"For example <code>{filters} {category} | {store}</code>. {category} = category name or search term, {filters} = the active values (""Red, Blue""), {store} = store name. Empty = Magento's title. Up to 60 characters show in search results.","Zum Beispiel <code>{filters} {category} | {store}</code>. {category} = Kategoriename oder Suchbegriff, {filters} = die aktiven Werte („Rot, Blau“), {store} = Shopname. Leer = der Titel von Magento. Bis zu 60 Zeichen erscheinen in Suchergebnissen."
+"For example <code>{filters} {category} | {store}</code>. {category} = category name, {filters} = the active values (""Red, Blue""), {store} = store name. Empty = Magento's title. Up to 60 characters show in search results.","Zum Beispiel <code>{filters} {category} | {store}</code>. {category} = Kategoriename, {filters} = die aktiven Werte („Rot, Blau“), {store} = Shopname. Leer = der Titel von Magento. Bis zu 60 Zeichen erscheinen in Suchergebnissen."
 "For example <code>{filters} {category}</code>. Empty = the category name.","Zum Beispiel <code>{filters} {category}</code>. Leer = der Kategoriename."
 "Heading (H1) of filtered pages","Überschrift (H1) gefilterter Seiten"
 "Keep the sidebar in view while scrolling","Seitenleiste beim Scrollen sichtbar halten"

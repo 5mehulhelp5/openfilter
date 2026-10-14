@@ -8,16 +8,22 @@ declare(strict_types=1);
 
 namespace Iranimij\OpenFilter\Observer;
 
+use Iranimij\OpenFilter\Model\Config;
 use Iranimij\OpenFilter\Model\Layer\LayerContext;
 use Iranimij\OpenFilter\Model\Seo\CanonicalResolver;
 use Iranimij\OpenFilter\Model\Seo\CategoryUrl;
 use Iranimij\OpenFilter\Model\Seo\RobotsResolver;
+use Iranimij\OpenFilter\Model\Seo\SeoTemplates;
+use Magento\Catalog\Model\Layer;
 use Magento\Catalog\Model\Layer\Resolver as LayerResolver;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Escaper;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
+use Magento\Framework\View\LayoutInterface;
 use Magento\Framework\View\Page\Config as PageConfig;
+use Magento\Store\Model\StoreManagerInterface;
+use Magento\Theme\Block\Html\Title;
 
 /**
  * Robots and canonical of filtered category and search pages, set while the layout is built, so the HTML (and every
@@ -43,6 +49,9 @@ class ApplySeoHead implements ObserverInterface
      * @param LayerResolver $layerResolver
      * @param Escaper $escaper
      * @param CategoryUrl $categoryUrl
+     * @param Config $config
+     * @param SeoTemplates $templates title, description and H1 templates (1.1)
+     * @param StoreManagerInterface $storeManager
      */
     public function __construct(
         private readonly LayerContext $context,
@@ -52,7 +61,10 @@ class ApplySeoHead implements ObserverInterface
         private readonly RequestInterface $request,
         private readonly LayerResolver $layerResolver,
         private readonly Escaper $escaper,
-        private readonly CategoryUrl $categoryUrl
+        private readonly CategoryUrl $categoryUrl,
+        private readonly Config $config,
+        private readonly SeoTemplates $templates,
+        private readonly StoreManagerInterface $storeManager
     ) {
     }
 
@@ -80,7 +92,9 @@ class ApplySeoHead implements ObserverInterface
         if ($searchPage) {
             return;
         }
-        $categoryUrl = $this->categoryUrl->get($this->layerResolver->get()->getCurrentCategory(), $storeId);
+        $layer = $this->layerResolver->get();
+        $this->applyTemplates($observer, $layer, $storeId);
+        $categoryUrl = $this->categoryUrl->get($layer->getCurrentCategory(), $storeId);
         $page = $this->request->getParam('p');
         $url = $this->canonical->resolve(
             $state,
@@ -90,6 +104,44 @@ class ApplySeoHead implements ObserverInterface
             $storeId
         );
         $this->replaceCanonical($this->escaper->escapeUrl($url));
+    }
+
+    /**
+     * The merchant's title, description and H1 templates for filtered category pages (1.1); empty = Magento's.
+     *
+     * @param Observer $observer
+     * @param Layer $layer
+     * @param int $storeId
+     * @return void
+     */
+    private function applyTemplates(Observer $observer, Layer $layer, int $storeId): void
+    {
+        $title = $this->config->getMetaTitleTemplate($storeId);
+        $description = $this->config->getMetaDescriptionTemplate($storeId);
+        $heading = $this->config->getH1Template($storeId);
+        if ($title === '' && $description === '' && $heading === '') {
+            return;
+        }
+        $values = [
+            'category' => (string) $layer->getCurrentCategory()->getName(),
+            'filters' => array_values(array_filter(array_map(
+                static fn ($item): string => trim(strip_tags((string) $item->getData('label'))),
+                $layer->getState()->getFilters()
+            ))),
+            'store' => (string) $this->storeManager->getStore($storeId)->getName(),
+        ];
+        if ($title !== '') {
+            $this->pageConfig->getTitle()->set($this->templates->render($title, $values));
+        }
+        if ($description !== '') {
+            $this->pageConfig->setDescription($this->templates->render($description, $values));
+        }
+        $layout = $observer->getEvent()->getData('layout');
+        $block = $heading !== '' && $layout instanceof LayoutInterface ? $layout->getBlock('page.main.title') : false;
+        if ($block instanceof Title) {
+            // Core's category block set the category name with setPageTitle(); the block reads only that.
+            $block->setPageTitle($this->templates->render($heading, $values));
+        }
     }
 
     /**
