@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace Iranimij\OpenFilter\Model\Config;
 
 use Iranimij\OpenFilter\Api\Data\FilterConfigInterface as Filter;
+use Iranimij\OpenFilter\Model\Url\RangeList;
 use Magento\Framework\Exception\InputException;
 use Magento\Framework\Phrase;
 
@@ -17,6 +18,14 @@ use Magento\Framework\Phrase;
  */
 class Validator
 {
+    /**
+     * @param RangeList $rangeList
+     */
+    public function __construct(
+        private readonly RangeList $rangeList
+    ) {
+    }
+
     /**
      * @param Filter $config
      * @param int $optionCount number of options of a select attribute (toggle needs exactly two)
@@ -32,8 +41,21 @@ class Validator
         } elseif (!$this->fits($config, $mode, $optionCount)) {
             $errors[] = __('The display type "%1" does not fit the filter "%2".', $mode, $config->getCode());
         }
-        if ($config->getLogic() !== Filter::LOGIC_OR) {
-            $errors[] = __('Only "or" logic is available in this version.');
+        if (!in_array($config->getLogic(), Filter::LOGICS, true)) {
+            $errors[] = __('"%1" is not a filter logic.', $config->getLogic());
+        } elseif ($config->getLogic() === Filter::LOGIC_AND && !$this->allowsAnd($config)) {
+            $errors[] = __('"Match all" needs a filter of options where shoppers can pick several values.');
+        }
+        $ranges = $config->getRanges();
+        if ($ranges !== null && $this->rangeList->parse($ranges) === null) {
+            $errors[] = __(
+                'The ranges "%1" are not a list like 0-50,50-100,100- (ascending, not overlapping, at most %2).',
+                $ranges,
+                RangeList::MAX_RANGES
+            );
+        }
+        if ($config->getTreeDepth() < 1 || $config->getTreeDepth() > Filter::TREE_DEPTH_MAX) {
+            $errors[] = __('The category tree shows 1 to %1 levels.', Filter::TREE_DEPTH_MAX);
         }
         if (!in_array($config->getSortBy(), Filter::SORT_ORDERS, true)) {
             $errors[] = __('"%1" is not an option order.', $config->getSortBy());
@@ -62,6 +84,19 @@ class Validator
     }
 
     /**
+     * "Match all" needs several values of an option filter (an option list: select or multiselect).
+     *
+     * @param Filter $config
+     * @return bool
+     */
+    private function allowsAnd(Filter $config): bool
+    {
+        return !$config->isBuiltin()
+            && $config->isMultiselect()
+            && in_array($config->getInputType(), ['select', 'multiselect'], true);
+    }
+
+    /**
      * @param Filter $config
      * @param string $mode
      * @param int $optionCount
@@ -72,8 +107,12 @@ class Validator
         $input = $config->getInputType();
         if ($config->isBuiltin()) {
             return match ($config->getCode()) {
-                Filter::BUILTIN_PRICE => in_array($mode, [Filter::DISPLAY_SLIDER, Filter::DISPLAY_FROM_TO], true),
-                Filter::BUILTIN_CATEGORY => $mode === Filter::DISPLAY_LIST,
+                Filter::BUILTIN_PRICE => in_array(
+                    $mode,
+                    [Filter::DISPLAY_SLIDER, Filter::DISPLAY_FROM_TO, Filter::DISPLAY_RANGES],
+                    true
+                ),
+                Filter::BUILTIN_CATEGORY => in_array($mode, [Filter::DISPLAY_LIST, Filter::DISPLAY_TREE], true),
                 Filter::BUILTIN_RATING => in_array($mode, [Filter::DISPLAY_RATING, Filter::DISPLAY_LIST], true),
                 default => $mode === Filter::DISPLAY_TOGGLE,
             };
@@ -81,7 +120,8 @@ class Validator
 
         return match ($mode) {
             Filter::DISPLAY_SWATCH => $config->getSwatchType() !== null,
-            Filter::DISPLAY_SLIDER, Filter::DISPLAY_FROM_TO => $input === 'decimal',
+            Filter::DISPLAY_SLIDER, Filter::DISPLAY_FROM_TO, Filter::DISPLAY_RANGES => $input === 'decimal',
+            Filter::DISPLAY_TREE => false,
             Filter::DISPLAY_TOGGLE => $input === 'boolean' || ($input === 'select' && $optionCount === 2),
             Filter::DISPLAY_RATING => false,
             default => in_array($input, ['select', 'multiselect', 'boolean'], true),

@@ -19,6 +19,8 @@ use Iranimij\OpenFilter\Model\ResourceModel\FilterConfigStorage;
 use Iranimij\OpenFilter\Model\ResourceModel\SlugStorage;
 use Iranimij\OpenFilter\Model\Url\AttributeSlugScope;
 use Iranimij\OpenFilter\Ui\DataProvider\FilterForm;
+use Iranimij\OpenFilter\Model\Url\Range;
+use Iranimij\OpenFilter\Model\Url\RangeList;
 use Magento\Framework\Api\Filter;
 use Magento\Framework\App\RequestInterface;
 use Magento\Store\Api\Data\StoreInterface;
@@ -44,7 +46,7 @@ class FilterFormTest extends TestCase
         );
         self::assertSame('[GLOBAL]', $this->config($meta, 'behaves', 'visible_options')['scopeLabel']);
         self::assertArrayNotHasKey('disabled', $this->config($meta, 'behaves', 'visible_options'));
-        self::assertSame(['label_0'], array_keys($meta['labels']['children']));
+        self::assertSame(['tooltip_0', 'label_0'], array_keys($meta['labels']['children']));
         self::assertSame([], $this->recordFields($meta));
         self::assertArrayNotHasKey('url_name_store', $meta['seo']['children']);
         self::assertSame('0', $data['store']);
@@ -111,7 +113,7 @@ class FilterFormTest extends TestCase
         foreach (['0' => [], '1' => ['option_store_label', 'url_name_0', 'url_name_1', 'regenerate']] as $scope => $fields) {
             $meta = $this->form('color', $this->colour(), (string) $scope, $stores)->getMeta();
             self::assertSame($fields, $this->recordFields($meta), $count . ' store views, scope ' . $scope);
-            self::assertCount($scope === 0 ? 1 : 2, $meta['labels']['children']);
+            self::assertCount($scope === 0 ? 2 : 4, $meta['labels']['children']);
         }
     }
 
@@ -123,11 +125,49 @@ class FilterFormTest extends TestCase
         return ['one' => [1], 'four' => [4], 'twenty' => [20]];
     }
 
+    public function testMatchRangesAndTreeLevelsShowOnlyWhereTheyFit(): void
+    {
+        $colour = $this->form('color', $this->colour(), null, [self::DE => 'Deutsch'])->getMeta();
+        $price = $this->form('price', (new Defaults())->forBuiltin('price'), null, [self::DE => 'Deutsch'])->getMeta();
+        $category = $this->form('category', (new Defaults())->forBuiltin('category'), null, [self::DE => 'Deutsch'])->getMeta();
+        $weight = $this->form('weight', (new Defaults())->forAttribute('weight', 80, 'decimal', null, 10), null, [self::DE => 'Deutsch'])->getMeta();
+
+        $shown = static fn (array $meta, string $fieldset, string $field): bool =>
+            ($meta[$fieldset]['children'][$field]['arguments']['data']['config']['visible'] ?? true) !== false;
+        self::assertTrue($shown($colour, 'behaves', 'logic'));
+        self::assertFalse($shown($colour, 'looks', 'ranges'));
+        self::assertFalse($shown($colour, 'looks', 'tree_depth'));
+        self::assertTrue($shown($price, 'looks', 'ranges'));
+        self::assertFalse($shown($price, 'behaves', 'logic'));
+        self::assertTrue($shown($weight, 'looks', 'ranges'));
+        self::assertFalse($shown($weight, 'behaves', 'logic'));
+        self::assertTrue($shown($category, 'looks', 'tree_depth'));
+        self::assertFalse($shown($category, 'looks', 'ranges'));
+    }
+
+    public function testAStoreViewEditsItsOwnTooltip(): void
+    {
+        $form = $this->form('color', $this->colour(), (string) self::DE, [self::DE => 'Deutsch']);
+
+        $meta = $form->getMeta();
+        $data = $form->getData()['color'];
+
+        self::assertTrue($this->config($meta, 'labels', 'tooltip_0')['disabled']);
+        self::assertSame('textarea', $this->config($meta, 'labels', 'tooltip_2')['formElement']);
+        self::assertSame('Tooltip in "Deutsch"', $this->config($meta, 'labels', 'tooltip_2')['label']);
+        self::assertSame('Pick one or more', $data['tooltip_0']);
+        self::assertNull($data['tooltip_2']);
+        self::assertSame(['logic' => 'or', 'ranges' => '', 'tree_depth' => '3'], array_intersect_key(
+            $data,
+            ['logic' => 1, 'ranges' => 1, 'tree_depth' => 1]
+        ));
+    }
+
     public function testAnUnknownStoreViewShowsAllStoreViews(): void
     {
         $meta = $this->form('color', $this->colour(), '99', [self::DE => 'Deutsch'])->getMeta();
 
-        self::assertSame(['label_0'], array_keys($meta['labels']['children']));
+        self::assertSame(['tooltip_0', 'label_0'], array_keys($meta['labels']['children']));
         self::assertArrayNotHasKey('disabled', $this->config($meta, 'looks', 'display_mode'));
     }
 
@@ -148,7 +188,7 @@ class FilterFormTest extends TestCase
         self::assertFalse($meta['seo']['children']['option_urls']['arguments']['data']['config']['visible']);
         self::assertFalse($meta['seo']['children']['url_name']['arguments']['data']['config']['visible']);
         self::assertSame(
-            ['slider', 'from_to'],
+            ['slider', 'from_to', 'ranges'],
             array_column($meta['looks']['children']['display_mode']['arguments']['data']['config']['options'], 'value')
         );
         self::assertArrayNotHasKey('url_name', $form->getData()['price']);
@@ -195,6 +235,7 @@ class FilterFormTest extends TestCase
         $configStorage = $this->createStub(FilterConfigStorage::class);
         $configStorage->method('labelOverrides')->willReturn([0 => 'Colour', self::DE => 'Farbe']);
         $configStorage->method('optionCount')->willReturn(12);
+        $configStorage->method('tooltipOverrides')->willReturn([0 => 'Pick one or more']);
         $slugStorage = $this->createStub(SlugStorage::class);
         $slugStorage->method('optionLabels')->willReturn(['admin' => [49 => 'Black'], 'stores' => [self::DE => [49 => 'Schwarz']]]);
         $slugStorage->method('optionSlugRows')->willReturn([0 => [49 => 'black'], self::DE => [49 => 'schwarz']]);
@@ -226,7 +267,7 @@ class FilterFormTest extends TestCase
             $attributeSlugs,
             $configStorage,
             $slugStorage,
-            new Validator(),
+            new Validator(new RangeList(new Range())),
             new DisplayMode(),
             new FormScope($manager),
             $request

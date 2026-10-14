@@ -51,7 +51,7 @@ class FilterConfigTest extends TestCase
         self::assertSame([
             'display_mode' => 'dropdown', 'multiselect' => 0, 'logic' => 'or', 'visible_options' => 0,
             'search_threshold' => 20, 'expanded' => 1, 'sort_by' => 'count', 'hide_single_option' => 0,
-            'seo_indexable' => 1, 'position_override' => null,
+            'seo_indexable' => 1, 'position_override' => null, 'ranges' => null, 'tree_depth' => 3,
         ], $config->toRow());
         self::assertFalse($config->isActive());
         self::assertSame(FilterConfig::BEHAVIOUR_COLUMNS, array_keys($config->toRow()));
@@ -67,5 +67,23 @@ class FilterConfigTest extends TestCase
         self::assertFalse($config->isBuiltin());
         self::assertNull($config->getSwatchType());
         self::assertSame('select', $config->getInputType());
+    }
+
+    public function testRangesTreeDepthAndTooltipOf11(): void
+    {
+        $config = (new FilterConfig(['code' => 'price', 'builtin' => true, 'ranges' => ' ', 'tooltip' => '']))
+            ->setRanges(' 0-50,50- ')->setTreeDepth(2);
+
+        self::assertSame('0-50,50-', $config->getRanges());
+        self::assertSame(2, $config->getTreeDepth());
+        self::assertNull($config->getTooltip());
+        self::assertNull($config->setRanges('')->getRanges());
+        self::assertSame(3, (new FilterConfig())->getTreeDepth());
+        self::assertSame('Hint', (new FilterConfig(['tooltip' => 'Hint']))->getTooltip());
+        self::assertSame(['ranges' => null, 'tree_depth' => 2], array_intersect_key(
+            (new FilterConfig(['code' => 'x']))->withBehaviourOf($config)->toRow(),
+            ['ranges' => 1, 'tree_depth' => 1]
+        ));
+        self::assertSame('7', (string) (new FilterConfig(['tree_depth' => '7']))->getTreeDepth());
     }
 }

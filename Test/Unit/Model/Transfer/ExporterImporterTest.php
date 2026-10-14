@@ -63,8 +63,14 @@ class ExporterImporterTest extends TestCase
     {
         $export = $this->exporter()->export();
 
-        self::assertSame(1, $export['schema']);
+        self::assertSame(2, $export['schema']);
         self::assertSame(['de' => 'Farbe'], $export['filters']['color']['labels']);
+        self::assertSame(['admin' => 'Pick one or more'], $export['filters']['color']['tooltips']);
+        self::assertArrayNotHasKey('tooltips', $export['filters']['rating']);
+        self::assertSame(['logic' => 'or', 'ranges' => null, 'tree_depth' => 3], array_intersect_key(
+            $export['filters']['color']['settings'],
+            ['logic' => 1, 'ranges' => 1, 'tree_depth' => 1]
+        ));
         self::assertSame(['admin' => 'color', 'de' => 'farbe'], $export['filters']['color']['url_name']);
         self::assertSame(
             ['Red' => ['admin' => 'red', 'de' => 'rot'], 'Wool #1' => ['admin' => 'wool'], 'Wool #2' => ['admin' => 'wool-2']],
@@ -85,6 +91,7 @@ class ExporterImporterTest extends TestCase
         $this->connection->expects(self::never())->method('rollBack');
         $this->repository->expects(self::exactly(2))->method('save')->willReturnArgument(0);
         $this->repository->expects(self::once())->method('saveLabel')->with('color', 2, 'Farbton');
+        $this->repository->expects(self::once())->method('saveTooltip')->with('color', 0, null);
         $this->slugs->expects(self::once())->method('saveAttributeSlug')->with(93, 2, 'farbton');
         $this->batch->expects(self::once())->method('save')->with(93, [12 => [0 => 'wool-b']]);
 
@@ -109,15 +116,32 @@ class ExporterImporterTest extends TestCase
         self::assertSame(['color: taken'], $result['errors']);
     }
 
-    public function testInvalidFilesAndUnavailableLogicNeverOpenATransaction(): void
+    public function testInvalidFilesNeverOpenATransaction(): void
     {
         $importer = $this->importer();
-        $this->connection->expects(self::once())->method('beginTransaction');
+        $this->connection->expects(self::never())->method('beginTransaction');
 
-        self::assertNotEmpty($importer->import(['schema' => 9], false)['errors']);
+        self::assertStringContainsString('Unsupported schema "9"', implode('', $importer->import(['schema' => 9], false)['errors']));
+    }
+
+    public function testASchemaOneFileStillImportsAndMatchAllIsImported(): void
+    {
+        $importer = $this->importer();
+        $saved = [];
+        $this->repository->method('save')->willReturnCallback(static function ($config) use (&$saved) {
+            $saved[$config->getCode()] = $config;
+
+            return $config;
+        });
+
         $file = $this->file();
-        $file['filters']['color']['settings']['logic'] = 'and';
-        self::assertStringContainsString('logic "and"', implode('', $importer->import($file, false)['errors']));
+        $file['schema'] = 1;
+        unset($file['filters']['color']['tooltips']);
+        $file['filters']['color']['settings'] = ['logic' => 'and'];
+        $file['filters']['rating']['settings'] = ['visible_options' => 2];
+
+        self::assertSame([], $importer->import($file, false)['errors']);
+        self::assertSame('and', $saved['color']->getLogic());
     }
 
     /**
@@ -129,6 +153,7 @@ class ExporterImporterTest extends TestCase
         $file['filters']['color']['settings']['visible_options'] = 9;
         $file['filters']['color']['settings']['expanded'] = true;
         $file['filters']['color']['labels'] = ['de' => 'Farbton'];
+        $file['filters']['color']['tooltips'] = ['admin' => ''];
         $file['filters']['color']['url_name'] = ['de' => 'farbton'];
         $file['filters']['color']['options'] = ['Wool #2' => ['admin' => 'wool-b']];
 
@@ -142,6 +167,9 @@ class ExporterImporterTest extends TestCase
         $configStorage = $this->createStub(FilterConfigStorage::class);
         $configStorage->method('labelOverrides')->willReturnCallback(
             static fn (?int $id): array => $id === 93 ? [2 => 'Farbe', 99 => 'gone'] : []
+        );
+        $configStorage->method('tooltipOverrides')->willReturnCallback(
+            static fn (?int $id): array => $id === 93 ? [0 => 'Pick one or more'] : []
         );
         $slugStorage = $this->createStub(SlugStorage::class);
         $slugStorage->method('attributeSlugsForStore')->willReturnCallback(

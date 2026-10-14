@@ -143,6 +143,23 @@ class FilterConfigRepository implements FilterConfigRepositoryInterface
     /**
      * @inheritDoc
      */
+    public function saveTooltip(string $code, int $storeId, ?string $tooltip): void
+    {
+        $current = $this->current($code);
+        $attributeId = $current->getAttributeId();
+        $tooltip = $tooltip === null ? null : trim($tooltip);
+        if ($current->isBuiltin()) {
+            $this->storage->saveBuiltin($code, $current->isActive(), $current->toRow());
+            $this->storage->saveBuiltinTooltip($code, $storeId, $tooltip);
+        } elseif ($attributeId !== null) {
+            $this->storage->saveAttributeTooltip($attributeId, $storeId, $tooltip);
+        }
+        $this->clean();
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function resetToDefault(string $code): FilterConfigInterface
     {
         $current = $this->current($code);

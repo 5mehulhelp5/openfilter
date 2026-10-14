@@ -109,25 +109,47 @@ class FilterConfigStorage
      */
     public function labels(int $storeId): array
     {
+        return $this->storeTexts($storeId, 'label_override', 'label');
+    }
+
+    /**
+     * Tooltips for one store view, falling back to the admin (store 0) row (1.1).
+     *
+     * @param int $storeId
+     * @return array{attributes: array<int, string>, builtins: array<string, string>}
+     */
+    public function tooltips(int $storeId): array
+    {
+        return $this->storeTexts($storeId, 'tooltip', 'tooltip');
+    }
+
+    /**
+     * @param int $storeId
+     * @param string $attributeColumn column in openfilter_attribute_store
+     * @param string $builtinColumn column in openfilter_builtin_store
+     * @return array{attributes: array<int, string>, builtins: array<string, string>}
+     */
+    private function storeTexts(int $storeId, string $attributeColumn, string $builtinColumn): array
+    {
         $connection = $this->connection();
         $stores = array_unique([0, $storeId]);
         $attributes = [];
         $select = $connection->select()
-            ->from($this->table(self::TABLE_ATTRIBUTE_STORE), ['attribute_id', 'label_override'])
+            ->from($this->table(self::TABLE_ATTRIBUTE_STORE), ['attribute_id', 'text' => $attributeColumn])
             ->where('store_id IN (?)', $stores)
-            ->where("label_override IS NOT NULL AND label_override <> ''")
+            ->where("$attributeColumn IS NOT NULL AND $attributeColumn <> ''")
             ->order('store_id ASC');
         foreach ($connection->fetchAll($select) as $row) {
-            $attributes[(int) $row['attribute_id']] = (string) $row['label_override'];
+            $attributes[(int) $row['attribute_id']] = (string) $row['text'];
         }
         $builtins = [];
         $select = $connection->select()
-            ->from($this->table(self::TABLE_BUILTIN_STORE), ['code', 'label'])
+            ->from($this->table(self::TABLE_BUILTIN_STORE), ['code', 'text' => $builtinColumn])
             ->where('store_id IN (?)', $stores)
-            ->where("label IS NOT NULL AND label <> ''")
+            ->where("$builtinColumn IS NOT NULL AND $builtinColumn <> ''")
             ->order('store_id ASC');
         foreach ($connection->fetchAll($select) as $row) {
-            $builtins[(string) $row['code']] = (string) $row['label'];
+            $builtins[(string) $row['code']] = (string) $row['text'];
         }
 
         return ['attributes' => $attributes, 'builtins' => $builtins];
@@ -190,16 +212,61 @@ class FilterConfigStorage
     /**
      * @param int $attributeId
      * @param int $storeId
-     * @param string|null $label
+     * @param string|null $label null or '' removes it
      * @return void
      */
     public function saveAttributeLabel(int $attributeId, int $storeId, ?string $label): void
     {
+        $this->saveAttributeText($attributeId, $storeId, 'label_override', $label);
+    }
+
+    /**
+     * @param int $attributeId
+     * @param int $storeId
+     * @param string|null $tooltip null or '' removes it
+     * @return void
+     */
+    public function saveAttributeTooltip(int $attributeId, int $storeId, ?string $tooltip): void
+    {
+        $this->saveAttributeText($attributeId, $storeId, 'tooltip', $tooltip);
+    }
+
+    /**
+     * @param string $code
+     * @param int $storeId
+     * @param string|null $label null or '' removes it
+     * @return void
+     */
+    public function saveBuiltinLabel(string $code, int $storeId, ?string $label): void
+    {
+        $this->saveBuiltinText($code, $storeId, 'label', $label);
+    }
+
+    /**
+     * @param string $code
+     * @param int $storeId
+     * @param string|null $tooltip null or '' removes it
+     * @return void
+     */
+    public function saveBuiltinTooltip(string $code, int $storeId, ?string $tooltip): void
+    {
+        $this->saveBuiltinText($code, $storeId, 'tooltip', $tooltip);
+    }
+
+    /**
+     * @param int $attributeId
+     * @param int $storeId
+     * @param string $column label_override or tooltip
+     * @param string|null $value
+     * @return void
+     */
+    private function saveAttributeText(int $attributeId, int $storeId, string $column, ?string $value): void
+    {
         $table = $this->table(self::TABLE_ATTRIBUTE_STORE);
-        if ($label === null || $label === '') {
+        if ($value === null || $value === '') {
             $this->connection()->update(
                 $table,
-                ['label_override' => null],
+                [$column => null],
                 ['attribute_id = ?' => $attributeId, 'store_id = ?' => $storeId]
             );
 
@@ -207,29 +274,34 @@ class FilterConfigStorage
         }
         $this->connection()->insertOnDuplicate(
             $table,
-            ['attribute_id' => $attributeId, 'store_id' => $storeId, 'label_override' => $label],
-            ['label_override']
+            ['attribute_id' => $attributeId, 'store_id' => $storeId, $column => $value],
+            [$column]
         );
     }
 
     /**
+     * A built-in's store row goes once it holds neither label nor tooltip.
+     *
      * @param string $code
      * @param int $storeId
-     * @param string|null $label
+     * @param string $column label or tooltip
+     * @param string|null $value
      * @return void
      */
-    public function saveBuiltinLabel(string $code, int $storeId, ?string $label): void
+    private function saveBuiltinText(string $code, int $storeId, string $column, ?string $value): void
     {
         $table = $this->table(self::TABLE_BUILTIN_STORE);
-        if ($label === null || $label === '') {
-            $this->connection()->delete($table, ['code = ?' => $code, 'store_id = ?' => $storeId]);
+        $where = ['code = ?' => $code, 'store_id = ?' => $storeId];
+        if ($value === null || $value === '') {
+            $this->connection()->update($table, [$column => null], $where);
+            $this->connection()->delete($table, array_merge($where, ['label IS NULL', 'tooltip IS NULL']));
 
             return;
         }
         $this->connection()->insertOnDuplicate(
             $table,
-            ['code' => $code, 'store_id' => $storeId, 'label' => $label],
-            ['label']
+            ['code' => $code, 'store_id' => $storeId, $column => $value],
+            [$column]
         );
     }
 
@@ -273,20 +345,44 @@ class FilterConfigStorage
      */
     public function labelOverrides(?int $attributeId, string $code): array
     {
+        return $this->overrides($attributeId, $code, 'label_override', 'label');
+    }
+
+    /**
+     * Tooltips of one filter by store id (0 = all store views), as stored (1.1).
+     *
+     * @param int|null $attributeId the attribute, or null for a built-in
+     * @param string $code built-in code (used when $attributeId is null)
+     * @return array<int, string>
+     */
+    public function tooltipOverrides(?int $attributeId, string $code): array
+    {
+        return $this->overrides($attributeId, $code, 'tooltip', 'tooltip');
+    }
+
+    /**
+     * @param int|null $attributeId
+     * @param string $code
+     * @param string $attributeColumn
+     * @param string $builtinColumn
+     * @return array<int, string>
+     */
+    private function overrides(?int $attributeId, string $code, string $attributeColumn, string $builtinColumn): array
+    {
         $connection = $this->connection();
         $select = $attributeId !== null
-            ? $connection->select()->from($this->table(self::TABLE_ATTRIBUTE_STORE), ['store_id', 'label_override'])
+            ? $connection->select()->from($this->table(self::TABLE_ATTRIBUTE_STORE), ['store_id', $attributeColumn])
                 ->where('attribute_id = ?', $attributeId)
-                ->where("label_override IS NOT NULL AND label_override <> ''")
-            : $connection->select()->from($this->table(self::TABLE_BUILTIN_STORE), ['store_id', 'label'])
+                ->where("$attributeColumn IS NOT NULL AND $attributeColumn <> ''")
+            : $connection->select()->from($this->table(self::TABLE_BUILTIN_STORE), ['store_id', $builtinColumn])
                 ->where('code = ?', $code)
-                ->where("label IS NOT NULL AND label <> ''");
-        $labels = [];
-        foreach ($connection->fetchPairs($select) as $storeId => $label) {
-            $labels[(int) $storeId] = (string) $label;
+                ->where("$builtinColumn IS NOT NULL AND $builtinColumn <> ''");
+        $texts = [];
+        foreach ($connection->fetchPairs($select) as $storeId => $text) {
+            $texts[(int) $storeId] = (string) $text;
         }
 
-        return $labels;
+        return $texts;
     }
 
     /**

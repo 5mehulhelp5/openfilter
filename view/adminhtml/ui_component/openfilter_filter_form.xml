@@ -70,6 +70,25 @@
                 </validation>
             </settings>
         </field>
+        <field name="ranges" formElement="input" sortOrder="20">
+            <settings>
+                <dataType>text</dataType>
+                <label translate="true">Ranges</label>
+                <notice translate="true">For the "Ranges" type, for example 0-50,50-100,100- (the last range open). Empty = ranges made from the price step and the prices found.</notice>
+                <placeholder translate="true">Automatic</placeholder>
+            </settings>
+        </field>
+        <field name="tree_depth" formElement="input" sortOrder="30">
+            <settings>
+                <dataType>text</dataType>
+                <label translate="true">Category tree levels</label>
+                <notice translate="true">For the "Category tree" type: how many levels below the current category are shown (1 to 5).</notice>
+                <validation>
+                    <rule name="validate-digits" xsi:type="boolean">true</rule>
+                    <rule name="validate-digits-range" xsi:type="string">1-5</rule>
+                </validation>
+            </settings>
+        </field>
     </fieldset>
     <fieldset name="behaves" sortOrder="20">
         <settings>
@@ -97,7 +116,7 @@
             <settings>
                 <dataType>boolean</dataType>
                 <label translate="true">Shoppers can pick several values</label>
-                <notice translate="true">Products matching any of the picked values are shown.</notice>
+                <notice translate="true">How several picked values combine is set in "Products must match".</notice>
             </settings>
             <formElements>
                 <checkbox>
@@ -109,6 +128,20 @@
                         <prefer>toggle</prefer>
                     </settings>
                 </checkbox>
+            </formElements>
+        </field>
+        <field name="logic" formElement="select" sortOrder="25">
+            <settings>
+                <dataType>text</dataType>
+                <label translate="true">Products must match</label>
+                <notice translate="true">"All" fits features a product can have several of (for example "Waterproof" and "Breathable"). Counts then show how many products have the value as well.</notice>
+            </settings>
+            <formElements>
+                <select>
+                    <settings>
+                        <options class="Iranimij\OpenFilter\Model\Config\Source\Logic"/>
+                    </settings>
+                </select>
             </formElements>
         </field>
         <field name="visible_options" formElement="input" sortOrder="30">
@@ -303,6 +336,13 @@
                 <dataType>text</dataType>
                 <label translate="true">Label for all store views</label>
                 <notice translate="true">Empty = the attribute's own label.</notice>
+            </settings>
+        </field>
+        <field name="tooltip_0" formElement="textarea" sortOrder="50">
+            <settings>
+                <dataType>text</dataType>
+                <label translate="true">Tooltip for all store views</label>
+                <notice translate="true">A short hint shoppers open next to the filter name (plain text). Empty = no tooltip.</notice>
             </settings>
         </field>
     </fieldset>

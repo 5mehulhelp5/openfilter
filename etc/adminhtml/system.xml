@@ -47,6 +47,27 @@
                     <validate>required-entry validate-number validate-zero-or-greater</validate>
                     <backend_model>Iranimij\OpenFilter\Model\Config\Backend\NonNegativeNumber</backend_model>
                 </field>
+                <field id="layout" translate="label comment" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Where filters show on desktop</label>
+                    <comment>A bar above the products leaves the full width to the products; filters open as panels. Phones always use the filter drawer.</comment>
+                    <source_model>Iranimij\OpenFilter\Model\Config\Source\Layout</source_model>
+                    <backend_model>Iranimij\OpenFilter\Model\Config\Backend\PageCacheValue</backend_model>
+                </field>
+                <field id="apply_mode" translate="label comment" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>When results update on desktop</label>
+                    <comment>"After Show N products" lets shoppers pick several values first, then see the products in one step. Phones always work this way.</comment>
+                    <source_model>Iranimij\OpenFilter\Model\Config\Source\ApplyMode</source_model>
+                    <backend_model>Iranimij\OpenFilter\Model\Config\Backend\PageCacheValue</backend_model>
+                </field>
+                <field id="sticky" translate="label comment" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Keep the sidebar in view while scrolling</label>
+                    <comment>The filters stay next to the products while shoppers scroll a long list (sidebar layout only).</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <backend_model>Iranimij\OpenFilter\Model\Config\Backend\PageCacheValue</backend_model>
+                    <depends>
+                        <field id="layout">sidebar</field>
+                    </depends>
+                </field>
             </group>
             <group id="seo" translate="label" type="text" sortOrder="18" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Search engines</label>
@@ -61,6 +82,47 @@
                     <comment>A URL with more values is redirected to the first ones and not indexed. Protects your crawl budget and page cache from bots. 0 = no limit.</comment>
                     <validate>required-entry validate-digits validate-zero-or-greater</validate>
                     <backend_model>Iranimij\OpenFilter\Model\Config\Backend\NonNegativeNumber</backend_model>
+                </field>
+                <field id="meta_title" translate="label comment" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Page title of filtered pages</label>
+                    <comment><![CDATA[For example <code>{filters} {category} | {store}</code>. {category} = category name or search term, {filters} = the active values ("Red, Blue"), {store} = store name. Empty = Magento's title. Up to 60 characters show in search results.]]></comment>
+                    <backend_model>Iranimij\OpenFilter\Model\Config\Backend\PageCacheValue</backend_model>
+                </field>
+                <field id="meta_description" translate="label comment" type="textarea" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Meta description of filtered pages</label>
+                    <comment>Same placeholders. Empty = Magento's description. Up to 160 characters show in search results.</comment>
+                    <backend_model>Iranimij\OpenFilter\Model\Config\Backend\PageCacheValue</backend_model>
+                </field>
+                <field id="h1" translate="label comment" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Heading (H1) of filtered pages</label>
+                    <comment><![CDATA[For example <code>{filters} {category}</code>. Empty = the category name.]]></comment>
+                    <backend_model>Iranimij\OpenFilter\Model\Config\Backend\PageCacheValue</backend_model>
+                </field>
+            </group>
+            <group id="sitemap" translate="label comment" type="text" sortOrder="19" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>XML sitemap</label>
+                <comment>Adds the filter pages search engines may index (one value of a filter marked "Let Google index pages filtered by this") to Magento's XML sitemap (Marketing > SEO &amp; Search > Site Map).</comment>
+                <field id="enabled" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Add indexable filter pages</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="min_products" translate="label comment" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Only pages with at least this many products</label>
+                    <comment>Thin pages with one or two products rarely rank and waste crawl budget.</comment>
+                    <validate>required-entry validate-digits validate-greater-than-zero</validate>
+                    <backend_model>Iranimij\OpenFilter\Model\Config\Backend\NonNegativeNumber</backend_model>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+                <field id="max_urls" translate="label comment" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Most filter pages per store view</label>
+                    <comment>The pages with the most products come first. 0 = no limit.</comment>
+                    <validate>required-entry validate-digits validate-zero-or-greater</validate>
+                    <backend_model>Iranimij\OpenFilter\Model\Config\Backend\NonNegativeNumber</backend_model>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
                 </field>
             </group>
             <group id="search" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="0" showInStore="0">

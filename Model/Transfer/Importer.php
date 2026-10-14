@@ -111,9 +111,6 @@ class Importer
             throw new LocalizedException(__('%1: this filter cannot be edited.', $key));
         }
         $settings = (array) ($filter['settings'] ?? []);
-        if (isset($settings['logic']) && $settings['logic'] !== $config->getLogic()) {
-            throw new LocalizedException(__('%1: logic "%2" is not available in this version.', $key, $settings['logic']));
-        }
         try {
             $saved = $this->repository->save($this->editor->apply($config, $this->editorValues($settings)));
         } catch (LocalizedException $e) {
@@ -121,6 +118,9 @@ class Importer
         }
         foreach ((array) ($filter['labels'] ?? []) as $code => $label) {
             $this->repository->saveLabel($key, $storeIds[$code], $label === '' ? null : (string) $label);
+        }
+        foreach ((array) ($filter['tooltips'] ?? []) as $code => $tooltip) {
+            $this->repository->saveTooltip($key, $storeIds[$code], $tooltip === '' ? null : (string) $tooltip);
         }
         $attributeId = $saved->isBuiltin() ? null : $saved->getAttributeId();
         if ($attributeId === null) {
@@ -157,9 +157,6 @@ class Importer
     {
         $values = [];
         foreach ($settings as $name => $value) {
-            if ($name === 'logic') {
-                continue;
-            }
             $values[$name] = match (true) {
                 is_bool($value) => $value ? '1' : '0',
                 $value === null => '',

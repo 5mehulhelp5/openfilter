@@ -68,7 +68,7 @@ class CommandsTest extends TestCase
     {
         $color = $this->original['filters'][M1Catalog::COLOR];
 
-        self::assertSame(1, $this->original['schema']);
+        self::assertSame(2, $this->original['schema']);
         self::assertSame(['admin' => 'red', M1Catalog::STORE => 'rot'], $color['options']['Red'], 'by label and store code');
         self::assertIsBool($color['settings']['multiselect']);
 

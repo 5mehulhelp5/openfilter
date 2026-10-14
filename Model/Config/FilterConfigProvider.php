@@ -108,6 +108,7 @@ class FilterConfigProvider
         $rows = $this->storage->attributeRows();
         $builtinRows = $this->storage->builtinRows();
         $labels = $this->storage->labels($storeId);
+        $tooltips = $this->storage->tooltips($storeId);
         $behaviour = array_flip(FilterConfig::BEHAVIOUR_COLUMNS);
 
         $configs = [];
@@ -129,7 +130,10 @@ class FilterConfigProvider
                     array_intersect_key($rows[$id], $behaviour) + ['active' => $rows[$id]['is_active'] ?? true]
                 );
             }
-            $configs[] = $config->with(['label' => $labels['attributes'][$id] ?? $attribute['label']]);
+            $configs[] = $config->with([
+                'label' => $labels['attributes'][$id] ?? $attribute['label'],
+                'tooltip' => $tooltips['attributes'][$id] ?? null,
+            ]);
         }
         foreach (FilterConfigInterface::BUILTIN_CODES as $code) {
             $config = $this->defaults->forBuiltin($code);
@@ -142,7 +146,7 @@ class FilterConfigProvider
                 $row = $builtinRows[$code];
                 $config = $config->with(array_intersect_key($row, $behaviour) + ['active' => $row['is_active']]);
             }
-            $configs[] = $config->with(['label' => $label]);
+            $configs[] = $config->with(['label' => $label, 'tooltip' => $tooltips['builtins'][$code] ?? null]);
         }
         usort(
             $configs,

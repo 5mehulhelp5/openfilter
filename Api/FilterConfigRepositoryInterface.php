@@ -72,6 +72,17 @@ interface FilterConfigRepositoryInterface
     public function saveLabel(string $code, int $storeId, ?string $label): void;
 
     /**
+     * Tooltip for one store view (store 0 = all store views); null or '' removes it (1.1).
+     *
+     * @param string $code filter key
+     * @param int $storeId
+     * @param string|null $tooltip plain text
+     * @return void
+     * @throws NoSuchEntityException
+     */
+    public function saveTooltip(string $code, int $storeId, ?string $tooltip): void;
+
+    /**
      * Back to the defaults OpenFilter derives from the attribute (store labels are kept).
      *
      * @param string $code

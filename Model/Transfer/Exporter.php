@@ -54,6 +54,10 @@ class Exporter
             if ($labels !== []) {
                 $filter['labels'] = $labels;
             }
+            $tooltips = $this->byCode($this->configStorage->tooltipOverrides($attributeId, $config->getCode()), $codes);
+            if ($tooltips !== []) {
+                $filter['tooltips'] = $tooltips;
+            }
             if ($attributeId !== null) {
                 $urlName = [];
                 foreach ($attributeSlugs as $code => $slugs) {
@@ -134,6 +138,8 @@ class Exporter
             'seo_indexable' => $config->isSeoIndexable(),
             'position_override' => $config->getPositionOverride(),
             'active' => $config->isActive(),
+            'ranges' => $config->getRanges(),
+            'tree_depth' => $config->getTreeDepth(),
         ];
     }
 

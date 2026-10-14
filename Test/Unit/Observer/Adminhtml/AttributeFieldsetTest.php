@@ -20,6 +20,8 @@ use Iranimij\OpenFilter\Model\Config\Validator;
 use Iranimij\OpenFilter\Model\ResourceModel\FilterConfigStorage;
 use Iranimij\OpenFilter\Observer\Adminhtml\AddAttributeFieldset;
 use Iranimij\OpenFilter\Observer\Adminhtml\SaveAttributeFieldset;
+use Iranimij\OpenFilter\Model\Url\Range;
+use Iranimij\OpenFilter\Model\Url\RangeList;
 use Magento\Catalog\Model\ResourceModel\Eav\Attribute;
 use Magento\Framework\Data\Form;
 use Magento\Framework\Data\Form\Element\Fieldset;
@@ -153,7 +155,7 @@ class AttributeFieldsetTest extends TestCase
             static fn (string $route, array $params = []): string => $route . '/code/' . ($params['code'] ?? '')
         );
 
-        return new AddAttributeFieldset($repository, $slugs, $storage, $provider, new Validator(), new DisplayMode(), $url);
+        return new AddAttributeFieldset($repository, $slugs, $storage, $provider, new Validator(new RangeList(new Range())), new DisplayMode(), $url);
     }
 
     private function saver(

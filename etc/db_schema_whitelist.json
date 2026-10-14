@@ -12,7 +12,9 @@
             "hide_single_option": true,
             "seo_indexable": true,
             "position_override": true,
-            "is_active": true
+            "is_active": true,
+            "ranges": true,
+            "tree_depth": true
         },
         "constraint": {
             "PRIMARY": true,
@@ -45,7 +47,9 @@
             "sort_by": true,
             "hide_single_option": true,
             "seo_indexable": true,
-            "position_override": true
+            "position_override": true,
+            "ranges": true,
+            "tree_depth": true
         },
         "constraint": {
             "PRIMARY": true
@@ -55,7 +59,8 @@
         "column": {
             "code": true,
             "store_id": true,
-            "label": true
+            "label": true,
+            "tooltip": true
         },
         "constraint": {
             "PRIMARY": true,
@@ -89,6 +94,20 @@
             "OPENFILTER_ATTRIBUTE_SLUG_STORE_ID_SLUG": true,
             "OPENFILTER_ATTR_SLUG_ATTR_ID_EAV_ATTR_ATTR_ID": true,
             "OPENFILTER_ATTRIBUTE_SLUG_STORE_ID_STORE_STORE_ID": true
+        }
+    },
+    "openfilter_filter_category": {
+        "column": {
+            "filter_key": true,
+            "category_id": true,
+            "mode": true
+        },
+        "index": {
+            "OPENFILTER_FILTER_CATEGORY_CATEGORY_ID": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "OPENFILTER_FILTER_CTGR_CTGR_ID_CAT_CTGR_ENTT_ENTT_ID": true
         }
     }
 }

@@ -27,6 +27,8 @@ class FilterConfig implements FilterConfigInterface
         'hide_single_option',
         'seo_indexable',
         'position_override',
+        'ranges',
+        'tree_depth',
     ];
 
     /** @var array<string, mixed> */
@@ -49,6 +51,9 @@ class FilterConfig implements FilterConfigInterface
         'active' => true,
         'position' => 0,
         'label' => null,
+        'ranges' => null,
+        'tree_depth' => self::TREE_DEPTH_DEFAULT,
+        'tooltip' => null,
     ];
 
     /**
@@ -92,6 +97,8 @@ class FilterConfig implements FilterConfigInterface
             'hide_single_option' => (int) $this->isHideSingleOption(),
             'seo_indexable' => (int) $this->isSeoIndexable(),
             'position_override' => $this->getPositionOverride(),
+            'ranges' => $this->getRanges(),
+            'tree_depth' => $this->getTreeDepth(),
         ];
     }
 
@@ -114,6 +121,8 @@ class FilterConfig implements FilterConfigInterface
             ->setHideSingleOption($config->isHideSingleOption())
             ->setSeoIndexable($config->isSeoIndexable())
             ->setPositionOverride($config->getPositionOverride())
+            ->setRanges($config->getRanges())
+            ->setTreeDepth($config->getTreeDepth())
             ->setActive($config->isActive());
 
         return $copy;
@@ -400,6 +409,50 @@ class FilterConfig implements FilterConfigInterface
     }
 
     /**
+     * @inheritDoc
+     */
+    public function getRanges(): ?string
+    {
+        return $this->data['ranges'];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setRanges(?string $ranges): self
+    {
+        $this->data['ranges'] = $ranges === null || trim($ranges) === '' ? null : trim($ranges);
+
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getTreeDepth(): int
+    {
+        return (int) $this->data['tree_depth'];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setTreeDepth(int $depth): self
+    {
+        $this->data['tree_depth'] = $depth;
+
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getTooltip(): ?string
+    {
+        return $this->data['tooltip'];
+    }
+
+    /**
      * Database rows carry strings; keep the internal types stable for the cache round trip.
      */
     private function normalise(): void
@@ -407,11 +460,15 @@ class FilterConfig implements FilterConfigInterface
         foreach (['builtin', 'multiselect', 'hide_single_option', 'seo_indexable', 'active'] as $key) {
             $this->data[$key] = (bool) $this->data[$key];
         }
-        foreach (['visible_options', 'search_threshold', 'position'] as $key) {
+        foreach (['visible_options', 'search_threshold', 'position', 'tree_depth'] as $key) {
             $this->data[$key] = (int) $this->data[$key];
         }
         foreach (['attribute_id', 'position_override'] as $key) {
             $this->data[$key] = $this->data[$key] === null || $this->data[$key] === '' ? null : (int) $this->data[$key];
+        }
+        foreach (['ranges', 'tooltip'] as $key) {
+            $value = $this->data[$key];
+            $this->data[$key] = $value === null || trim((string) $value) === '' ? null : (string) $value;
         }
         $expanded = $this->data['expanded'];
         $this->data['expanded'] = $expanded === null || $expanded === '' ? null : (bool) $expanded;

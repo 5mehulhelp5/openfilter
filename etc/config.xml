@@ -17,11 +17,22 @@
             <display>
                 <expanded_groups>3</expanded_groups>
                 <price_step>1</price_step>
+                <layout>sidebar</layout>
+                <apply_mode>instant</apply_mode>
+                <sticky>0</sticky>
             </display>
             <seo>
                 <nofollow_threshold>2</nofollow_threshold>
                 <max_active_values>5</max_active_values>
+                <meta_title></meta_title>
+                <meta_description></meta_description>
+                <h1></h1>
             </seo>
+            <sitemap>
+                <enabled>0</enabled>
+                <min_products>1</min_products>
+                <max_urls>5000</max_urls>
+            </sitemap>
             <search>
                 <count_strategy>auto</count_strategy>
             </search>

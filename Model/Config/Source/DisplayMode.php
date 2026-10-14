@@ -43,6 +43,8 @@ class DisplayMode implements OptionSourceInterface
             Filter::DISPLAY_RATING => __('Stars'),
             Filter::DISPLAY_TOGGLE => __('On/off switch'),
             Filter::DISPLAY_DROPDOWN => __('Dropdown'),
+            Filter::DISPLAY_RANGES => __('Ranges (for example 0–50, 50–100)'),
+            Filter::DISPLAY_TREE => __('Category tree'),
         ];
     }
 }

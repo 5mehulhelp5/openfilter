@@ -38,6 +38,21 @@ class ConfigSectionTest extends TestCase
         self::assertFalse($config->isDebug());
     }
 
+    public function testThe11SettingsDefaultTo10Behaviour(): void
+    {
+        $config = Bootstrap::getObjectManager()->get(Config::class);
+
+        self::assertSame(Config::LAYOUT_SIDEBAR, $config->getLayout());
+        self::assertSame(Config::APPLY_INSTANT, $config->getApplyMode());
+        self::assertFalse($config->isSticky());
+        self::assertSame('', $config->getMetaTitleTemplate());
+        self::assertSame('', $config->getMetaDescriptionTemplate());
+        self::assertSame('', $config->getH1Template());
+        self::assertFalse($config->isSitemapEnabled());
+        self::assertSame(1, $config->getSitemapMinProducts());
+        self::assertSame(5000, $config->getSitemapMaxUrls());
+    }
+
     public function testAclResourcesAreDeclaredUnderCatalogAndBase(): void
     {
         $tree = Bootstrap::getObjectManager()->get(ProviderInterface::class)->getAclResources();

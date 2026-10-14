@@ -301,6 +301,33 @@ class FilterFormTest extends AbstractBackendController
         }
     }
 
+    public function testMatchAllAndTooltipsAreSavedPerScope(): void
+    {
+        $de = $this->germanStore();
+        $this->save(['logic' => 'and', 'tooltip_0' => ' Pick all that apply ']);
+
+        $this->assertSessionMessages(self::containsEqual('You saved the filter.'), MessageInterface::TYPE_SUCCESS);
+        $provider = $this->_objectManager->get(FilterConfigProvider::class);
+        AdminFixture::clean();
+        self::assertSame(Filter::LOGIC_AND, $provider->getForStore($de)[self::CODE]->getLogic());
+        self::assertSame('Pick all that apply', $provider->getForStore($de)[self::CODE]->getTooltip());
+        $this->_objectManager->get(FilterConfigRepositoryInterface::class)->saveTooltip(self::CODE, $de, 'Alle passenden wählen');
+        AdminFixture::clean();
+        self::assertSame('Alle passenden wählen', $provider->getForStore($de)[self::CODE]->getTooltip());
+    }
+
+    public function testAStoreViewSavesItsTooltipAndCannotChangeTheLogic(): void
+    {
+        $de = $this->germanStore();
+        $this->save(['store' => (string) $de, 'logic' => 'and', 'tooltip_' . $de => 'Hinweis', 'tooltip_0' => 'not for this scope']);
+
+        AdminFixture::clean();
+        $provider = $this->_objectManager->get(FilterConfigProvider::class);
+        self::assertSame(Filter::LOGIC_OR, $provider->getForStore($de)[self::CODE]->getLogic());
+        self::assertSame('Hinweis', $provider->getForStore($de)[self::CODE]->getTooltip());
+        self::assertNull($provider->getForStore(0)[self::CODE]->getTooltip());
+    }
+
     public function testACollisionRollsTheWholeSaveBack(): void
     {
         $this->save([

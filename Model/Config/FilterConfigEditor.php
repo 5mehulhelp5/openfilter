@@ -32,6 +32,16 @@ class FilterConfigEditor
         if (isset($values['sort_by'])) {
             $edited->setSortBy(trim((string) $values['sort_by']));
         }
+        if (isset($values['logic'])) {
+            $edited->setLogic(trim((string) $values['logic']));
+        }
+        if (array_key_exists('ranges', $values)) {
+            $ranges = preg_replace('/\s+/', '', (string) $values['ranges']);
+            $edited->setRanges($ranges === '' || $ranges === null ? null : $ranges);
+        }
+        if (array_key_exists('tree_depth', $values)) {
+            $edited->setTreeDepth($this->count($values['tree_depth'], __('Category tree levels')));
+        }
         foreach (['multiselect' => 'setMultiselect', 'hide_single_option' => 'setHideSingleOption',
             'seo_indexable' => 'setSeoIndexable', 'active' => 'setActive'] as $key => $setter) {
             if (array_key_exists($key, $values)) {

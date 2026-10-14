@@ -8,17 +8,18 @@ bin/magento openfilter:config:import openfilter.json --dry-run   # lists every c
 bin/magento openfilter:config:import openfilter.json
 ```
 
-## Format (schema 1)
+## Format (schema 2)
 
 ```json
 {
-    "schema": 1,
+    "schema": 2,
     "filters": {
         "color": {
             "settings": {"display_mode": "swatch", "multiselect": true, "logic": "or", "visible_options": 6,
                 "search_threshold": 12, "expanded": null, "sort_by": "position", "hide_single_option": true,
-                "seo_indexable": true, "position_override": null, "active": true},
+                "seo_indexable": true, "position_override": null, "active": true, "ranges": null, "tree_depth": 3},
             "labels": {"de": "Farbe"},
+            "tooltips": {"admin": "Pick one or more colours"},
             "url_name": {"admin": "color"},
             "options": {"Red": {"admin": "red", "de": "rot"}}
         },
@@ -31,6 +32,7 @@ bin/magento openfilter:config:import openfilter.json
 - Store views are keyed by store code; `admin` means all store views.
 - Options are keyed by their admin label. When an attribute has several options with the same label, they are numbered in option order: `"Wool #1"`, `"Wool #2"`.
 - Every section and setting is optional: a file may contain only what it changes.
+- Schema 2 (OpenFilter 1.1) adds `"logic": "and"` ("Match all"), `ranges` (the list of the *Ranges* display type, for example `"0-50,50-100,100-"`; `null` = automatic), `tree_depth` (levels of the category tree, 1–5) and the `tooltips` section. Files with schema 1 from OpenFilter 1.0 import unchanged.
 
 ## All or nothing
 
