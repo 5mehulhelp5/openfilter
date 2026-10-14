@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace Iranimij\OpenFilter\Plugin\Search;
 
 use Iranimij\OpenFilter\Model\Config;
+use Iranimij\OpenFilter\Model\Search\AndLogic;
 use Iranimij\OpenFilter\Model\Search\BuiltinFilters;
 use Iranimij\OpenFilter\Model\Search\FacetFilter;
 use Iranimij\OpenFilter\Model\Search\FacetFilterCollector;
@@ -19,7 +20,8 @@ use Magento\Framework\Search\RequestInterface;
 
 /**
  * Lets the facet count strategy rewrite the engine query of layered navigation requests, after adding the built-in
- * filters (rating, stock, sale, new) as clauses and count aggregations. The mapper is shared by the OpenSearch and
+ * filters (rating, stock, sale, new) as clauses and count aggregations and the "all of" clauses of attributes set to
+ * "Products must match all" (those stay out of the disjunctive counts). The mapper is shared by the OpenSearch and
  * Elasticsearch 8 adapters on Magento 2.4.7 to 2.4.9.
  */
 class MapperPlugin
@@ -30,13 +32,15 @@ class MapperPlugin
      * @param StrategyResolver $resolver
      * @param QueryState $state
      * @param BuiltinFilters $builtins
+     * @param AndLogic $andLogic attributes set to "all of the picked values"
      */
     public function __construct(
         private readonly Config $config,
         private readonly FacetFilterCollector $collector,
         private readonly StrategyResolver $resolver,
         private readonly QueryState $state,
-        private readonly BuiltinFilters $builtins
+        private readonly BuiltinFilters $builtins,
+        private readonly AndLogic $andLogic
     ) {
     }
 
@@ -52,7 +56,10 @@ class MapperPlugin
         if (!is_array($query) || !$this->config->isEnabled() || !$this->collector->isLayeredRequest($request)) {
             return $query;
         }
-        $filters = $this->collector->collect($request);
+        [$filters, $allOf] = $this->andLogic->split($this->collector->collect($request));
+        foreach ($allOf as $clause) {
+            $query['body']['query']['bool']['must'][] = $clause;
+        }
         foreach ($this->builtins->forRequest() as $builtin) {
             $query['body']['aggregations'][$builtin['bucket']] = $builtin['aggregation'];
             if ($builtin['clause'] !== null) {

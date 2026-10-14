@@ -8,6 +8,8 @@ declare(strict_types=1);
 
 namespace Iranimij\OpenFilter\Test\Integration\Performance;
 
+use Iranimij\OpenFilter\Api\Data\FilterConfigInterface;
+use Iranimij\OpenFilter\Api\FilterConfigRepositoryInterface;
 use Iranimij\OpenFilter\Model\Config;
 use Iranimij\OpenFilter\Test\Integration\Catalog\M1Catalog;
 use Iranimij\OpenFilter\Test\Integration\Search\EngineRequests;
@@ -92,6 +94,24 @@ class BudgetTest extends AbstractController
         ));
 
         self::assertLessThanOrEqual($coreQueries, $ofQueries, 'OpenFilter adds no SQL queries');
+    }
+
+    /**
+     * Last: saving a filter cleans OpenFilter's cache, which the SQL comparison above needs warm.
+     */
+    public function testAllOfFiltersStillCostOneSearchRequest(): void
+    {
+        $repository = Bootstrap::getObjectManager()->get(FilterConfigRepositoryInterface::class);
+        $repository->save($repository->getByCode(M1Catalog::COLOR)->setLogic(FilterConfigInterface::LOGIC_AND));
+        try {
+            $query = [M1Catalog::COLOR => 'red,blue', M1Catalog::MATERIAL => 'cotton', M1Catalog::SIZE => 'm'];
+            $requests = EngineRequests::during(fn () => $this->page($query));
+        } finally {
+            $repository->save($repository->getByCode(M1Catalog::COLOR)->setLogic(FilterConfigInterface::LOGIC_OR));
+        }
+
+        self::assertSame(200, $this->getResponse()->getHttpResponseCode());
+        self::assertSame(1, $requests, '"all of" adds clauses, not requests');
     }
 
     /**
