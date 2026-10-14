@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace Iranimij\OpenFilter\Test\Unit\Observer;
 
 use Iranimij\OpenFilter\Model\Layer\LayerContext;
+use Iranimij\OpenFilter\Model\Seo\MaxFiltersGuard;
 use Iranimij\OpenFilter\Model\Url\FilterState;
 use Iranimij\OpenFilter\Model\Url\ParamNormalizer;
 use Iranimij\OpenFilter\Observer\NormalizeFilterParams;
@@ -74,6 +75,25 @@ class NormalizeFilterParamsTest extends TestCase
             ->execute(new Observer(['event' => new Event(['request' => null])]));
     }
 
+    public function testTooManyValuesRedirectTemporarilyToTheFirstOnesWithoutIndexing(): void
+    {
+        $response = $this->createMock(HttpResponse::class);
+        $response->expects(self::once())->method('setRedirect')
+            ->with('canonical|{"price_from":null,"price_to":null,"p":null}', 302);
+        $response->expects(self::once())->method('setHeader')->with('X-Robots-Tag', 'noindex', true);
+        $flag = $this->createMock(ActionFlag::class);
+        $flag->expects(self::once())->method('set')->with('', ActionInterface::FLAG_NO_DISPATCH, '1');
+
+        // Even a canonical URL is cut: the guard comes before the normaliser, one hop to the final URL.
+        $this->observer(
+            ['redirect' => false, 'changed' => false, 'drop' => ['price_from', 'price_to']],
+            $response,
+            $flag,
+            true,
+            new FilterState(['color' => ['1']])
+        )->execute($this->event($this->request('GET', ['color' => 'a,b,c,d,e,f', 'p' => '2'])));
+    }
+
     /**
      * @param array{redirect: bool, changed: bool} $result
      */
@@ -81,7 +101,8 @@ class NormalizeFilterParamsTest extends TestCase
         array $result,
         HttpResponse $response,
         ActionFlag $flag,
-        bool $active = true
+        bool $active = true,
+        ?FilterState $truncated = null
     ): NormalizeFilterParams {
         $normalizer = $this->createStub(ParamNormalizer::class);
         $normalizer->method('check')->willReturn($result + ['state' => new FilterState()]);
@@ -91,7 +112,10 @@ class NormalizeFilterParamsTest extends TestCase
             static fn ($state, array $override = []): string => 'canonical|' . json_encode($override)
         );
 
-        return new NormalizeFilterParams($normalizer, $context, $flag, $response);
+        $guard = $this->createStub(MaxFiltersGuard::class);
+        $guard->method('truncate')->willReturn($truncated);
+
+        return new NormalizeFilterParams($normalizer, $context, $flag, $response, $guard);
     }
 
     /**
