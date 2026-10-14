@@ -9,6 +9,7 @@ nav:
   - Home: index.md
   - Filters: filters.md
   - Admin: admin.md
+  - Storefront: storefront.md
   - Filter URLs: url-format.md
   - Developers:
       - Hyvä integration: hyva-integration.md
