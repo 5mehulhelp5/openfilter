@@ -113,8 +113,8 @@ jobs:
           composer require --dev --no-interaction --no-progress --no-update "phpunit/phpunit:^12.0"
           composer update --no-interaction --no-progress --prefer-dist
       - run: vendor/bin/phpunit -c phpunit.coverage.xml --coverage-clover clover.xml --coverage-text
-      # Namespaces are added to the gate as they come into existence (M1: Url, Seo, Search, Index).
-      - run: php .github/ci/coverage-gate.php clover.xml 85 Model
+      # Gate namespaces grow with the code (07 · Build Brief §6: Url, Seo, Search, Config, Index).
+      - run: php .github/ci/coverage-gate.php clover.xml 85 Model/Search Model/Config
 
   integration:
     name: Integration ${{ matrix.magento }} / PHP ${{ matrix.php }} / ${{ matrix.engine }}
