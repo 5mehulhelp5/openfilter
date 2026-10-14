@@ -11,6 +11,7 @@ namespace Iranimij\OpenFilter\Test\Unit\Model\Seo;
 use Iranimij\OpenFilter\Model\Config;
 use Iranimij\OpenFilter\Model\Config\Defaults;
 use Iranimij\OpenFilter\Model\Config\FilterConfigProvider;
+use Iranimij\OpenFilter\Model\Layer\CategoryTree;
 use Iranimij\OpenFilter\Model\Seo\CanonicalResolver;
 use Iranimij\OpenFilter\Model\Seo\MaxFiltersGuard;
 use Iranimij\OpenFilter\Model\Seo\NofollowPolicy;
@@ -166,6 +167,6 @@ class SeoPoliciesTest extends TestCase
             'options' => [93 => [50 => 'red', 49 => 'blue'], 144 => [167 => 's', 168 => 'm']],
         ]);
 
-        return new UrlCodec($this->configProvider(), $slugProvider, new Range());
+        return new UrlCodec($this->configProvider(), $slugProvider, new Range(), $this->createStub(CategoryTree::class));
     }
 }

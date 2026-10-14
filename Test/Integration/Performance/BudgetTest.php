@@ -12,6 +12,7 @@ use Iranimij\OpenFilter\Api\Data\FilterConfigInterface;
 use Iranimij\OpenFilter\Api\FilterConfigRepositoryInterface;
 use Iranimij\OpenFilter\Model\Config;
 use Iranimij\OpenFilter\Test\Integration\Catalog\M1Catalog;
+use Iranimij\OpenFilter\Test\Integration\Catalog\M5Categories;
 use Iranimij\OpenFilter\Test\Integration\Search\EngineRequests;
 use Magento\Framework\App\Config\MutableScopeConfigInterface;
 use Magento\Framework\App\ResourceConnection;
@@ -35,6 +36,9 @@ class BudgetTest extends AbstractController
     /** @var array{category: int, store: int, options: array<string, array<string, int>>} */
     private static ?array $catalog = null;
 
+    /** @var array<string, int>|null M5 category tree below M1's category */
+    private static ?array $tree = null;
+
     /** @var array<string, array{int, float}> SQL queries and milliseconds by run */
     private static ?array $runs = [];
 
@@ -42,6 +46,13 @@ class BudgetTest extends AbstractController
     {
         parent::setUpBeforeClass();
         self::$catalog = M1Catalog::create();
+        self::$tree = M5Categories::create(self::$catalog['category']);
+    }
+
+    public static function tearDownAfterClass(): void
+    {
+        self::categoryDisplay(FilterConfigInterface::DISPLAY_LIST);
+        parent::tearDownAfterClass();
     }
 
     public function testWarmUp(): void
@@ -112,6 +123,64 @@ class BudgetTest extends AbstractController
 
         self::assertSame(200, $this->getResponse()->getHttpResponseCode());
         self::assertSame(1, $requests, '"all of" adds clauses, not requests');
+    }
+
+    public function testCategoryTreeWarmUp(): void
+    {
+        self::categoryDisplay(FilterConfigInterface::DISPLAY_TREE);
+        $requests = EngineRequests::during(fn () => $this->page($this->treeQuery((string) self::$tree[M5Categories::TOPS])));
+
+        self::assertSame(200, $this->getResponse()->getHttpResponseCode());
+        self::assertSame(1, $requests, 'the tree and its picks: one search request');
+    }
+
+    /**
+     * @depends testCategoryTreeWarmUp
+     */
+    public function testCategoryTreePage(): void
+    {
+        self::$runs['tree'] = $this->measure($this->treeQuery((string) self::$tree[M5Categories::TOPS]));
+
+        self::assertSame(200, $this->getResponse()->getHttpResponseCode());
+    }
+
+    public function testCoreDrillDownPage(): void
+    {
+        Bootstrap::getObjectManager()->get(MutableScopeConfigInterface::class)
+            ->setValue(Config::XML_PATH_ENABLED, '0', 'store', 'default');
+        $query = $this->treeQuery((string) self::$tree[M5Categories::TOPS]);
+        $query[M1Catalog::COLOR] = (string) self::$catalog['options'][M1Catalog::COLOR]['Red'];
+        self::$runs['core-drill-down'] = $this->measure($query);
+
+        self::assertSame(200, $this->getResponse()->getHttpResponseCode());
+    }
+
+    /**
+     * @depends testCategoryTreePage
+     * @depends testCoreDrillDownPage
+     */
+    public function testTheCategoryTreeAddsNoSqlQueries(): void
+    {
+        [$tree] = self::$runs['tree'];
+        [$core] = self::$runs['core-drill-down'];
+        fwrite(STDERR, sprintf("\n[budget] category tree page: OpenFilter %d SQL queries, core drill-down %d\n", $tree, $core));
+
+        self::assertLessThanOrEqual($core, $tree, 'the tree comes from OpenFilter\'s cache');
+    }
+
+    /**
+     * @param string $categoryId
+     * @return array<string, string>
+     */
+    private function treeQuery(string $categoryId): array
+    {
+        return ['cat' => $categoryId, M1Catalog::COLOR => 'red', 'price' => '10-40'];
+    }
+
+    private static function categoryDisplay(string $mode): void
+    {
+        $repository = Bootstrap::getObjectManager()->get(FilterConfigRepositoryInterface::class);
+        $repository->save($repository->getByCode(FilterConfigInterface::BUILTIN_CATEGORY)->setDisplayMode($mode));
     }
 
     /**

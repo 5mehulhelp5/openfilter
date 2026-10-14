@@ -10,6 +10,7 @@ namespace Iranimij\OpenFilter\Test\Unit\Model\Url;
 
 use Iranimij\OpenFilter\Model\Config\Defaults;
 use Iranimij\OpenFilter\Model\Config\FilterConfigProvider;
+use Iranimij\OpenFilter\Model\Layer\CategoryTree;
 use Iranimij\OpenFilter\Model\Url\ParamNormalizer;
 use Iranimij\OpenFilter\Model\Url\Range;
 use Iranimij\OpenFilter\Model\Url\SlugProvider;
@@ -82,6 +83,6 @@ class ParamNormalizerTest extends TestCase
             'options' => [93 => [50 => 'red', 49 => 'blue'], 144 => [168 => 'm']],
         ]);
 
-        return new ParamNormalizer(new UrlCodec($configProvider, $slugProvider, new Range()));
+        return new ParamNormalizer(new UrlCodec($configProvider, $slugProvider, new Range(), $this->createStub(CategoryTree::class)));
     }
 }

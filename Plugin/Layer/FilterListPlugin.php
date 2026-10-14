@@ -10,6 +10,8 @@ namespace Iranimij\OpenFilter\Plugin\Layer;
 
 use Iranimij\OpenFilter\Api\Data\FilterConfigInterface as Filter;
 use Iranimij\OpenFilter\Model\Layer\Filter\BuiltinFactory;
+use Iranimij\OpenFilter\Model\Layer\Filter\CategoryTree;
+use Iranimij\OpenFilter\Model\Layer\Filter\CategoryTreeFactory;
 use Iranimij\OpenFilter\Model\Layer\Filter\OpenFilterInterface;
 use Iranimij\OpenFilter\Model\Layer\LayerContext;
 use Iranimij\OpenFilter\Model\Search\BuiltinFilters;
@@ -27,15 +29,20 @@ class FilterListPlugin
     /** @var array<int, AbstractFilter[]> built-in filter objects per layer */
     private array $builtins = [];
 
+    /** @var array<int, CategoryTree> category tree filter per layer */
+    private array $trees = [];
+
     /**
      * @param LayerContext $context
      * @param BuiltinFilters $builtinFilters
      * @param BuiltinFactory $builtinFactory
+     * @param CategoryTreeFactory $treeFactory the category tree (1.1) in place of core's drill-down
      */
     public function __construct(
         private readonly LayerContext $context,
         private readonly BuiltinFilters $builtinFilters,
-        private readonly BuiltinFactory $builtinFactory
+        private readonly BuiltinFactory $builtinFactory,
+        private readonly CategoryTreeFactory $treeFactory
     ) {
     }
 
@@ -57,6 +64,13 @@ class FilterListPlugin
             foreach ($this->builtinFilters->activeCodes() as $code) {
                 $this->builtins[$id][] = $this->builtinFactory->create(['layer' => $layer, 'data' => ['code' => $code]]);
             }
+        }
+        if ($this->context->config(Filter::BUILTIN_CATEGORY)?->getDisplayMode() === Filter::DISPLAY_TREE) {
+            $this->trees[$id] ??= $this->treeFactory->create(['layer' => $layer]);
+            $filters = array_map(
+                fn (AbstractFilter $filter): AbstractFilter => $filter->hasData('attribute_model') ? $filter : $this->trees[$id],
+                $filters
+            );
         }
         $all = array_merge(
             array_filter($filters, fn (AbstractFilter $filter): bool => !$this->isHidden($filter)),
