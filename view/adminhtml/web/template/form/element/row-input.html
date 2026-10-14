@@ -1,0 +1,23 @@
+<!--
+/**
+ * Copyright © Iman Aboheydary. All rights reserved.
+ * See LICENSE for license details (MIT).
+ */
+-->
+<!-- A text input inside a table row (option URL names): table cells have no visible label, so the input is named
+     after its column and the row's option, e.g. "URL name in "Deutsch" – Black". -->
+<input class="admin__control-text" type="text"
+    data-bind="
+        event: {change: userChanges},
+        value: value,
+        hasFocus: focused,
+        valueUpdate: valueUpdate,
+        attr: {
+            name: inputName,
+            placeholder: placeholder,
+            'aria-describedby': noticeId,
+            'aria-label': [label, source.get(parentScope + '.option_label')].filter(Boolean).join(' – '),
+            id: uid,
+            disabled: disabled,
+            maxlength: 255
+    }"/>

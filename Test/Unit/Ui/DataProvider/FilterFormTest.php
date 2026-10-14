@@ -9,25 +9,30 @@ declare(strict_types=1);
 namespace Iranimij\OpenFilter\Test\Unit\Ui\DataProvider;
 
 use Iranimij\OpenFilter\Api\FilterConfigRepositoryInterface;
-use Iranimij\OpenFilter\Api\SlugRepositoryInterface;
+use Iranimij\OpenFilter\Model\Admin\FormScope;
 use Iranimij\OpenFilter\Model\Config\Defaults;
+use Iranimij\OpenFilter\Model\Config\FilterConfig;
 use Iranimij\OpenFilter\Model\Config\FilterConfigProvider;
 use Iranimij\OpenFilter\Model\Config\Source\DisplayMode;
 use Iranimij\OpenFilter\Model\Config\Validator;
 use Iranimij\OpenFilter\Model\ResourceModel\FilterConfigStorage;
 use Iranimij\OpenFilter\Model\ResourceModel\SlugStorage;
+use Iranimij\OpenFilter\Model\Url\AttributeSlugScope;
 use Iranimij\OpenFilter\Ui\DataProvider\FilterForm;
 use Magento\Framework\Api\Filter;
 use Magento\Framework\App\RequestInterface;
 use Magento\Store\Api\Data\StoreInterface;
 use Magento\Store\Model\StoreManagerInterface;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 class FilterFormTest extends TestCase
 {
-    public function testAnAttributeGetsFittingTypesStoreFieldsAndItsOptionNames(): void
+    private const DE = 2;
+
+    public function testAllStoreViewsEditTheSettingsAndTheSharedNamesOnly(): void
     {
-        $form = $this->form('color', (new Defaults())->forAttribute('color', 93, 'select', 'visual', 10));
+        $form = $this->form('color', $this->colour(), null, [self::DE => 'Deutsch', 3 => 'Hyvä 1.5.2']);
         $form->addFilter(new Filter(['field' => 'key', 'value' => 'color']));
 
         $meta = $form->getMeta();
@@ -37,22 +42,106 @@ class FilterFormTest extends TestCase
             ['list', 'swatch', 'dropdown'],
             array_column($meta['looks']['children']['display_mode']['arguments']['data']['config']['options'], 'value')
         );
-        self::assertArrayHasKey('label_2', $meta['labels']['children']);
-        self::assertSame('label_2', $meta['labels']['children']['label_2']['arguments']['data']['config']['dataScope']);
-        self::assertArrayHasKey('url_name_2', $meta['seo']['children']['option_urls']['children']['record']['children']);
+        self::assertSame('[GLOBAL]', $this->config($meta, 'behaves', 'visible_options')['scopeLabel']);
+        self::assertArrayNotHasKey('disabled', $this->config($meta, 'behaves', 'visible_options'));
+        self::assertSame(['label_0'], array_keys($meta['labels']['children']));
+        self::assertSame([], $this->recordFields($meta));
+        self::assertArrayNotHasKey('url_name_store', $meta['seo']['children']);
+        self::assertSame('0', $data['store']);
         self::assertSame('1', $data['multiselect']);
         self::assertSame('auto', $data['expanded']);
-        self::assertSame('Farbe', $data['label_2']);
+        self::assertSame(['label_0' => 'Colour'], array_intersect_key($data, ['label_0' => 1, 'label_2' => 1]));
         self::assertSame('color', $data['url_name']);
         self::assertSame(
-            [['option_id' => 49, 'option_label' => 'Black', 'url_name_0' => 'black', 'regenerate' => '0', 'url_name_2' => 'schwarz']],
+            [['option_id' => 49, 'option_label' => 'Black', 'url_name_0' => 'black', 'regenerate' => '0']],
             $data['option_urls']
         );
     }
 
+    public function testAStoreViewEditsItsOwnLabelAndNamesNextToTheSharedOnes(): void
+    {
+        $form = $this->form('color', $this->colour(), (string) self::DE, [self::DE => 'Deutsch', 3 => 'Hyvä 1.5.2']);
+
+        $meta = $form->getMeta();
+        $data = $form->getData()['color'];
+
+        foreach (FilterForm::GLOBAL_FIELDS as $fieldset => $fields) {
+            foreach ($fields as $field) {
+                self::assertTrue($this->config($meta, $fieldset, $field)['disabled'], $field . ' is read only');
+            }
+        }
+        self::assertTrue($this->config($meta, 'labels', 'label_0')['disabled']);
+        self::assertSame('Label in "Deutsch"', $this->config($meta, 'labels', 'label_2')['label']);
+        self::assertSame('Same as for all store views', $this->config($meta, 'labels', 'label_2')['placeholder']);
+        self::assertTrue($this->config($meta, 'seo', 'url_name')['disabled']);
+        self::assertSame('URL name in "Deutsch"', $this->config($meta, 'seo', 'url_name_store')['label']);
+        self::assertSame(
+            ['option_store_label', 'url_name_0', 'url_name_2', 'regenerate'],
+            $this->recordFields($meta)
+        );
+        self::assertSame('2', $data['store']);
+        self::assertSame('Colour', $data['label_0']);
+        self::assertSame('Farbe', $data['label_2']);
+        self::assertSame('color', $data['url_name']);
+        self::assertSame('farbe', $data['url_name_store']);
+        self::assertSame(
+            [[
+                'option_id' => 49,
+                'option_label' => 'Black',
+                'url_name_0' => 'black',
+                'regenerate' => '0',
+                'option_store_label' => 'Schwarz',
+                'url_name_2' => 'schwarz',
+            ]],
+            $data['option_urls']
+        );
+    }
+
+    /**
+     * @dataProvider storeCounts
+     */
+    #[DataProvider('storeCounts')]
+    public function testTheFormKeepsItsWidthForAnyNumberOfStoreViews(int $count): void
+    {
+        $stores = [];
+        for ($id = 1; $id <= $count; $id++) {
+            $stores[$id] = 'Store ' . $id;
+        }
+
+        foreach (['0' => [], '1' => ['option_store_label', 'url_name_0', 'url_name_1', 'regenerate']] as $scope => $fields) {
+            $meta = $this->form('color', $this->colour(), (string) $scope, $stores)->getMeta();
+            self::assertSame($fields, $this->recordFields($meta), $count . ' store views, scope ' . $scope);
+            self::assertCount($scope === 0 ? 1 : 2, $meta['labels']['children']);
+        }
+    }
+
+    /**
+     * @return array<string, array{int}>
+     */
+    public static function storeCounts(): array
+    {
+        return ['one' => [1], 'four' => [4], 'twenty' => [20]];
+    }
+
+    public function testAnUnknownStoreViewShowsAllStoreViews(): void
+    {
+        $meta = $this->form('color', $this->colour(), '99', [self::DE => 'Deutsch'])->getMeta();
+
+        self::assertSame(['label_0'], array_keys($meta['labels']['children']));
+        self::assertArrayNotHasKey('disabled', $this->config($meta, 'looks', 'display_mode'));
+    }
+
+    public function testSingleStoreModeShowsNoScopeLabels(): void
+    {
+        $meta = $this->form('color', $this->colour(), null, [1 => 'Default'], true)->getMeta();
+
+        self::assertArrayNotHasKey('scopeLabel', $this->config($meta, 'behaves', 'visible_options'));
+        self::assertArrayNotHasKey('scopeLabel', $this->config($meta, 'labels', 'label_0'));
+    }
+
     public function testABuiltinHasNoUrlNamesAndTheMetaWorksBeforeTheFormAddsItsFilter(): void
     {
-        $form = $this->form('price', (new Defaults())->forBuiltin('price')->with(['attribute_id' => 77]));
+        $form = $this->form('price', (new Defaults())->forBuiltin('price')->with(['attribute_id' => 77]), null, [self::DE => 'Deutsch']);
 
         $meta = $form->getMeta();
 
@@ -65,27 +154,68 @@ class FilterFormTest extends TestCase
         self::assertArrayNotHasKey('url_name', $form->getData()['price']);
     }
 
-    private function form(string $key, \Iranimij\OpenFilter\Model\Config\FilterConfig $config): FilterForm
+    private function colour(): FilterConfig
+    {
+        return (new Defaults())->forAttribute('color', 93, 'select', 'visual', 10);
+    }
+
+    /**
+     * @param array<string, mixed> $meta
+     * @return array<string, mixed>
+     */
+    private function config(array $meta, string $fieldset, string $field): array
+    {
+        return $meta[$fieldset]['children'][$field]['arguments']['data']['config'] ?? [];
+    }
+
+    /**
+     * Option table columns added by the meta, in their order.
+     *
+     * @param array<string, mixed> $meta
+     * @return string[]
+     */
+    private function recordFields(array $meta): array
+    {
+        $children = $meta['seo']['children']['option_urls']['children']['record']['children'] ?? [];
+
+        return array_keys($children);
+    }
+
+    /**
+     * @param array<int, string> $storeNames
+     */
+    private function form(string $key, FilterConfig $config, ?string $store, array $storeNames, bool $single = false): FilterForm
     {
         $repository = $this->createStub(FilterConfigRepositoryInterface::class);
         $repository->method('getByCode')->willReturn($config);
         $provider = $this->createStub(FilterConfigProvider::class);
         $provider->method('keyOf')->willReturn($key);
-        $slugs = $this->createStub(SlugRepositoryInterface::class);
-        $slugs->method('getAttributeSlug')->willReturn('color');
+        $attributeSlugs = $this->createStub(AttributeSlugScope::class);
+        $attributeSlugs->method('own')->willReturnMap([[93, 0, 'color'], [93, self::DE, 'farbe']]);
         $configStorage = $this->createStub(FilterConfigStorage::class);
-        $configStorage->method('labelOverrides')->willReturn([2 => 'Farbe']);
+        $configStorage->method('labelOverrides')->willReturn([0 => 'Colour', self::DE => 'Farbe']);
         $configStorage->method('optionCount')->willReturn(12);
         $slugStorage = $this->createStub(SlugStorage::class);
-        $slugStorage->method('optionLabels')->willReturn(['admin' => [49 => 'Black'], 'stores' => []]);
-        $slugStorage->method('optionSlugRows')->willReturn([0 => [49 => 'black'], 2 => [49 => 'schwarz']]);
-        $store = $this->createStub(StoreInterface::class);
-        $store->method('getId')->willReturn(2);
-        $store->method('getName')->willReturn('Deutsch');
-        $stores = $this->createStub(StoreManagerInterface::class);
-        $stores->method('getStores')->willReturn([2 => $store]);
+        $slugStorage->method('optionLabels')->willReturn(['admin' => [49 => 'Black'], 'stores' => [self::DE => [49 => 'Schwarz']]]);
+        $slugStorage->method('optionSlugRows')->willReturn([0 => [49 => 'black'], self::DE => [49 => 'schwarz']]);
+        $stores = [];
+        foreach ($storeNames as $id => $name) {
+            $model = $this->createStub(StoreInterface::class);
+            $model->method('getId')->willReturn($id);
+            $model->method('getName')->willReturn($name);
+            $stores[$id] = $model;
+        }
+        $manager = $this->createStub(StoreManagerInterface::class);
+        $manager->method('getStores')->willReturn($stores);
+        $manager->method('isSingleStoreMode')->willReturn($single);
         $request = $this->createStub(RequestInterface::class);
-        $request->method('getParam')->willReturn($key);
+        $request->method('getParam')->willReturnCallback(
+            static fn (string $name) => match ($name) {
+                'store' => $store,
+                'code' => $key,
+                default => null,
+            }
+        );
 
         return new FilterForm(
             'openfilter_filter_form_data_source',
@@ -93,12 +223,12 @@ class FilterFormTest extends TestCase
             'code',
             $repository,
             $provider,
-            $slugs,
+            $attributeSlugs,
             $configStorage,
             $slugStorage,
             new Validator(),
             new DisplayMode(),
-            $stores,
+            new FormScope($manager),
             $request
         );
     }

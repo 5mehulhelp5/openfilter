@@ -1,0 +1,20 @@
+<!--
+/**
+ * Copyright © Iman Aboheydary. All rights reserved.
+ * See LICENSE for license details (MIT).
+ */
+-->
+<!-- A checkbox inside a table row ("Generate again"): named after its column and the row's option, because the
+     cell shows no label text. -->
+<div class="admin__field admin__field-option">
+    <input type="checkbox"
+           class="admin__control-checkbox"
+           simple-checked="checked"
+           ko-disabled="disabled"
+           ko-focused="focused"
+           ko-value="value"
+           attr="id: uid, name: inputName,
+                 'aria-label': [label, source.get(parentScope + '.option_label')].filter(Boolean).join(' – ')"/>
+
+    <label class="admin__field-label" text="description" attr="for: uid"></label>
+</div>
