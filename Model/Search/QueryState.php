@@ -23,6 +23,9 @@ class QueryState
      */
     private array $states = [];
 
+    /** Whether the response being built belongs to a layered navigation request OpenFilter handles. */
+    private bool $handling = false;
+
     /**
      * @param RequestInterface $request
      * @param array<string, mixed> $original
@@ -77,5 +80,26 @@ class QueryState
         unset($this->states[$id]);
 
         return $state;
+    }
+
+    /**
+     * Marks the response being built (between the aggregation builder's start and end).
+     *
+     * @param bool $handling
+     * @return void
+     */
+    public function setHandling(bool $handling): void
+    {
+        $this->handling = $handling;
+    }
+
+    /**
+     * Whether OpenFilter handles the response being built (its dynamic buckets come from in-request stats).
+     *
+     * @return bool
+     */
+    public function isHandling(): bool
+    {
+        return $this->handling;
     }
 }

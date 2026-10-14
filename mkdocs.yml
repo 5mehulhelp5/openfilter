@@ -7,6 +7,8 @@ docs_dir: docs
 strict: true
 nav:
   - Home: index.md
+  - Filters: filters.md
+  - Filter URLs: url-format.md
   - Developers:
       - Hyvä integration: hyva-integration.md
       - Facet counts: facet-counts.md

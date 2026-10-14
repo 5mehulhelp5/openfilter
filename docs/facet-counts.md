@@ -29,6 +29,7 @@ Term filters with several values become a `terms` query in core already (`Filter
 | Environment | SingleQuery counts = brute force | PerAttribute counts = brute force | Requests added over core | Run |
 |---|---|---|---|---|
 | 2.4.9, PHP 8.3, OpenSearch 2.5 (local fixture) | 4/4 selections, all attributes | 4/4 | SingleQuery **0**; PerAttribute = active attributes (1, 1, 2, 3) | local, 2026-10-13 |
+| 2.4.9, PHP 8.3, OpenSearch 2.5 (local fixture), **M1 catalog**: simple + configurable products, 3 customer groups (Wholesale tier prices, price range), 2 store views (German view hides one product), category and search pages | 4/4 scenarios, all 3 attributes; also equal to the catalog's own PHP model | 4/4 | — | local, 2026-10-13 (`M1CountsTest`) |
 | 2.4.9 / 8.3, 8.4, OpenSearch 2.12 | pending | pending | pending | CI full matrix (after hours) |
 | 2.4.8-p5 / 8.2, 8.3, 8.4, OpenSearch 2.12 | pending | pending | pending | CI full matrix |
 | 2.4.7-p10 / 8.3, OpenSearch 2.12 | pending | pending | pending | CI full matrix |
@@ -36,4 +37,10 @@ Term filters with several values become a `terms` query in core already (`Filter
 
 **Decision (preliminary, confirmed when the matrix is green):** SingleQuery on every supported version and engine; PerAttribute stays as the automatic fallback for unknown engines and as a manual setting. If a matrix leg fails for SingleQuery only, that engine/version is mapped to PerAttribute in `etc/di.xml` (`autoByEngine`) and recorded here.
 
-Note on the request budget: core's price filter already costs extra requests (its interval data provider re-runs the query for statistics). SingleQuery adds none on top. M1 replaces the core price statistics with a `stats` aggregation inside the same request (02 · Architecture §3).
+Test note (M1): core's fulltext collection takes `Api\Search\SearchCriteriaBuilder` from `ObjectManager::get()`, one instance per process whose filters are never cleared, and the search indexer caches its attribute list per process. A storefront request builds one layer collection, so shops are not affected, but tests that build many collections or create attributes after an earlier reindex must reset those shared instances (`Test/Integration/Catalog/SearchIndexReset`, and a fresh criteria builder per collection). The M0 brute-force test runs with that reset too.
+
+## Sliders and the request budget (M1)
+
+Magento's price filter (and every decimal attribute filter) is a dynamic bucket: the main request already carries an `extended_stats` aggregation for it, but core's interval algorithm sends one or two more requests to build price ranges. OpenFilter's sliders need only min, max and count, so on layered requests `Plugin\Search\DynamicBucketPlugin` answers dynamic buckets from the main request's stats (bucket value `stats`), and range filters on those fields are facet filters like any option filter: the price slider's bounds ignore the price range itself, but respect every other filter.
+
+Measured on the engine (`DisjunctiveCountsTest::testSearchRequestsPerPage`, `SlidersTest`): **SingleQuery = 1 search request per category page** (products, disjunctive counts, price and decimal bounds), PerAttribute = 1 + active attributes; core needs more for its price intervals alone. Bounds are converted to the display currency and tax display of the store view (`Model\Search\PriceBoundsConverter`, default product tax class rate).

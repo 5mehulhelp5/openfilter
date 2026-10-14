@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © Iman Aboheydary. All rights reserved.
+ * See LICENSE for license details (MIT).
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Cache/etc/cache.xsd">
+    <type name="openfilter" translate="label,description" instance="Iranimij\OpenFilter\Model\Cache\Type">
+        <label>OpenFilter</label>
+        <description>Filter settings and URL names per store view.</description>
+    </type>
+</config>

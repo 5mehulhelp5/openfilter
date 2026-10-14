@@ -10,10 +10,66 @@
     <preference for="Iranimij\OpenFilter\Api\FacetCountStrategyInterface"
                 type="Iranimij\OpenFilter\Model\Search\Strategy\SingleQuery"/>
 
+    <preference for="Iranimij\OpenFilter\Api\FilterConfigRepositoryInterface"
+                type="Iranimij\OpenFilter\Model\Config\FilterConfigRepository"/>
+
+    <preference for="Iranimij\OpenFilter\Api\SlugRepositoryInterface"
+                type="Iranimij\OpenFilter\Model\Url\SlugRepository"/>
+
+    <preference for="Iranimij\OpenFilter\Api\UrlCodecInterface" type="Iranimij\OpenFilter\Model\Url\UrlCodec"/>
+    <preference for="Iranimij\OpenFilter\Api\FilterStateInterface" type="Iranimij\OpenFilter\Model\Url\FilterState"/>
+
     <type name="Iranimij\OpenFilter\Model\Search\QueryState" shared="true"/>
+    <type name="Iranimij\OpenFilter\Model\Config">
+        <arguments>
+            <argument name="detector" xsi:type="object">Iranimij\OpenFilter\Model\Coexistence\Detector</argument>
+        </arguments>
+    </type>
+
+    <type name="Iranimij\OpenFilter\Model\Config\FilterConfigProvider">
+        <arguments>
+            <argument name="cache" xsi:type="object">Iranimij\OpenFilter\Model\Cache\Type</argument>
+        </arguments>
+    </type>
+    <type name="Iranimij\OpenFilter\Model\Search\PriceBoundsConverter">
+        <arguments>
+            <argument name="cache" xsi:type="object">Iranimij\OpenFilter\Model\Cache\Type</argument>
+        </arguments>
+    </type>
+    <type name="Iranimij\OpenFilter\Model\Url\SlugProvider">
+        <arguments>
+            <argument name="cache" xsi:type="object">Iranimij\OpenFilter\Model\Cache\Type</argument>
+        </arguments>
+    </type>
+    <type name="Iranimij\OpenFilter\Model\Url\SlugRepository">
+        <arguments>
+            <argument name="cache" xsi:type="object">Iranimij\OpenFilter\Model\Cache\Type</argument>
+        </arguments>
+    </type>
+    <type name="Iranimij\OpenFilter\Model\Config\FilterConfigRepository">
+        <arguments>
+            <argument name="cache" xsi:type="object">Iranimij\OpenFilter\Model\Cache\Type</argument>
+        </arguments>
+    </type>
+
+    <!-- Logging channel var/log/openfilter.log (strategy choice in debug mode, later diagnostics). -->
+    <virtualType name="Iranimij\OpenFilter\Model\Logger\Handler" type="Magento\Framework\Logger\Handler\Base">
+        <arguments>
+            <argument name="fileName" xsi:type="string">/var/log/openfilter.log</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="Iranimij\OpenFilter\Model\Logger" type="Magento\Framework\Logger\Monolog">
+        <arguments>
+            <argument name="name" xsi:type="string">openfilter</argument>
+            <argument name="handlers" xsi:type="array">
+                <item name="file" xsi:type="object">Iranimij\OpenFilter\Model\Logger\Handler</item>
+            </argument>
+        </arguments>
+    </virtualType>
 
     <type name="Iranimij\OpenFilter\Model\Search\StrategyResolver">
         <arguments>
+            <argument name="logger" xsi:type="object">Iranimij\OpenFilter\Model\Logger</argument>
             <argument name="strategies" xsi:type="array">
                 <item name="single_query" xsi:type="object">Iranimij\OpenFilter\Model\Search\Strategy\SingleQuery</item>
                 <item name="per_attribute" xsi:type="object">Iranimij\OpenFilter\Model\Search\Strategy\PerAttribute</item>
@@ -27,10 +83,108 @@
         </arguments>
     </type>
 
+    <!-- Layered navigation: OpenFilter's filter models (core ones stay for anything OpenFilter does not handle). -->
+    <virtualType name="Iranimij\OpenFilter\Model\Layer\Filter\ItemFactory" type="Magento\Catalog\Model\Layer\Filter\ItemFactory">
+        <arguments>
+            <argument name="instanceName" xsi:type="string">Iranimij\OpenFilter\Model\Layer\Filter\Item</argument>
+        </arguments>
+    </virtualType>
+    <type name="Iranimij\OpenFilter\Model\Layer\Filter\Attribute">
+        <arguments>
+            <argument name="filterItemFactory" xsi:type="object">Iranimij\OpenFilter\Model\Layer\Filter\ItemFactory</argument>
+        </arguments>
+    </type>
+    <type name="Iranimij\OpenFilter\Model\Layer\Filter\Price">
+        <arguments>
+            <argument name="filterItemFactory" xsi:type="object">Iranimij\OpenFilter\Model\Layer\Filter\ItemFactory</argument>
+        </arguments>
+    </type>
+    <type name="Iranimij\OpenFilter\Model\Layer\Filter\Decimal">
+        <arguments>
+            <argument name="filterItemFactory" xsi:type="object">Iranimij\OpenFilter\Model\Layer\Filter\ItemFactory</argument>
+        </arguments>
+    </type>
+    <type name="Iranimij\OpenFilter\Model\Layer\Filter\Builtin">
+        <arguments>
+            <argument name="filterItemFactory" xsi:type="object">Iranimij\OpenFilter\Model\Layer\Filter\ItemFactory</argument>
+        </arguments>
+    </type>
+    <type name="Magento\Catalog\Model\Layer\FilterList">
+        <plugin name="openfilter_builtin_filters" type="Iranimij\OpenFilter\Plugin\Layer\FilterListPlugin"/>
+    </type>
+    <!-- Core filters OpenFilter keeps (category drill-down) link to canonical filter URLs too. -->
+    <type name="Magento\CatalogSearch\Model\Layer\Filter\Category">
+        <arguments>
+            <argument name="filterItemFactory" xsi:type="object">Iranimij\OpenFilter\Model\Layer\Filter\ItemFactory</argument>
+        </arguments>
+    </type>
+    <type name="Magento\CatalogSearch\Model\Layer\Filter\Price">
+        <arguments>
+            <argument name="filterItemFactory" xsi:type="object">Iranimij\OpenFilter\Model\Layer\Filter\ItemFactory</argument>
+        </arguments>
+    </type>
+    <type name="Magento\CatalogSearch\Model\Layer\Filter\Decimal">
+        <arguments>
+            <argument name="filterItemFactory" xsi:type="object">Iranimij\OpenFilter\Model\Layer\Filter\ItemFactory</argument>
+        </arguments>
+    </type>
+    <type name="Magento\Swatches\Block\LayeredNavigation\RenderLayered">
+        <plugin name="openfilter_swatch_links" type="Iranimij\OpenFilter\Plugin\Swatches\RenderLayeredPlugin"/>
+    </type>
+    <virtualType name="categoryFilterList">
+        <arguments>
+            <argument name="filters" xsi:type="array">
+                <item name="attribute" xsi:type="string">Iranimij\OpenFilter\Model\Layer\Filter\Attribute</item>
+                <item name="price" xsi:type="string">Iranimij\OpenFilter\Model\Layer\Filter\Price</item>
+                <item name="decimal" xsi:type="string">Iranimij\OpenFilter\Model\Layer\Filter\Decimal</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="searchFilterList">
+        <arguments>
+            <argument name="filters" xsi:type="array">
+                <item name="attribute" xsi:type="string">Iranimij\OpenFilter\Model\Layer\Filter\Attribute</item>
+                <item name="price" xsi:type="string">Iranimij\OpenFilter\Model\Layer\Filter\Price</item>
+                <item name="decimal" xsi:type="string">Iranimij\OpenFilter\Model\Layer\Filter\Decimal</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Built-in filters: index fields (pool and mapping verified in M0, docs/index-fields.md) and reindex triggers. -->
+    <virtualType name="additionalFieldsProviderForElasticsearch">
+        <arguments>
+            <argument name="fieldsProviders" xsi:type="array">
+                <item name="openfilter_rating" xsi:type="object">Iranimij\OpenFilter\Model\Index\Provider\RatingFieldsProvider</item>
+                <item name="openfilter_stock" xsi:type="object">Iranimij\OpenFilter\Model\Index\Provider\StockFieldsProvider</item>
+                <item name="openfilter_sale" xsi:type="object">Iranimij\OpenFilter\Model\Index\Provider\SaleFieldsProvider</item>
+                <item name="openfilter_news" xsi:type="object">Iranimij\OpenFilter\Model\Index\Provider\NewsFieldsProvider</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="elasticsearch5FieldProvider">
+        <arguments>
+            <argument name="providers" xsi:type="array">
+                <item name="openfilter" xsi:type="object">Iranimij\OpenFilter\Model\Index\FieldMappingProvider</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <type name="Magento\Review\Model\ResourceModel\Review">
+        <plugin name="openfilter_reindex_rating" type="Iranimij\OpenFilter\Plugin\Index\ReviewAggregatePlugin"/>
+    </type>
+    <type name="Magento\Catalog\Model\Indexer\Product\Price">
+        <plugin name="openfilter_reindex_sale" type="Iranimij\OpenFilter\Plugin\Index\IndexerRowsPlugin"/>
+    </type>
+    <type name="Magento\CatalogInventory\Model\Indexer\Stock">
+        <plugin name="openfilter_reindex_stock" type="Iranimij\OpenFilter\Plugin\Index\IndexerRowsPlugin"/>
+    </type>
+
     <type name="Magento\Elasticsearch\ElasticAdapter\SearchAdapter\Mapper">
         <plugin name="openfilter_facet_counts" type="Iranimij\OpenFilter\Plugin\Search\MapperPlugin"/>
     </type>
     <type name="Magento\Elasticsearch\SearchAdapter\Aggregation\Builder">
         <plugin name="openfilter_facet_counts" type="Iranimij\OpenFilter\Plugin\Search\AggregationBuilderPlugin"/>
+    </type>
+    <type name="Magento\Elasticsearch\SearchAdapter\Aggregation\Builder\Dynamic">
+        <plugin name="openfilter_slider_stats" type="Iranimij\OpenFilter\Plugin\Search\DynamicBucketPlugin"/>
     </type>
 </config>

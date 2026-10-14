@@ -1,0 +1,408 @@
+<?php
+/**
+ * Copyright © Iman Aboheydary. All rights reserved.
+ * See LICENSE for license details (MIT).
+ */
+
+declare(strict_types=1);
+
+namespace Iranimij\OpenFilter\Model\Config;
+
+use Iranimij\OpenFilter\Api\Data\FilterConfigInterface;
+
+/**
+ * Plain value object behind FilterConfigInterface. toArray()/fromArray() round-trip it through the cache.
+ */
+class FilterConfig implements FilterConfigInterface
+{
+    /** Columns stored in openfilter_attribute / openfilter_builtin. */
+    public const BEHAVIOUR_COLUMNS = [
+        'display_mode',
+        'multiselect',
+        'logic',
+        'visible_options',
+        'search_threshold',
+        'expanded',
+        'sort_by',
+        'hide_single_option',
+        'seo_indexable',
+        'position_override',
+    ];
+
+    /** @var array<string, mixed> */
+    private array $data = [
+        'code' => '',
+        'builtin' => false,
+        'attribute_id' => null,
+        'input_type' => 'select',
+        'swatch_type' => null,
+        'display_mode' => self::DISPLAY_LIST,
+        'multiselect' => true,
+        'logic' => self::LOGIC_OR,
+        'visible_options' => 6,
+        'search_threshold' => 12,
+        'expanded' => null,
+        'sort_by' => self::SORT_POSITION,
+        'hide_single_option' => true,
+        'seo_indexable' => false,
+        'position_override' => null,
+        'active' => true,
+        'position' => 0,
+        'label' => null,
+    ];
+
+    /**
+     * @param array<string, mixed> $data
+     */
+    public function __construct(array $data = [])
+    {
+        foreach ($data as $key => $value) {
+            if (array_key_exists($key, $this->data)) {
+                $this->data[$key] = $value;
+            }
+        }
+        $this->normalise();
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function toArray(): array
+    {
+        return $this->data;
+    }
+
+    /**
+     * The behaviour columns as stored in the database.
+     *
+     * @return array<string, int|string|null>
+     */
+    public function toRow(): array
+    {
+        $expanded = $this->getExpanded();
+
+        return [
+            'display_mode' => $this->getDisplayMode(),
+            'multiselect' => (int) $this->isMultiselect(),
+            'logic' => $this->getLogic(),
+            'visible_options' => $this->getVisibleOptions(),
+            'search_threshold' => $this->getSearchThreshold(),
+            'expanded' => $expanded === null ? null : (int) $expanded,
+            'sort_by' => $this->getSortBy(),
+            'hide_single_option' => (int) $this->isHideSingleOption(),
+            'seo_indexable' => (int) $this->isSeoIndexable(),
+            'position_override' => $this->getPositionOverride(),
+        ];
+    }
+
+    /**
+     * A copy carrying the behaviour settings of any FilterConfigInterface implementation.
+     *
+     * @param FilterConfigInterface $config
+     * @return self
+     */
+    public function withBehaviourOf(FilterConfigInterface $config): self
+    {
+        $copy = clone $this;
+        $copy->setDisplayMode($config->getDisplayMode())
+            ->setMultiselect($config->isMultiselect())
+            ->setLogic($config->getLogic())
+            ->setVisibleOptions($config->getVisibleOptions())
+            ->setSearchThreshold($config->getSearchThreshold())
+            ->setExpanded($config->getExpanded())
+            ->setSortBy($config->getSortBy())
+            ->setHideSingleOption($config->isHideSingleOption())
+            ->setSeoIndexable($config->isSeoIndexable())
+            ->setPositionOverride($config->getPositionOverride());
+        if ($copy->isBuiltin()) {
+            $copy->setActive($config->isActive());
+        }
+
+        return $copy;
+    }
+
+    /**
+     * A copy with resolved values (or other data) replaced.
+     *
+     * @param array<string, mixed> $data
+     * @return self
+     */
+    public function with(array $data): self
+    {
+        return new self(array_replace($this->data, $data));
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getCode(): string
+    {
+        return (string) $this->data['code'];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function isBuiltin(): bool
+    {
+        return (bool) $this->data['builtin'];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getAttributeId(): ?int
+    {
+        return $this->data['attribute_id'] === null ? null : (int) $this->data['attribute_id'];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getInputType(): string
+    {
+        return (string) $this->data['input_type'];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getSwatchType(): ?string
+    {
+        return $this->data['swatch_type'] === null ? null : (string) $this->data['swatch_type'];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getDisplayMode(): string
+    {
+        return (string) $this->data['display_mode'];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setDisplayMode(string $displayMode): self
+    {
+        $this->data['display_mode'] = $displayMode;
+
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function isMultiselect(): bool
+    {
+        return (bool) $this->data['multiselect'];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setMultiselect(bool $multiselect): self
+    {
+        $this->data['multiselect'] = $multiselect;
+
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getLogic(): string
+    {
+        return (string) $this->data['logic'];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setLogic(string $logic): self
+    {
+        $this->data['logic'] = $logic;
+
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getVisibleOptions(): int
+    {
+        return (int) $this->data['visible_options'];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setVisibleOptions(int $visibleOptions): self
+    {
+        $this->data['visible_options'] = $visibleOptions;
+
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getSearchThreshold(): int
+    {
+        return (int) $this->data['search_threshold'];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setSearchThreshold(int $searchThreshold): self
+    {
+        $this->data['search_threshold'] = $searchThreshold;
+
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getExpanded(): ?bool
+    {
+        return $this->data['expanded'] === null ? null : (bool) $this->data['expanded'];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setExpanded(?bool $expanded): self
+    {
+        $this->data['expanded'] = $expanded;
+
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getSortBy(): string
+    {
+        return (string) $this->data['sort_by'];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setSortBy(string $sortBy): self
+    {
+        $this->data['sort_by'] = $sortBy;
+
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function isHideSingleOption(): bool
+    {
+        return (bool) $this->data['hide_single_option'];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setHideSingleOption(bool $hide): self
+    {
+        $this->data['hide_single_option'] = $hide;
+
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function isSeoIndexable(): bool
+    {
+        return (bool) $this->data['seo_indexable'];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setSeoIndexable(bool $indexable): self
+    {
+        $this->data['seo_indexable'] = $indexable;
+
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getPositionOverride(): ?int
+    {
+        return $this->data['position_override'] === null ? null : (int) $this->data['position_override'];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setPositionOverride(?int $position): self
+    {
+        $this->data['position_override'] = $position;
+
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function isActive(): bool
+    {
+        return (bool) $this->data['active'];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setActive(bool $active): self
+    {
+        $this->data['active'] = $active;
+
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getPosition(): int
+    {
+        return $this->getPositionOverride() ?? (int) $this->data['position'];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getLabel(): ?string
+    {
+        $label = $this->data['label'];
+
+        return $label === null || $label === '' ? null : (string) $label;
+    }
+
+    /**
+     * Database rows carry strings; keep the internal types stable for the cache round trip.
+     */
+    private function normalise(): void
+    {
+        foreach (['builtin', 'multiselect', 'hide_single_option', 'seo_indexable', 'active'] as $key) {
+            $this->data[$key] = (bool) $this->data[$key];
+        }
+        foreach (['visible_options', 'search_threshold', 'position'] as $key) {
+            $this->data[$key] = (int) $this->data[$key];
+        }
+        foreach (['attribute_id', 'position_override'] as $key) {
+            $this->data[$key] = $this->data[$key] === null || $this->data[$key] === '' ? null : (int) $this->data[$key];
+        }
+        $expanded = $this->data['expanded'];
+        $this->data['expanded'] = $expanded === null || $expanded === '' ? null : (bool) $expanded;
+    }
+}

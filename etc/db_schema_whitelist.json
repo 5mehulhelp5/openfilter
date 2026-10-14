@@ -1,0 +1,93 @@
+{
+    "openfilter_attribute": {
+        "column": {
+            "attribute_id": true,
+            "display_mode": true,
+            "multiselect": true,
+            "logic": true,
+            "visible_options": true,
+            "search_threshold": true,
+            "expanded": true,
+            "sort_by": true,
+            "hide_single_option": true,
+            "seo_indexable": true,
+            "position_override": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "OPENFILTER_ATTRIBUTE_ATTRIBUTE_ID_EAV_ATTRIBUTE_ATTRIBUTE_ID": true
+        }
+    },
+    "openfilter_attribute_store": {
+        "column": {
+            "attribute_id": true,
+            "store_id": true,
+            "label_override": true,
+            "tooltip": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "OPENFILTER_ATTR_STORE_ATTR_ID_EAV_ATTR_ATTR_ID": true,
+            "OPENFILTER_ATTRIBUTE_STORE_STORE_ID_STORE_STORE_ID": true
+        }
+    },
+    "openfilter_builtin": {
+        "column": {
+            "code": true,
+            "is_active": true,
+            "display_mode": true,
+            "multiselect": true,
+            "logic": true,
+            "visible_options": true,
+            "search_threshold": true,
+            "expanded": true,
+            "sort_by": true,
+            "hide_single_option": true,
+            "seo_indexable": true,
+            "position_override": true
+        },
+        "constraint": {
+            "PRIMARY": true
+        }
+    },
+    "openfilter_builtin_store": {
+        "column": {
+            "code": true,
+            "store_id": true,
+            "label": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "OPENFILTER_BUILTIN_STORE_CODE_OPENFILTER_BUILTIN_CODE": true,
+            "OPENFILTER_BUILTIN_STORE_STORE_ID_STORE_STORE_ID": true
+        }
+    },
+    "openfilter_option_slug": {
+        "column": {
+            "option_id": true,
+            "attribute_id": true,
+            "store_id": true,
+            "slug": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "OPENFILTER_OPTION_SLUG_ATTRIBUTE_ID_STORE_ID_SLUG": true,
+            "OPENFILTER_OPTION_SLUG_OPTION_ID_EAV_ATTRIBUTE_OPTION_OPTION_ID": true,
+            "OPENFILTER_OPTION_SLUG_ATTRIBUTE_ID_EAV_ATTRIBUTE_ATTRIBUTE_ID": true,
+            "OPENFILTER_OPTION_SLUG_STORE_ID_STORE_STORE_ID": true
+        }
+    },
+    "openfilter_attribute_slug": {
+        "column": {
+            "attribute_id": true,
+            "store_id": true,
+            "slug": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "OPENFILTER_ATTRIBUTE_SLUG_STORE_ID_SLUG": true,
+            "OPENFILTER_ATTR_SLUG_ATTR_ID_EAV_ATTR_ATTR_ID": true,
+            "OPENFILTER_ATTRIBUTE_SLUG_STORE_ID_STORE_STORE_ID": true
+        }
+    }
+}

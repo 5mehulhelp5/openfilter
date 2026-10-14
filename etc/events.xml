@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © Iman Aboheydary. All rights reserved.
+ * See LICENSE for license details (MIT).
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+    <event name="catalog_entity_attribute_save_after">
+        <observer name="openfilter_generate_option_slugs" instance="Iranimij\OpenFilter\Observer\GenerateOptionSlugs"/>
+    </event>
+</config>

@@ -17,6 +17,8 @@ use Magento\Framework\Data\OptionSourceInterface;
 class CountStrategy implements OptionSourceInterface
 {
     /**
+     * Strategy choices for the system configuration.
+     *
      * @return array<int, array{value: string, label: \Magento\Framework\Phrase}>
      */
     public function toOptionArray(): array

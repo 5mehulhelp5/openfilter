@@ -22,7 +22,7 @@ use PHPUnit\Framework\TestCase;
 
 class FacetFilterCollectorTest extends TestCase
 {
-    public function testCollectsActiveTermFiltersOfAggregatedFieldsInMustOnly(): void
+    public function testCollectsActiveTermAndSliderFiltersOfAggregatedFieldsInMustOnly(): void
     {
         $collector = new FacetFilterCollector($this->builder());
         $query = new BoolExpression('catalog_view_container', 1, [
@@ -34,22 +34,28 @@ class FacetFilterCollectorTest extends TestCase
             'price' => $this->filter(new Range('price_filter', 'price', 10, 20)),
             'search' => new MatchQuery('search', 'shirt', 1, []),
             'no_bucket' => $this->filter(new Term('sku_filter', 'x', 'sku')),
+            'range_without_dynamic_bucket' => $this->filter(new Range('width_filter', 'width', 1, 2)),
         ], [
             'should_color' => $this->filter(new Term('should_filter', '4', 'material')),
         ]);
 
         $filters = $collector->collect($this->request('catalog_view_container', $query));
 
-        self::assertSame(['color', 'size'], array_map(static fn ($f) => $f->getField(), $filters));
+        self::assertSame(['color', 'size', 'price'], array_map(static fn ($f) => $f->getField(), $filters));
         self::assertSame('color_bucket', $filters[0]->getBucketName());
         self::assertSame([['terms' => ['color' => ['1', '2']]]], $filters[0]->getClauses());
+        self::assertSame('price_bucket', $filters[2]->getBucketName());
+        self::assertSame([['range' => ['price' => ['gte' => 10, 'lte' => 20]]]], $filters[2]->getClauses());
     }
 
     public function testOtherRequestsAreLeftAlone(): void
     {
         $query = new BoolExpression('graphql', 1, ['color' => $this->filter(new Term('color_filter', '1', 'color'))]);
+        $collector = new FacetFilterCollector($this->builder());
 
-        self::assertSame([], (new FacetFilterCollector($this->builder()))->collect($this->request('graphql_product_search', $query)));
+        self::assertSame([], $collector->collect($this->request('graphql_product_search', $query)));
+        self::assertFalse($collector->isLayeredRequest($this->request('graphql_product_search', $query)));
+        self::assertTrue($collector->isLayeredRequest($this->request('quick_search_container', $query)));
     }
 
     private function filter(Term|Range $filter): FilterQuery
@@ -90,10 +96,15 @@ class FacetFilterCollectorTest extends TestCase
     private function builder(): FilterBuilder
     {
         $builder = $this->createStub(FilterBuilder::class);
-        $builder->method('build')->willReturnCallback(static function (Term $term, string $condition): array {
-            $operator = is_array($term->getValue()) ? 'terms' : 'term';
+        $builder->method('build')->willReturnCallback(static function (Term|Range $filter, string $condition): array {
+            if ($filter instanceof Range) {
+                $range = ['gte' => $filter->getFrom(), 'lte' => $filter->getTo()];
 
-            return ['bool' => [$condition => [[$operator => [$term->getField() => $term->getValue()]]]]];
+                return ['bool' => [$condition => [['range' => [$filter->getField() => $range]]]]];
+            }
+            $operator = is_array($filter->getValue()) ? 'terms' : 'term';
+
+            return ['bool' => [$condition => [[$operator => [$filter->getField() => $filter->getValue()]]]]];
         });
 
         return $builder;

@@ -10,6 +10,7 @@ namespace Iranimij\OpenFilter\Model\Search;
 
 use Iranimij\OpenFilter\Api\Data\FacetFilterInterface;
 use Magento\Elasticsearch\SearchAdapter\Filter\Builder as FilterBuilder;
+use Magento\Framework\Search\Request\Filter\Range;
 use Magento\Framework\Search\Request\Filter\Term;
 use Magento\Framework\Search\Request\Query\BoolExpression;
 use Magento\Framework\Search\Request\Query\Filter as FilterQuery;
@@ -18,7 +19,8 @@ use Magento\Framework\Search\RequestInterface;
 use Magento\Framework\Search\Request\BucketInterface;
 
 /**
- * Finds the active term filters of a layered navigation request whose field also has a term aggregation.
+ * Finds the active filters of a layered navigation request that facet counts must ignore per field: term filters
+ * on fields with a term aggregation, and range filters (price, decimal sliders) on fields with a dynamic one.
  */
 class FacetFilterCollector
 {
@@ -40,50 +42,63 @@ class FacetFilterCollector
      */
     public function collect(RequestInterface $request): array
     {
-        if (!in_array($request->getName(), $this->requestNames, true)) {
+        if (!$this->isLayeredRequest($request)) {
             return [];
         }
         $buckets = [];
         foreach ($request->getAggregation() as $bucket) {
-            if ($bucket->getType() === BucketInterface::TYPE_TERM) {
-                $buckets[$bucket->getField()] = $bucket->getName();
+            $type = $bucket->getType();
+            if ($type === BucketInterface::TYPE_TERM || $type === BucketInterface::TYPE_DYNAMIC) {
+                $buckets[$type][$bucket->getField()] = $bucket->getName();
             }
         }
         $filters = [];
-        foreach ($this->activeTermFilters($request->getQuery()) as $term) {
-            $field = (string) $term->getField();
-            if (!isset($buckets[$field]) || in_array($field, $this->excludedFields, true)) {
+        foreach ($this->activeFilters($request->getQuery()) as $filter) {
+            $field = (string) $filter->getField();
+            $type = $filter instanceof Range ? BucketInterface::TYPE_DYNAMIC : BucketInterface::TYPE_TERM;
+            if (!isset($buckets[$type][$field]) || in_array($field, $this->excludedFields, true)) {
                 continue;
             }
-            $built = $this->filterBuilder->build($term, BoolExpression::QUERY_CONDITION_MUST);
-            $filters[] = new FacetFilter($field, $buckets[$field], array_values($built['bool']['must'] ?? []));
+            $built = $this->filterBuilder->build($filter, BoolExpression::QUERY_CONDITION_MUST);
+            $filters[] = new FacetFilter($field, $buckets[$type][$field], array_values($built['bool']['must'] ?? []));
         }
 
         return $filters;
     }
 
     /**
-     * Term filters reachable through must conditions only (should / must_not filters are not facet selections).
+     * Whether a search request renders layered navigation (category and search result pages).
+     *
+     * @param RequestInterface $request
+     * @return bool
+     */
+    public function isLayeredRequest(RequestInterface $request): bool
+    {
+        return in_array($request->getName(), $this->requestNames, true);
+    }
+
+    /**
+     * Term and range filters reachable through must conditions only (should / must_not are not selections).
      *
      * @param QueryInterface $query
-     * @return Term[]
+     * @return array<int, Term|Range>
      */
-    private function activeTermFilters(QueryInterface $query): array
+    private function activeFilters(QueryInterface $query): array
     {
         if ($query instanceof BoolExpression) {
-            $terms = [];
+            $filters = [];
             foreach ($query->getMust() as $must) {
-                array_push($terms, ...$this->activeTermFilters($must));
+                array_push($filters, ...$this->activeFilters($must));
             }
 
-            return $terms;
+            return $filters;
         }
         if ($query instanceof FilterQuery) {
             $reference = $query->getReference();
             if ($query->getReferenceType() === FilterQuery::REFERENCE_QUERY && $reference instanceof QueryInterface) {
-                return $this->activeTermFilters($reference);
+                return $this->activeFilters($reference);
             }
-            if ($reference instanceof Term) {
+            if ($reference instanceof Term || $reference instanceof Range) {
                 return [$reference];
             }
         }

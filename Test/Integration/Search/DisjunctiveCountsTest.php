@@ -12,6 +12,7 @@ use Iranimij\OpenFilter\Model\Config;
 use Iranimij\OpenFilter\Model\Search\StrategyResolver;
 use Magento\Catalog\Model\Layer\Category as CategoryLayer;
 use Magento\CatalogSearch\Model\ResourceModel\Fulltext\Collection;
+use Magento\Framework\Api\Search\SearchCriteriaBuilder;
 use Magento\Framework\App\Config\MutableScopeConfigInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\HTTP\Client\Curl;
@@ -94,7 +95,7 @@ class DisjunctiveCountsTest extends TestCase
      * @param array<string, string[]> $selection
      */
     #[DataProvider('cases')]
-    public function testSearchRequestsAddedOverCore(string $strategy, array $selection): void
+    public function testSearchRequestsPerPage(string $strategy, array $selection): void
     {
         $active = $this->ids($selection);
         $this->enabled(false);
@@ -103,8 +104,10 @@ class DisjunctiveCountsTest extends TestCase
         $this->useStrategy($strategy);
         $openFilter = $this->countRequests(fn () => $this->facetCounts($active, SpikeCatalog::COLOR));
 
-        $expected = $strategy === StrategyResolver::SINGLE_QUERY ? 0 : count($active);
-        self::assertSame($expected, $openFilter - $core, "requests added by $strategy (core: $core)");
+        // M1 S6: price intervals come from the same request, so SingleQuery is one request per page in total.
+        $expected = $strategy === StrategyResolver::SINGLE_QUERY ? 1 : 1 + count($active);
+        self::assertSame($expected, $openFilter, "requests with $strategy");
+        self::assertGreaterThanOrEqual($openFilter, $core + count($active), "core needs $core");
     }
 
     public function testAutoResolvesToAStrategyForThisEngine(): void
@@ -174,7 +177,12 @@ class DisjunctiveCountsTest extends TestCase
      */
     private function collection(array $active): Collection
     {
-        $layer = Bootstrap::getObjectManager()->create(CategoryLayer::class);
+        $om = Bootstrap::getObjectManager();
+        // Core's fulltext collection takes the search criteria builder from ObjectManager::get(): one instance per
+        // process whose filters are never cleared, so every collection would inherit the previous one's filters.
+        // A storefront request builds one layer collection; tests build many, so they start from a fresh builder.
+        $om->removeSharedInstance(SearchCriteriaBuilder::class);
+        $layer = $om->create(CategoryLayer::class);
         $layer->setCurrentCategory(self::$catalog['category']);
         /** @var Collection $collection */
         $collection = $layer->getProductCollection();
