@@ -271,3 +271,4 @@
 "Show this filter","Show this filter"
 "On category pages; a category counts with the categories below it. Search result pages always show the filter.","On category pages; a category counts with the categories below it. Search result pages always show the filter."
 "Categories","Categories"
+"The configuration is not valid JSON: %1","The configuration is not valid JSON: %1"

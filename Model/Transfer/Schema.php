@@ -40,6 +40,8 @@ class Schema
         'active' => 'bool',
         'ranges' => '?string',
         'tree_depth' => 'int',
+        'category_mode' => 'string',
+        'category_ids' => 'int[]',
     ];
 
     private const SECTIONS = ['settings', 'labels', 'tooltips', 'url_name', 'options'];
@@ -182,6 +184,7 @@ class Schema
             $ok = match (ltrim($kind, '?')) {
                 'bool' => is_bool($value),
                 'int' => is_int($value),
+                'int[]' => is_array($value) && array_is_list($value) && array_filter($value, 'is_int') === $value,
                 default => is_string($value) && $value !== '',
             };
             if (!$ok) {
@@ -227,7 +230,8 @@ class Schema
         $flat = [];
         foreach ($value as $name => $item) {
             $path = $prefix === '' ? (string) $name : $prefix . '.' . $name;
-            if (is_array($item) && $item !== []) {
+            // Lists (category ids) are one value, so a removed id shows as a change.
+            if (is_array($item) && $item !== [] && !array_is_list($item)) {
                 $flat += $this->flatten($item, $path);
             } else {
                 $flat[$path] = $item;

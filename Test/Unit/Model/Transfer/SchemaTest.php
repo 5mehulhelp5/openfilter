@@ -42,7 +42,7 @@ class SchemaTest extends TestCase
     {
         $file = ['schema' => 2, 'filters' => [
             'color' => [
-                'settings' => ['logic' => 'and', 'ranges' => null, 'tree_depth' => 3],
+                'settings' => ['logic' => 'and', 'ranges' => null, 'tree_depth' => 3, 'category_mode' => 'only', 'category_ids' => [3, 5]],
                 'tooltips' => ['admin' => 'Pick all colours a product must have', 'de' => 'Alle gewählten Farben'],
             ],
             'rating' => ['settings' => ['ranges' => '0-50,50-']],
@@ -63,6 +63,8 @@ class SchemaTest extends TestCase
         return [
             'not an object' => ['nonsense', 'not a JSON object'],
             'other schema' => [['schema' => 3, 'filters' => []], 'Unsupported schema "3" (this version reads 1 and 2)'],
+            'category ids as text' => [$filter(['settings' => ['category_ids' => ['3']]]), 'category_ids: expected int[]'],
+            'category ids as an object' => [$filter(['settings' => ['category_ids' => ['a' => 3]]]), 'category_ids: expected int[]'],
             'tree depth as text' => [$filter(['settings' => ['tree_depth' => '3']]), 'tree_depth: expected int'],
             'tooltip for an unknown store view' => [$filter(['tooltips' => ['fr' => 'x']]), 'no store view "fr"'],
             'tooltip not text' => [$filter(['tooltips' => ['de' => 5]]), 'invalid value 5'],
@@ -104,16 +106,17 @@ class SchemaTest extends TestCase
     public function testDiffListsChangedAndNewValuesOfTheFiltersInTheFile(): void
     {
         $old = ['filters' => [
-            'color' => ['settings' => ['visible_options' => 6, 'active' => true], 'options' => ['Red' => ['admin' => 'red']]],
+            'color' => ['settings' => ['visible_options' => 6, 'active' => true, 'category_ids' => [3, 5]], 'options' => ['Red' => ['admin' => 'red']]],
             'size' => ['settings' => ['visible_options' => 6]],
         ]];
         $new = ['filters' => [
-            'color' => ['settings' => ['visible_options' => 9, 'active' => true], 'labels' => ['de' => 'Farbe'],
+            'color' => ['settings' => ['visible_options' => 9, 'active' => true, 'category_ids' => [3]], 'labels' => ['de' => 'Farbe'],
                 'options' => ['Red' => ['admin' => 'rot']]],
         ]];
 
         self::assertSame([
             'color.settings.visible_options: 6 → 9',
+            'color.settings.category_ids: [3,5] → [3]',
             'color.labels.de: null → "Farbe"',
             'color.options.Red.admin: "red" → "rot"',
         ], (new Schema())->diff($old, $new));

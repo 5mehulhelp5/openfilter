@@ -31,6 +31,9 @@ class FilterConfig implements FilterConfigInterface
         'tree_depth',
     ];
 
+    /** @var array<string, true> keys given through setters since construction (the fields of a REST request) */
+    private array $sent = [];
+
     /** @var array<string, mixed> */
     private array $data = [
         'code' => '',
@@ -133,6 +136,23 @@ class FilterConfig implements FilterConfigInterface
     }
 
     /**
+     * A copy carrying only the settings given to $config through its setters (REST: the fields of the request).
+     *
+     * @param FilterConfig $config
+     * @return self
+     */
+    public function withSettingsOf(FilterConfig $config): self
+    {
+        $copy = clone $this;
+        $copy->sent = [];
+        foreach (array_keys($config->sent) as $key) {
+            $copy->data[$key] = $config->data[$key];
+        }
+
+        return $copy;
+    }
+
+    /**
      * A copy with resolved values (or other data) replaced.
      *
      * @param array<string, mixed> $data
@@ -211,6 +231,7 @@ class FilterConfig implements FilterConfigInterface
     {
         $this->data['display_mode'] = $displayMode;
 
+        $this->sent['display_mode'] = true;
         return $this;
     }
 
@@ -229,6 +250,7 @@ class FilterConfig implements FilterConfigInterface
     {
         $this->data['multiselect'] = $multiselect;
 
+        $this->sent['multiselect'] = true;
         return $this;
     }
 
@@ -247,6 +269,7 @@ class FilterConfig implements FilterConfigInterface
     {
         $this->data['logic'] = $logic;
 
+        $this->sent['logic'] = true;
         return $this;
     }
 
@@ -265,6 +288,7 @@ class FilterConfig implements FilterConfigInterface
     {
         $this->data['visible_options'] = $visibleOptions;
 
+        $this->sent['visible_options'] = true;
         return $this;
     }
 
@@ -283,6 +307,7 @@ class FilterConfig implements FilterConfigInterface
     {
         $this->data['search_threshold'] = $searchThreshold;
 
+        $this->sent['search_threshold'] = true;
         return $this;
     }
 
@@ -301,6 +326,7 @@ class FilterConfig implements FilterConfigInterface
     {
         $this->data['expanded'] = $expanded;
 
+        $this->sent['expanded'] = true;
         return $this;
     }
 
@@ -319,6 +345,7 @@ class FilterConfig implements FilterConfigInterface
     {
         $this->data['sort_by'] = $sortBy;
 
+        $this->sent['sort_by'] = true;
         return $this;
     }
 
@@ -337,6 +364,7 @@ class FilterConfig implements FilterConfigInterface
     {
         $this->data['hide_single_option'] = $hide;
 
+        $this->sent['hide_single_option'] = true;
         return $this;
     }
 
@@ -355,6 +383,7 @@ class FilterConfig implements FilterConfigInterface
     {
         $this->data['seo_indexable'] = $indexable;
 
+        $this->sent['seo_indexable'] = true;
         return $this;
     }
 
@@ -373,6 +402,7 @@ class FilterConfig implements FilterConfigInterface
     {
         $this->data['position_override'] = $position;
 
+        $this->sent['position_override'] = true;
         return $this;
     }
 
@@ -391,6 +421,7 @@ class FilterConfig implements FilterConfigInterface
     {
         $this->data['active'] = $active;
 
+        $this->sent['active'] = true;
         return $this;
     }
 
@@ -427,6 +458,7 @@ class FilterConfig implements FilterConfigInterface
     {
         $this->data['ranges'] = $ranges === null || trim($ranges) === '' ? null : trim($ranges);
 
+        $this->sent['ranges'] = true;
         return $this;
     }
 
@@ -445,6 +477,7 @@ class FilterConfig implements FilterConfigInterface
     {
         $this->data['tree_depth'] = $depth;
 
+        $this->sent['tree_depth'] = true;
         return $this;
     }
 
@@ -471,6 +504,7 @@ class FilterConfig implements FilterConfigInterface
     {
         $this->data['category_mode'] = $mode;
 
+        $this->sent['category_mode'] = true;
         return $this;
     }
 
@@ -490,6 +524,7 @@ class FilterConfig implements FilterConfigInterface
         $this->data['category_ids'] = array_values(array_unique(array_map('intval', $categoryIds)));
         sort($this->data['category_ids']);
 
+        $this->sent['category_ids'] = true;
         return $this;
     }
 

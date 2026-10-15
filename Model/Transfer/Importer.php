@@ -160,6 +160,7 @@ class Importer
             $values[$name] = match (true) {
                 is_bool($value) => $value ? '1' : '0',
                 $value === null => '',
+                is_array($value) => implode(',', array_map('strval', $value)),
                 default => (string) $value,
             };
         }
