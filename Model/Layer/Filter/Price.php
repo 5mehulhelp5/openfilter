@@ -109,6 +109,6 @@ class Price extends AbstractRangeFilter
             return (string) __('up to %1', $format($to));
         }
 
-        return (string) __('%1 - %2', $format($from), $format($to));
+        return (string) __('%1 – %2', $format($from), $format($to));
     }
 }

@@ -45,6 +45,30 @@ class State implements ArgumentInterface
     }
 
     /**
+     * Option ids picked per attribute code (select and multiple-select filters), for theme scripts that read the
+     * filter from the URL and expect option ids, such as Hyvä's product card swatches.
+     *
+     * @param Item[] $activeFilters
+     * @return array<string, string[]>
+     */
+    public function picks(array $activeFilters): array
+    {
+        $picks = [];
+        foreach ($activeFilters as $item) {
+            $filter = $item->getFilter();
+            $attribute = $filter->hasData('attribute_model') ? $filter->getAttributeModel() : null;
+            $value = $item->getData('value');
+            if ($attribute === null || !in_array($attribute->getFrontendInput(), ['select', 'multiselect'], true)
+                || !is_scalar($value) || !ctype_digit((string) $value)) {
+                continue;
+            }
+            $picks[(string) $attribute->getAttributeCode()][] = (string) $value;
+        }
+
+        return $picks;
+    }
+
+    /**
      * The current page without any filter value: OpenFilter's parameters (whatever their URL names in this store
      * view) and the active core filters (category drill-down) go, sorting and other parameters stay.
      *

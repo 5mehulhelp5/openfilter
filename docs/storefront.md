@@ -60,7 +60,7 @@ Themes can style or extend these; class names and attributes stay stable within 
 | Element | Selector |
 |---|---|
 | Filter region (swapped) | `#of-filters` inside `dialog#of-drawer.of-drawer` |
-| Chips region (swapped) | `#of-state.of-state` (`data-of-clear-url`) |
+| Chips region (swapped) | `#of-state.of-state` (`data-of-clear-url`; `data-of-picks`: the picked option ids per attribute code, `{"color":["49"]}`, for theme scripts that expect ids; `[data-of-count-text]`: the visible product count, filled by the AJAX layer) |
 | Results region (swapped) | `#of-results.of-results`, ending with `#of-count` (`data-of-count`, `data-of-announce`: the product count, printed after the product list) |
 | One filter | `details.of-group.of-group--{list,swatch,slider,from_to,rating,toggle,category}[data-of-group="<key>"]` |
 | Option | `a.of-option` / `a.of-swatch` with `data-of-link`, `data-of-value`, `aria-current="true"` when selected |
