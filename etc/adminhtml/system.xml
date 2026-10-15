@@ -85,7 +85,7 @@
                 </field>
                 <field id="meta_title" translate="label comment" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
                     <label>Page title of filtered pages</label>
-                    <comment><![CDATA[For example <code>{filters} {category} | {store}</code>. {category} = category name or search term, {filters} = the active values ("Red, Blue"), {store} = store name. Empty = Magento's title. Up to 60 characters show in search results.]]></comment>
+                    <comment><![CDATA[For example <code>{filters} {category} | {store}</code>. {category} = category name, {filters} = the active values ("Red, Blue"), {store} = store name. Empty = Magento's title. Up to 60 characters show in search results.]]></comment>
                     <backend_model>Iranimij\OpenFilter\Model\Config\Backend\PageCacheValue</backend_model>
                 </field>
                 <field id="meta_description" translate="label comment" type="textarea" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">

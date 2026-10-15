@@ -35,10 +35,36 @@ A URL with more than **5** active values ("Most filter values active at once") a
 
 Every filtered URL has one canonical spelling (filters in position order, values in option order, readable URL names, lower case). Other spellings, such as an old link with option ids, answer with a **301** to it. See [Filter URLs](url-format.md).
 
+## Title, description and H1 (1.1)
+
+**Stores › Configuration › Catalog › OpenFilter › SEO** has three templates for filtered category pages. Each is set per store view; empty keeps Magento's.
+
+| Setting | Example | On `/women/tops.html?color=red,blue` |
+|---|---|---|
+| Page title of filtered pages | `{filters} {category} \| {store}` | `Red, Blue Tops \| Luma` |
+| Meta description of filtered pages | `Shop {filters} {category} at {store}.` | `Shop Red, Blue Tops at Luma.` |
+| Heading (H1) of filtered pages | `{filters} {category}` | `Red, Blue Tops` |
+
+- `{category}` is the category name, `{filters}` the active values in the order of the page ("Red, Blue"), `{store}` the store name. Other text in braces stays as it is.
+- Pages without filters, and search result pages, keep Magento's title, description and heading.
+- Search results show about 60 characters of a title and 160 of a description; keep the templates short.
+- A title template does not change the heading; set the H1 template for that.
+
+## XML sitemap (1.1)
+
+Turn on **Add indexable filter pages** under **Stores › Configuration › Catalog › OpenFilter › XML sitemap**, then generate the sitemap as usual (**Marketing › SEO & Search › Site Map**, or Magento's cron). OpenFilter adds the pages its robots rule leaves indexable, and only those:
+
+- one value of a filter marked **Let Google index pages filtered by this** (dropdown and multiple-select attributes), on each category page of the store view;
+- only where the filter shows (**Where it shows**; a category counts with the categories below it);
+- only with at least **Only pages with at least this many products** products (default 1), counted as shoppers see them;
+- the pages with the most products first, up to **Most filter pages per store view** (default 5,000; 0 = no limit).
+
+Each URL is the canonical one (`/women/tops.html?color=red`, the store view's URL names) with the categories' priority, change frequency and last modified date. Counting asks the search engine once per category, so a catalog with thousands of categories takes a little longer to generate.
+
 ## After AJAX updates
 
-Filter clicks fetch the same URL a crawler would and copy the title, robots, canonical and prev/next links from it, so the page in the browser always carries the head a direct load of that URL has.
+Filter clicks fetch the same URL a crawler would and copy the title, meta description, robots, canonical and prev/next links from it, and the H1 when a heading template is set, so the page in the browser always carries the head a direct load of that URL has.
 
-## Not in 1.0
+## Not yet
 
-Meta title, description and H1 templates for filtered pages and an XML sitemap of indexable filter pages arrive in 1.1. Path-style URLs (`/women/tops/red.html`) are planned as an option for 1.2.
+Path-style URLs (`/women/tops/red.html`) are planned as an option for 1.2.

@@ -48,6 +48,12 @@ class CategoryTreeTest extends TestCase
         self::assertFalse($tree->isBelow(99, 20, 1));
     }
 
+    public function testPathIdsRunFromTheRootToTheCategory(): void
+    {
+        self::assertSame([2, 20, 21, 23], $this->tree()->pathIds(23, 1));
+        self::assertSame([], $this->tree()->pathIds(99, 1));
+    }
+
     public function testOrderIsTheTreesDepthFirstOrder(): void
     {
         self::assertSame([20 => 0, 21 => 1, 23 => 2, 22 => 3, 11 => 4], $this->tree()->order(1));
