@@ -20,6 +20,8 @@ Everything new is opt-in: with the 1.0 settings, the storefront, URLs, head tags
 - **REST**: `GET/PUT /V1/openfilter/filters[/:code]` (a PUT changes only the sent settings), `GET/POST /V1/openfilter/config` (the export document; import is a dry run unless asked).
 - Config export schema 2: match all, ranges, tree levels, tooltips, where it shows (schema 1 files still import).
 - `docs/benchmark.md`: OpenFilter against Magento's layered navigation on the same store (1 engine request per page instead of 4, no server time added).
+- Admin (Review #1): grid columns *Order* (the storefront place), *Products must match* and *Where it shows*; mass actions *Show / Hide on search pages*; warnings for filters sharing a name and for search pages without attribute filters (also a doctor check); option labels as text in the form, the "Why" panel last (it opens and scrolls into view from the grid's link); *Sort filters* with a search box and a save bar that stays in view; a character count under the title and description templates; settings sections *SEO* and *Filter counts*.
+- New swatch filters show up to 12 values before "Show more" (saved filters keep their setting).
 
 ## [1.0.0] - 2026-10-16
 

@@ -13,6 +13,10 @@ $filters = $block->getFilters();
     <p class="of-sort-intro" id="of-sort-help">
         <?= $escaper->escapeHtml(__('Drag a filter by its handle, or use Move up and Move down. The storefront shows the filters in this order; hidden filters keep their place for when you show them again.')) ?>
     </p>
+    <label class="of-sort-search">
+        <span><?= $escaper->escapeHtml(__('Find a filter')) ?></span>
+        <input type="search" class="admin__control-text" data-of-sort-search autocomplete="off">
+    </label>
     <ol class="of-sort-list" aria-describedby="of-sort-help">
         <?php foreach ($filters as $index => $filter): ?>
             <li class="of-sort-item<?= /* @noEscape */ $filter['active'] ? '' : ' _hidden' ?>" draggable="true" data-of-key="<?= $escaper->escapeHtmlAttr($filter['key']) ?>">

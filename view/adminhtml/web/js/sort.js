@@ -38,6 +38,16 @@ define([], function () {
 
         refresh();
 
+        // "Find a filter": shows the filters whose name contains the text; moving works within the whole list.
+        form.querySelector('[data-of-sort-search]').addEventListener('input', function (event) {
+            var text = event.target.value.trim().toLowerCase();
+
+            Array.prototype.forEach.call(list.children, function (item) {
+                item.hidden = text !== '' &&
+                    item.querySelector('.of-sort-label').textContent.toLowerCase().indexOf(text) === -1;
+            });
+        });
+
         list.addEventListener('click', function (event) {
             var button = event.target.closest('[data-of-move]'),
                 item,

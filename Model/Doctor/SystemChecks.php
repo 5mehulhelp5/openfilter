@@ -11,6 +11,7 @@ namespace Iranimij\OpenFilter\Model\Doctor;
 use Iranimij\OpenFilter\Model\Cache\Type as CacheType;
 use Iranimij\OpenFilter\Model\ResourceModel\SlugStorage;
 use Iranimij\OpenFilter\Model\Search\StrategyResolver;
+use Magento\Catalog\Model\ResourceModel\Product\Attribute\CollectionFactory as AttributeCollectionFactory;
 use Magento\Framework\App\Cache\StateInterface as CacheState;
 use Magento\Framework\ObjectManager\ConfigLoaderInterface;
 
@@ -42,13 +43,15 @@ class SystemChecks
      * @param CacheState $cacheState
      * @param SlugStorage $slugStorage
      * @param ConfigLoaderInterface $diConfig
+     * @param AttributeCollectionFactory $attributes product attributes (search page use)
      */
     public function __construct(
         private readonly EngineProbe $engine,
         private readonly StrategyResolver $strategies,
         private readonly CacheState $cacheState,
         private readonly SlugStorage $slugStorage,
-        private readonly ConfigLoaderInterface $diConfig
+        private readonly ConfigLoaderInterface $diConfig,
+        private readonly AttributeCollectionFactory $attributes
     ) {
     }
 
@@ -64,8 +67,30 @@ class SystemChecks
             $this->strategy(),
             $this->cache(),
             $this->urlNames($optionAttributes),
+            $this->searchPageFilters(),
             $this->replacements(),
         ];
+    }
+
+    /**
+     * Search result pages offer only the attributes set to "Use in Search Results Layered Navigation"; many stores
+     * have none, so their search pages show no attribute filter at all.
+     *
+     * @return Check
+     */
+    public function searchPageFilters(): Check
+    {
+        $count = $this->attributes->create()->addFieldToFilter('is_filterable_in_search', '1')->getSize();
+
+        return new Check(
+            'search_page_filters',
+            (string) __('Search result pages have attribute filters'),
+            $count > 0,
+            $count > 0
+                ? (string) __('%1 attributes are used in search result layered navigation.', $count)
+                : (string) __('No attribute is used in search result layered navigation: search pages offer only the built-in filters.'),
+            (string) __('In Catalog > OpenFilter > Filters, select the filters and choose Actions > Show on search pages (or set "Use in Search Results Layered Navigation" on the attributes).')
+        );
     }
 
     /**

@@ -12,3 +12,6 @@
 .of-why-check._fail .of-why-state { color: #e22626; }
 .of-why-detail { color: #303030; }
 .of-why-fix { color: #303030; font-style: italic; }
+.openfilter-row-text { display: inline-block; padding-block: .5rem; color: #303030; }
+/* Dynamic rows fade disabled cells to half opacity (2.7:1 contrast); read-only text is not a control, keep it legible. */
+.admin__control-table td._disabled:has(.openfilter-row-text) { opacity: 1; }

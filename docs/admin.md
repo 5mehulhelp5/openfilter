@@ -8,15 +8,17 @@ After installing, the admin shows a notice: how many filterable attributes OpenF
 
 ## Filters grid
 
-One row per filter: label, code, type (attribute or built-in), how it looks, several values, options before "Show more", search box threshold, "Google may index", position, storefront (shown or hidden).
+One row per filter: label, code, type (attribute or built-in), how it looks, several values, options before "Show more", search box threshold, "Google may index", order (its place on the storefront: 1, 2, 3 …), position (the number behind the order), products must match (any / all), where it shows, storefront (shown or hidden).
+
+Above the grid, warnings name what shoppers would trip over: two active filters with the same name (rename one in *Label and tooltip*, or hide one), and search result pages without attribute filters.
 
 - **Inline edit**: click a row, change the common fields, Save. Each row is saved on its own; a row with a value that does not fit (for example swatches on an attribute without swatches) reports its error and the other rows are still saved.
-- **Mass actions**: *Show on the storefront*, *Hide from the storefront*, *Reset to defaults* (labels per store view and URL names are kept). Hiding a filter never changes the attribute's own "Use in Layered Navigation" setting, so it stays in the grid.
+- **Mass actions**: *Show on the storefront*, *Hide from the storefront*, *Show on search pages*, *Hide on search pages*, *Reset to defaults* (labels per store view and URL names are kept). Hiding a filter never changes the attribute's own "Use in Layered Navigation" setting, so it stays in the grid. *Show / Hide on search pages* set the attribute's "Use in Search Results Layered Navigation" (built-in filters always show on search pages).
 - Row actions: **Edit** and **Why is it not showing?**
 
 ## Sort filters (1.1)
 
-Catalog › OpenFilter › Filters › **Sort filters** lists every filter in its storefront order. Drag a filter by its handle, or use **Move up** / **Move down** (keyboard friendly: focus stays on the button and the new place is announced). **Save order** writes the positions 10, 20, 30… in one go (the gaps leave room for a filter later); the grid's *Position* column and the form show the same numbers.
+Catalog › OpenFilter › Filters › **Sort filters** lists every filter in its storefront order. Drag a filter by its handle, or use **Move up** / **Move down** (keyboard friendly: focus stays on the button and the new place is announced). **Find a filter** narrows the list by name; **Save order** stays at the bottom of the window and writes the positions 10, 20, 30… in one go (the gaps leave room for a filter later); the grid's *Position* column and the form show the same numbers.
 
 ## Filter form
 

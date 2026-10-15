@@ -10,6 +10,8 @@
 .of-sort-label { flex: 1; font-weight: 600; }
 .of-sort-note { color: #6b6b6b; font-style: italic; }
 .of-sort-actions { display: flex; gap: .5rem; }
-.of-sort-buttons { display: flex; gap: 1rem; }
+.of-sort-buttons { position: sticky; bottom: 0; z-index: 2; display: flex; gap: 1rem; padding-block: 1rem; border-top: 1px solid #e3e3e3; background: #fff; }
+.of-sort-search { display: flex; flex-direction: column; gap: .25rem; max-width: 24rem; margin-block-end: 1rem; }
+.of-sort-item[hidden] { display: none; }
 .of-sort-status { min-height: 1.5em; }
 .of-sort-actions [aria-disabled="true"] { opacity: .45; cursor: default; }

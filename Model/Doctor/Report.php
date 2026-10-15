@@ -20,7 +20,7 @@ class Report
     private const ONCE = ['enabled', 'coexistence'];
 
     /** Failed checks that describe a merchant's choice or the catalog, not a fault: reported, never fatal. */
-    public const WARNINGS = ['shown', 'search_pages', 'out_of_stock_shown', 'products', 'single_option'];
+    public const WARNINGS = ['shown', 'search_pages', 'out_of_stock_shown', 'products', 'single_option', 'search_page_filters'];
 
     public const OK = 'ok';
     public const WARN = 'warn';

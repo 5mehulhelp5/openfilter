@@ -25,8 +25,8 @@ With *Update results without reloading the page* on (*Stores › Configuration �
 
 Stores › Configuration › Iranimij › OpenFilter › Display (per store view; the defaults keep 1.0's behaviour):
 
-- **Bar above the products:** the filters move above the chips and the results, the page uses one column (the sidebar's other blocks, such as compare and wish list, are left out on these pages), and every filter is a popover that starts closed. One popover is open at a time; Escape or a click outside closes it. Phones open the same filters as the drawer.
-- **After "Show N products":** on desktop, picks are staged like in the phone drawer: the filters update with their counts, a bar shows *Show N products* and *Reset*, and the results load once. Phones keep the drawer.
+- **Bar above the products:** the filters move above the chips and the results, the page uses one column (the sidebar's other blocks, such as compare and wish list, are left out on these pages), and every filter is a popover that starts closed. The filters take one row; the rest wait behind **More filters (N)**. One popover is open at a time; Escape or a click outside closes it. Phones open the same filters as the drawer.
+- **After "Show N products":** on desktop, picks are staged like in the phone drawer: the filters update with their counts, a bar at the bottom of the window shows *Show N products* and *Reset*, and the results load once. Phones keep the drawer.
 - **Keep the sidebar in view:** the sidebar stays next to the products while shoppers scroll (`--of-sticky-top`). It needs CSS `:has()`; older browsers show a normal sidebar. The theme's sidebar spans the product rows while this is on; the second sidebar moves below it.
 - **Dropdown** (per filter) is a native select in a GET form: without JavaScript its button sends it, with JavaScript a change loads the result in place.
 
@@ -80,7 +80,8 @@ Themes can style or extend these; class names and attributes stay stable within 
 | Slider | `form.of-slider[data-of-slider]` with `[data-of-range]` and `[data-of-number]` fields |
 | Chip / Clear all | `a.of-chip` / `a.of-clear` |
 | Drawer button, footer | `button[data-of-drawer-open]`, `[data-of-drawer-apply]`, `[data-of-drawer-clear]` |
-| Hint (1.1): "all must match", tooltip | `p.of-group__hint` (with `span.of-group__match`) at the top of `.of-group__body` |
+| Hint (1.1): "all must match", tooltip | `p.of-group__hint` (with `span.of-group__match`) at the top of `.of-group__body`; next to "all must match" the tooltip sits in `details.of-about` ("About …") |
+| More filters (1.1, horizontal bar) | `button.of-more-filters[data-of-more-filters]`; filters beyond the first row get `.of-group--overflow` |
 | Dropdown (1.1) | `form.of-dropdown` with `select[data-of-dropdown-select]` and `button.of-dropdown__go` (hidden once `html.of-js` is set) |
 | Category tree level (1.1) | `li.of-options__item--depth-{1..5}` |
 | Horizontal bar, sticky sidebar (1.1) | `dialog.of-drawer--horizontal`, `dialog.of-drawer--sticky` |

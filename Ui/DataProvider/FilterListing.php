@@ -23,6 +23,9 @@ use Magento\Framework\View\Element\UiComponent\DataProvider\DataProvider;
  */
 class FilterListing extends DataProvider
 {
+    /** @var array<string, int>|null */
+    private ?array $ranks = null;
+
     /**
      * @param string $name
      * @param string $primaryFieldName
@@ -106,8 +109,36 @@ class FilterListing extends DataProvider
             'search_threshold' => $config->getSearchThreshold(),
             'seo_indexable' => (int) $config->isSeoIndexable(),
             'position' => $config->getPosition(),
+            'order' => $this->ranks()[$this->keyOf($config)] ?? null,
+            'logic' => $config->getLogic(),
+            'where' => match ($config->getCategoryMode()) {
+                FilterConfigInterface::CATEGORIES_ONLY => (string) __('Only in %1 categories', count($config->getCategoryIds())),
+                FilterConfigInterface::CATEGORIES_EXCEPT => (string) __('Except %1 categories', count($config->getCategoryIds())),
+                default => (string) __('Every category'),
+            },
             'active' => (int) $config->isActive(),
         ];
+    }
+
+    /**
+     * The place of each filter on the storefront (1, 2, 3 …): by position, ties in Magento's attribute order, as the
+     * storefront sorts them; hidden filters keep their place.
+     *
+     * @return array<string, int> filter key => place
+     */
+    private function ranks(): array
+    {
+        if ($this->ranks === null) {
+            $configs = array_values($this->provider->getForStore(0));
+            $order = array_keys($configs);
+            usort($order, static fn (int $a, int $b): int => [$configs[$a]->getPosition(), $a] <=> [$configs[$b]->getPosition(), $b]);
+            $this->ranks = [];
+            foreach ($order as $place => $index) {
+                $this->ranks[$this->keyOf($configs[$index])] = $place + 1;
+            }
+        }
+
+        return $this->ranks;
     }
 
     /**

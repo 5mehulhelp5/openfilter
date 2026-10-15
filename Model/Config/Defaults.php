@@ -51,7 +51,8 @@ class Defaults
         $data = ['code' => $code, 'attribute_id' => $attributeId, 'input_type' => $inputType,
             'swatch_type' => $swatchType, 'position' => $position];
         if ($swatchType !== null) {
-            $data += ['display_mode' => Filter::DISPLAY_SWATCH, 'multiselect' => true];
+            // Swatches are compact: up to 12 before "Show more" (Review #1); saved filters keep their own setting.
+            $data += ['display_mode' => Filter::DISPLAY_SWATCH, 'multiselect' => true, 'visible_options' => 12];
         } elseif ($inputType === 'decimal') {
             $data += ['display_mode' => Filter::DISPLAY_SLIDER, 'multiselect' => false];
         } elseif ($inputType === 'boolean') {

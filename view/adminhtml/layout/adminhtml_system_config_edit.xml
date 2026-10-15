@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © Iman Aboheydary. All rights reserved.
+ * See LICENSE for license details (MIT).
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <!-- Character count under the title and description templates (only where those fields are on the page). -->
+        <referenceContainer name="before.body.end">
+            <block class="Magento\Backend\Block\Template" name="openfilter.config.template.length"
+                   template="Iranimij_OpenFilter::config/template-length.phtml"/>
+        </referenceContainer>
+    </body>
+</page>
