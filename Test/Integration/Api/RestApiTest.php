@@ -42,9 +42,12 @@ class RestApiTest extends TestCase
     /** @var array{sort_by: string, visible_options: int}|null */
     private ?array $before = null;
 
+    /** @var array{category: int, store: int, options: array<string, array<string, int>>}|null */
+    private static ?array $catalog = null;
+
     public static function setUpBeforeClass(): void
     {
-        M1Catalog::create();
+        self::$catalog = M1Catalog::create();
     }
 
     protected function setUp(): void
@@ -79,7 +82,7 @@ class RestApiTest extends TestCase
         $args = Bootstrap::getObjectManager()->get(ServiceInputProcessor::class)->process(
             FilterConfigManagementInterface::class,
             'update',
-            ['code' => M1Catalog::COLOR, 'config' => ['sort_by' => 'name', 'category_mode' => 'except', 'category_ids' => ['7', 3]]]
+            ['code' => M1Catalog::COLOR, 'config' => ['sort_by' => 'name', 'category_mode' => 'except', 'category_ids' => [(string) self::$catalog['category'], 2]]]
         );
 
         $saved = Bootstrap::getObjectManager()->get(FilterConfigManagementInterface::class)->update(...$args);
@@ -87,7 +90,7 @@ class RestApiTest extends TestCase
         $stored = $this->repository()->getByCode(M1Catalog::COLOR);
 
         foreach ([$saved, $stored] as $config) {
-            self::assertSame(['name', 'except', [3, 7]], [$config->getSortBy(), $config->getCategoryMode(), $config->getCategoryIds()]);
+            self::assertSame(['name', 'except', [2, self::$catalog['category']]], [$config->getSortBy(), $config->getCategoryMode(), $config->getCategoryIds()]);
             self::assertSame($before->getDisplayMode(), $config->getDisplayMode());
             self::assertSame($before->getVisibleOptions(), $config->getVisibleOptions());
             self::assertSame($before->isSeoIndexable(), $config->isSeoIndexable());
