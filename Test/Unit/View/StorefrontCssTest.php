@@ -43,7 +43,9 @@ class StorefrontCssTest extends TestCase
         foreach ($rules[1] as $selectorList) {
             foreach (explode(',', $selectorList) as $selector) {
                 self::assertMatchesRegularExpression(
-                    '/^\s*(?:\[dir=rtl\]\s+)?(?:html\.of-[\w-]+|\.of-|dialog\.of-)/',
+                    // Theme elements only behind :has() on an OpenFilter class (1.1 sticky sidebar: the theme's
+                    // column grid lets the filter sidebar span the product rows only while sticky is on).
+                    '/^\s*(?:\[dir=rtl\]\s+)?(?:html\.of-[\w-]+|\.of-|dialog\.of-|\.columns:has\(\.of-[\w-]+\)\s*>)/',
                     $selector,
                     "selector outside the of-* contract: $selector"
                 );

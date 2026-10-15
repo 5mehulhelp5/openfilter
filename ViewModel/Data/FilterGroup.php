@@ -24,6 +24,9 @@ class FilterGroup
      * @param bool $searchable whether the group gets a search box
      * @param FilterOption[] $options
      * @param Slider|null $slider price and decimal filters: their range form and slider
+     * @param string|null $tooltip the merchant's hint for this filter (1.1)
+     * @param bool $matchAll "Products must match all of the picked values" (1.1)
+     * @param Form|null $form the dropdown's GET form (1.1, display "dropdown")
      */
     public function __construct(
         private readonly string $code,
@@ -35,7 +38,10 @@ class FilterGroup
         private readonly int $visibleOptions,
         private readonly bool $searchable,
         private readonly array $options,
-        private readonly ?Slider $slider = null
+        private readonly ?Slider $slider = null,
+        private readonly ?string $tooltip = null,
+        private readonly bool $matchAll = false,
+        private readonly ?Form $form = null
     ) {
     }
 
@@ -163,5 +169,35 @@ class FilterGroup
     private function isLeading(FilterOption $option, int $index): bool
     {
         return $this->visibleOptions <= 0 || $index < $this->visibleOptions || $option->isSelected();
+    }
+
+    /**
+     * The merchant's hint for this filter (1.1), shown at the top of the open group; null = none.
+     *
+     * @return string|null
+     */
+    public function getTooltip(): ?string
+    {
+        return $this->tooltip;
+    }
+
+    /**
+     * Products must have all of the picked values (1.1): the group says so, because counts then shrink.
+     *
+     * @return bool
+     */
+    public function isMatchAll(): bool
+    {
+        return $this->matchAll;
+    }
+
+    /**
+     * The dropdown's GET form (1.1), null for other display types.
+     *
+     * @return Form|null
+     */
+    public function getForm(): ?Form
+    {
+        return $this->form;
     }
 }

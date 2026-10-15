@@ -171,6 +171,50 @@ class FilterBlockTest extends TestCase
         self::assertTrue($groups[0]->isMultiselect());
     }
 
+    public function testTheGroupCarriesTooltipMatchAllAndTheDropdownForm(): void
+    {
+        $this->configs['a'] = (new FilterConfig(['code' => 'a', 'tooltip' => 'Pick all']))->setLogic('and')->setDisplayMode('dropdown');
+        $state = new FilterState(['a' => ['1'], 'size' => ['m']]);
+
+        $group = $this->block(3, $state)->groups([$this->openFilter('a', 'A', [$this->item('x', '1', 4, '/a', true)])])[0];
+
+        self::assertSame('Pick all', $group->getTooltip());
+        self::assertTrue($group->isMatchAll());
+        $form = $group->getForm();
+        self::assertNotNull($form);
+        self::assertSame(['a', '/tops.html', ['size' => 'm']], [$form->getParam(), $form->getAction(), $form->getFields()]);
+    }
+
+    public function testOtherGroupsHaveNoForm(): void
+    {
+        $this->configs['a'] = new FilterConfig(['code' => 'a']);
+
+        $group = $this->block()->groups([$this->openFilter('a', 'A', [$this->item('x', '1', 4, '/a', false)])])[0];
+
+        self::assertNull($group->getForm());
+        self::assertNull($group->getTooltip());
+        self::assertFalse($group->isMatchAll());
+    }
+
+    public function testLayoutApplyModeAndStickyComeFromTheStoreView(): void
+    {
+        $sidebar = $this->block(3, null, ['apply_mode' => Config::APPLY_BUTTON, 'sticky' => '1']);
+        self::assertSame([Config::LAYOUT_SIDEBAR, Config::APPLY_BUTTON, true], [$sidebar->layout(), $sidebar->applyMode(), $sidebar->isSticky()]);
+
+        $horizontal = $this->block(3, null, ['layout' => Config::LAYOUT_HORIZONTAL, 'sticky' => '1']);
+        self::assertFalse($horizontal->isSticky(), 'sticky is a sidebar thing');
+    }
+
+    public function testHorizontalGroupsStartClosedEvenWithAPick(): void
+    {
+        $this->configs['a'] = (new FilterConfig(['code' => 'a']))->setExpanded(true);
+
+        $groups = $this->block(3, null, ['layout' => Config::LAYOUT_HORIZONTAL])
+            ->groups([$this->openFilter('a', 'A', [$this->item('x', '1', 4, '/a', true)])]);
+
+        self::assertFalse($groups[0]->isExpanded(), 'popovers would cover the products');
+    }
+
     public function testTotalSelectedCountsEveryGroup(): void
     {
         $this->configs['a'] = new FilterConfig(['code' => 'a']);
@@ -200,14 +244,23 @@ class FilterBlockTest extends TestCase
         self::assertSame(['', '', 'nofollow'], array_map(static fn ($o): string => $o->getRel(), $at));
     }
 
-    private function block(int $expandedGroups = 3, ?FilterState $state = null): FilterBlock
+    /**
+     * @param array<string, string> $settings layout, apply_mode, sticky
+     */
+    private function block(int $expandedGroups = 3, ?FilterState $state = null, array $settings = []): FilterBlock
     {
         $context = $this->createStub(LayerContext::class);
         $context->method('config')->willReturnCallback(fn (string $key) => $this->configs[$key] ?? null);
         $context->method('state')->willReturn($state ?? new FilterState());
+        $context->method('parameterFor')->willReturnCallback(static fn (string $key): string => $key);
+        $context->method('urlFor')->willReturnCallback(static fn (FilterState $state): string =>
+            '/tops.html' . ($state->count() > 0 ? '?' . http_build_query(array_map(static fn (array $v): string => implode(',', $v), $state->getValues())) : ''));
         $config = $this->createStub(Config::class);
         $config->method('getExpandedGroups')->willReturn($expandedGroups);
         $config->method('getNofollowThreshold')->willReturn(2);
+        $config->method('getLayout')->willReturn($settings['layout'] ?? Config::LAYOUT_SIDEBAR);
+        $config->method('getApplyMode')->willReturn($settings['apply_mode'] ?? Config::APPLY_INSTANT);
+        $config->method('isSticky')->willReturn(($settings['sticky'] ?? '0') === '1');
         $slider = $this->createStub(Slider::class);
         $slider->method('forFilter')->willReturnCallback(fn ($filter) => $this->sliders[$filter->getOpenFilterKey()] ?? null);
 

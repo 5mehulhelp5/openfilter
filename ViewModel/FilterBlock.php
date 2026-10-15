@@ -15,6 +15,7 @@ use Iranimij\OpenFilter\Model\Layer\Filter\Item;
 use Iranimij\OpenFilter\Model\Layer\Filter\OpenFilterInterface;
 use Iranimij\OpenFilter\Model\Layer\LayerContext;
 use Iranimij\OpenFilter\Model\Seo\NofollowPolicy;
+use Laminas\Uri\Http as HttpUri;
 use Magento\Catalog\Model\Layer\Filter\AbstractFilter;
 use Magento\Catalog\Model\Layer\Filter\FilterInterface;
 use Magento\Catalog\Model\Layer\Filter\Item as CoreItem;
@@ -98,20 +99,75 @@ class FilterBlock implements ArgumentInterface
             $options = []; // the slider shows the range; the active range is a chip
         }
         $configured = $config?->getExpanded();
+        $display = $config?->getDisplayMode()
+            ?? ($requestVar === self::CATEGORY_REQUEST_VAR ? self::DISPLAY_CATEGORY : FilterConfigInterface::DISPLAY_LIST);
 
         return new Data\FilterGroup(
             $config?->getCode() ?? $requestVar,
             $key,
             (string) $filter->getName(),
-            $config?->getDisplayMode()
-                ?? ($requestVar === self::CATEGORY_REQUEST_VAR ? self::DISPLAY_CATEGORY : FilterConfigInterface::DISPLAY_LIST),
+            $display,
             $key !== null && $filter instanceof OpenFilterInterface && $filter->isMultiselect(),
-            $selected !== [] || ($configured ?? $openByPosition),
+            $this->layout() === Config::LAYOUT_HORIZONTAL ? false : ($selected !== [] || ($configured ?? $openByPosition)),
             $config?->getVisibleOptions() ?? 0,
             $config !== null && count($options) > $config->getSearchThreshold(),
             $options,
-            $slider
+            $slider,
+            $config?->getTooltip(),
+            $config?->getLogic() === FilterConfigInterface::LOGIC_AND,
+            $key !== null && $display === FilterConfigInterface::DISPLAY_DROPDOWN ? $this->dropdownForm($key) : null
         );
+    }
+
+    /**
+     * Desktop layout of the filters (1.1): Config::LAYOUT_SIDEBAR or LAYOUT_HORIZONTAL (its groups are popovers
+     * that start closed; the chips show what is picked).
+     *
+     * @return string
+     */
+    public function layout(): string
+    {
+        return $this->config->getLayout($this->context->storeId());
+    }
+
+    /**
+     * Desktop: results with every click or after "Show N products" (1.1): Config::APPLY_INSTANT or APPLY_BUTTON.
+     *
+     * @return string
+     */
+    public function applyMode(): string
+    {
+        return $this->config->getApplyMode($this->context->storeId());
+    }
+
+    /**
+     * The sidebar stays in view while scrolling (1.1, sidebar layout only).
+     *
+     * @return bool
+     */
+    public function isSticky(): bool
+    {
+        return $this->layout() === Config::LAYOUT_SIDEBAR && $this->config->isSticky($this->context->storeId());
+    }
+
+    /**
+     * The dropdown's GET form: the page without this filter's values, which the select adds back (an option id; the
+     * normaliser answers with the canonical URL).
+     *
+     * @param string $key
+     * @return Data\Form
+     */
+    private function dropdownForm(string $key): Data\Form
+    {
+        $url = $this->context->urlFor($this->context->state()->without($key));
+        $fields = [];
+        foreach ((new HttpUri($url))->getQueryAsArray() as $name => $value) {
+            if (is_scalar($value)) {
+                $fields[(string) $name] = (string) $value;
+            }
+        }
+
+        return new Data\Form($this->context->parameterFor($key) ?? $key, strtok($url, '?') ?: $url, $fields);
     }
 
     /**

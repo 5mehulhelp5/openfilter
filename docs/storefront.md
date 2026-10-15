@@ -21,6 +21,17 @@ With *Update results without reloading the page* on (*Stores › Configuration �
 - If the response is not a normal page (an error or a timeout), the browser simply loads the URL.
 - If a range or a typed URL leaves no products, the chips show **No products match. Remove the last filter** with a link back.
 
+## Layouts and apply mode (1.1)
+
+Stores › Configuration › Iranimij › OpenFilter › Display (per store view; the defaults keep 1.0's behaviour):
+
+- **Bar above the products:** the filters move above the chips and the results, the page uses one column (the sidebar's other blocks, such as compare and wish list, are left out on these pages), and every filter is a popover that starts closed. One popover is open at a time; Escape or a click outside closes it. Phones open the same filters as the drawer.
+- **After "Show N products":** on desktop, picks are staged like in the phone drawer: the filters update with their counts, a bar shows *Show N products* and *Reset*, and the results load once. Phones keep the drawer.
+- **Keep the sidebar in view:** the sidebar stays next to the products while shoppers scroll (`--of-sticky-top`). It needs CSS `:has()`; older browsers show a normal sidebar. The theme's sidebar spans the product rows while this is on; the second sidebar moves below it.
+- **Dropdown** (per filter) is a native select in a GET form: without JavaScript its button sends it, with JavaScript a change loads the result in place.
+
+These parts load a small extra script (`js/extras.phtml`, under 1.5 KB gzipped) only on store views that use one of them; the default page keeps the 6 KB budget.
+
 ## Phones
 
 Below 768 px the filters move into a drawer, opened by a sticky **Filter (N)** button above the results (N counts the active values).
@@ -62,13 +73,18 @@ Themes can style or extend these; class names and attributes stay stable within 
 | Filter region (swapped) | `#of-filters` inside `dialog#of-drawer.of-drawer` |
 | Chips region (swapped) | `#of-state.of-state` (`data-of-clear-url`; `data-of-picks`: the picked option ids per attribute code, `{"color":["49"]}`, for theme scripts that expect ids; `[data-of-count-text]`: the visible product count, filled by the AJAX layer) |
 | Results region (swapped) | `#of-results.of-results`, ending with `#of-count` (`data-of-count`, `data-of-announce`: the product count, printed after the product list) |
-| One filter | `details.of-group.of-group--{list,swatch,slider,from_to,rating,toggle,category}[data-of-group="<key>"]` |
+| One filter | `details.of-group.of-group--{list,swatch,slider,from_to,rating,toggle,category,dropdown,ranges,tree}[data-of-group="<key>"]` (the last three from 1.1) |
 | Option | `a.of-option` / `a.of-swatch` with `data-of-link`, `data-of-value`, `aria-current="true"` when selected |
 | Show more | `details.of-more` |
 | Search box | `.of-search input[data-of-search]` |
 | Slider | `form.of-slider[data-of-slider]` with `[data-of-range]` and `[data-of-number]` fields |
 | Chip / Clear all | `a.of-chip` / `a.of-clear` |
 | Drawer button, footer | `button[data-of-drawer-open]`, `[data-of-drawer-apply]`, `[data-of-drawer-clear]` |
+| Hint (1.1): "all must match", tooltip | `p.of-group__hint` (with `span.of-group__match`) at the top of `.of-group__body` |
+| Dropdown (1.1) | `form.of-dropdown` with `select[data-of-dropdown-select]` and `button.of-dropdown__go` (hidden once `html.of-js` is set) |
+| Category tree level (1.1) | `li.of-options__item--depth-{1..5}` |
+| Horizontal bar, sticky sidebar (1.1) | `dialog.of-drawer--horizontal`, `dialog.of-drawer--sticky` |
+| Desktop apply bar (1.1) | `[data-of-apply-bar]` with `[data-of-apply-show]` and `[data-of-apply-reset]` |
 
 Any link with `data-of-link` inside the regions uses the swap. After every swap the window receives the event `openfilter:swapped` (`detail.url`); other components can listen to it. `window.openFilter.navigate(url)` swaps to a URL.
 
@@ -87,6 +103,7 @@ Any link with `data-of-link` inside the regions uses the swap. After every swap 
 | `--of-card-radius` | `.5rem` | corners of the filter cards |
 | `--of-gap` | `.5rem` | spacing |
 | `--of-row` | `2rem` (`2.75rem` on touch screens) | option row height |
+| `--of-sticky-top` | `1rem` | distance of the sticky sidebar from the top (1.1; raise it under a sticky header) |
 
 Templates can be overridden in a theme under `Iranimij_OpenFilterHyva/templates/layer/...` (`view.phtml`, `group.phtml`, `state.phtml`, `filter/{list,swatch,slider,rating,toggle,category}.phtml`, `js/openfilter.phtml`). Keep the region ids and the `data-of-*` attributes when you do.
 
