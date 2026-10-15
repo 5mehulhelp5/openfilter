@@ -14,6 +14,7 @@ nav:
   - Filter URLs: url-format.md
   - SEO rules: seo.md
   - GraphQL (headless): graphql.md
+  - Benchmark: benchmark.md
   - Command line: cli.md
   - Import and export: import-export.md
   - Troubleshooting: troubleshooting.md
