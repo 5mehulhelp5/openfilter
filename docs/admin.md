@@ -21,18 +21,29 @@ One row per filter: label, code, type (attribute or built-in), how it looks, sev
 | Why is this filter not showing? | the checks below, for any store view and category page |
 | How it looks | display type: only the types that fit the attribute are offered (swatches need swatch data, sliders a number attribute, the on/off switch a Yes/No attribute or a list with two options) |
 | How it behaves | show on the storefront, several values, options before "Show more" (0 = all), search box from N options (0 = never), open when the page loads (automatic / open / closed), option order, hide when only one option is left, position (empty = the attribute's position) |
-| SEO | "Let Google index pages filtered by this" (single-value pages only), URL name of the filter, URL names of the options per store view |
-| Labels per store view | a label for all store views and one per store view (empty = the attribute's label) |
+| SEO | "Let Google index pages filtered by this" (single-value pages only), URL name of the filter, URL names of the options |
+| Label | the label for all store views (empty = the attribute's label), or the chosen store view's own label |
 
 Saving is all or nothing: settings, labels and URL names are written in one transaction.
+
+### One store view at a time
+
+The form edits one scope at a time, chosen with the store view switcher at the top of the page (the same switcher as on product and category pages), so it looks the same with 2 or 50 store views:
+
+- **All Store Views** edits the settings (marked `[GLOBAL]`), the label for all store views and the URL names for all store views. **Reset to defaults** is offered only here.
+- **A store view** (for example *Deutsch*) edits only that store view's label, the filter's URL name and the option URL names in that store view. The values for all store views are shown next to them, read only; settings are read only. Each option row also shows the option's label in that store view.
+- An empty store view field shows *Same as for all store views* and follows the value for all store views. Clearing a field puts the store view back on the shared value.
+- **Save** writes only the scope you are looking at and brings you back to it. Switching scope with unsaved changes asks first.
+
+To edit many store views in one go, use `openfilter:config:export` / `openfilter:config:import` ([Import and export](import-export.md)).
 
 ### URL names
 
 URL names are what shoppers and search engines see in filter URLs (`?color=blue,red`). They are created once from the option labels and **never change because a label changed** (see [Filter URLs](url-format.md)).
 
 - Option URL names are checked as one set per store view before anything is written: lowercase letters, digits and single dashes, at most 64 characters, no name used twice. Two options can swap names in one save.
-- A store view field left empty uses the name for all store views; a store view row is only stored where the name differs.
-- **Generate again from the label** (per option) creates a fresh name from the option's label in every store view when you save. This changes published URLs; old URLs with option IDs keep working, old names do not.
+- A store view field left empty uses the name for all store views; a store view row is only stored where the name differs. This also holds for the filter's own URL name (for example `farbe` in a German store view instead of `color`).
+- **Generate again from the label** (per option) creates a fresh name from the option's label when you save: in **All Store Views** for every store view, in a store view only for that store view. This changes published URLs; old URLs with option IDs keep working, old names do not.
 
 ## Attribute page
 

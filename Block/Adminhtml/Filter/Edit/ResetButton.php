@@ -12,6 +12,8 @@ use Magento\Framework\View\Element\UiComponent\Control\ButtonProviderInterface;
 
 /**
  * "Reset to defaults" (asks first; labels per store view and URL names stay).
+ *
+ * Settings apply to every store view, so the button shows only for all store views.
  */
 class ResetButton extends GenericButton implements ButtonProviderInterface
 {
@@ -20,6 +22,10 @@ class ResetButton extends GenericButton implements ButtonProviderInterface
      */
     public function getButtonData(): array
     {
+        if ((string) $this->request->getParam('store', '0') !== '0') {
+            return [];
+        }
+
         return [
             'label' => __('Reset to defaults'),
             'class' => 'reset',

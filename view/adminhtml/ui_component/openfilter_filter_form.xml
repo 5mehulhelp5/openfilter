@@ -54,6 +54,12 @@
                 <visible>false</visible>
             </settings>
         </field>
+        <field name="store" formElement="input" sortOrder="2">
+            <settings>
+                <dataType>text</dataType>
+                <visible>false</visible>
+            </settings>
+        </field>
         <field name="display_mode" formElement="select" sortOrder="10">
             <settings>
                 <dataType>text</dataType>
@@ -245,6 +251,7 @@
                     <settings>
                         <dataType>text</dataType>
                         <label translate="true">Option</label>
+                        <elementTmpl>Iranimij_OpenFilter/form/element/row-input</elementTmpl>
                         <disabled>true</disabled>
                     </settings>
                 </field>
@@ -252,12 +259,14 @@
                     <settings>
                         <dataType>text</dataType>
                         <label translate="true">URL name (all store views)</label>
+                        <elementTmpl>Iranimij_OpenFilter/form/element/row-input</elementTmpl>
                     </settings>
                 </field>
                 <field name="regenerate" formElement="checkbox" sortOrder="900">
                     <settings>
                         <dataType>boolean</dataType>
                         <label translate="true">Generate again from the label</label>
+                        <elementTmpl>Iranimij_OpenFilter/form/element/row-checkbox</elementTmpl>
                     </settings>
                     <formElements>
                         <checkbox>

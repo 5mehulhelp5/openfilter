@@ -17,6 +17,10 @@ use Magento\Catalog\Model\ResourceModel\Eav\AttributeFactory;
 use Magento\Eav\Model\Config as EavConfig;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\Registry;
+use Magento\Store\Model\Store;
+use Magento\Store\Model\StoreFactory;
+use Magento\Store\Model\StoreManagerInterface;
 use Magento\TestFramework\Helper\Bootstrap;
 
 /**
@@ -91,6 +95,56 @@ class AdminFixture
     {
         $connection = Bootstrap::getObjectManager()->get(ResourceConnection::class)->getConnection();
         $connection->delete($connection->getTableName('openfilter_builtin'));
+        self::clean();
+    }
+
+    /**
+     * A store view in the default website (created once per code).
+     *
+     * @param string $code
+     * @param string $name
+     * @param int $sortOrder
+     * @return int store view id
+     */
+    public static function storeView(string $code, string $name, int $sortOrder = 10): int
+    {
+        $om = Bootstrap::getObjectManager();
+        $store = $om->create(Store::class)->load($code, 'code');
+        if (!$store->getId()) {
+            $default = $om->get(StoreManagerInterface::class)->getStore('default');
+            $store = $om->get(StoreFactory::class)->create();
+            $store->setCode($code)->setName($name)->setWebsiteId((int) $default->getWebsiteId())
+                ->setGroupId((int) $default->getStoreGroupId())->setSortOrder($sortOrder)->setIsActive(1)->save();
+            $om->get(StoreManagerInterface::class)->reinitStores();
+        }
+        self::clean();
+
+        return (int) $store->getId();
+    }
+
+    /**
+     * @param string $code
+     * @return void
+     */
+    public static function deleteStoreView(string $code): void
+    {
+        $om = Bootstrap::getObjectManager();
+        $store = $om->create(Store::class)->load($code, 'code');
+        if ($store->getId()) {
+            $registry = $om->get(Registry::class);
+            $secure = $registry->registry('isSecureArea');
+            $registry->unregister('isSecureArea');
+            $registry->register('isSecureArea', true);
+            try {
+                $store->delete();
+            } finally {
+                $registry->unregister('isSecureArea');
+                if ($secure !== null) {
+                    $registry->register('isSecureArea', $secure);
+                }
+            }
+            $om->get(StoreManagerInterface::class)->reinitStores();
+        }
         self::clean();
     }
 

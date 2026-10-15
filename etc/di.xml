@@ -30,6 +30,11 @@
         </arguments>
     </type>
 
+    <type name="Iranimij\OpenFilter\Model\Url\AttributeSlugScope">
+        <arguments>
+            <argument name="cache" xsi:type="object">Iranimij\OpenFilter\Model\Cache\Type</argument>
+        </arguments>
+    </type>
     <type name="Iranimij\OpenFilter\Model\Url\OptionSlugBatch">
         <arguments>
             <argument name="cache" xsi:type="object">Iranimij\OpenFilter\Model\Cache\Type</argument>

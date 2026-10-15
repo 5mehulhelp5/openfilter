@@ -9,9 +9,11 @@ declare(strict_types=1);
 namespace Iranimij\OpenFilter\Controller\Adminhtml\Filter;
 
 use Iranimij\OpenFilter\Api\FilterConfigRepositoryInterface;
-use Iranimij\OpenFilter\Api\SlugRepositoryInterface;
+use Iranimij\OpenFilter\Model\Admin\FormScope;
+use Iranimij\OpenFilter\Model\Cache\AfterRollback;
 use Iranimij\OpenFilter\Model\Config\FilterConfig;
 use Iranimij\OpenFilter\Model\Config\FilterConfigEditor;
+use Iranimij\OpenFilter\Model\Url\AttributeSlugScope;
 use Iranimij\OpenFilter\Model\Url\OptionSlugBatch;
 use Magento\Backend\App\Action;
 use Magento\Framework\Controller\Result\Redirect;
@@ -19,10 +21,11 @@ use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Framework\App\Request\Http as HttpRequest;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Store\Model\StoreManagerInterface;
 
 /**
- * Saves the filter form: settings, labels per store view and URL names, all or nothing.
+ * Saves the filter form for the scope it shows, all or nothing: for all store views the settings, the shared
+ * label and the shared URL names; for a store view only its own label and URL names (settings and other store
+ * views stay as they are, whatever else the request carries).
  */
 class Save extends Action implements HttpPostActionInterface
 {
@@ -32,19 +35,21 @@ class Save extends Action implements HttpPostActionInterface
      * @param Action\Context $context
      * @param FilterConfigRepositoryInterface $repository
      * @param FilterConfigEditor $editor
-     * @param SlugRepositoryInterface $slugs
+     * @param AttributeSlugScope $attributeSlugs
      * @param OptionSlugBatch $optionSlugs
-     * @param StoreManagerInterface $storeManager
+     * @param FormScope $formScope
      * @param ResourceConnection $resource
+     * @param AfterRollback $afterRollback
      */
     public function __construct(
         Action\Context $context,
         private readonly FilterConfigRepositoryInterface $repository,
         private readonly FilterConfigEditor $editor,
-        private readonly SlugRepositoryInterface $slugs,
+        private readonly AttributeSlugScope $attributeSlugs,
         private readonly OptionSlugBatch $optionSlugs,
-        private readonly StoreManagerInterface $storeManager,
-        private readonly ResourceConnection $resource
+        private readonly FormScope $formScope,
+        private readonly ResourceConnection $resource,
+        private readonly AfterRollback $afterRollback
     ) {
         parent::__construct($context);
     }
@@ -59,7 +64,9 @@ class Save extends Action implements HttpPostActionInterface
         /** @var array<string, mixed> $post */
         $post = (array) $request->getPostValue();
         $key = (string) ($post['key'] ?? '');
+        $scope = $this->formScope->resolve($post[FormScope::PARAM] ?? 0);
         $redirect = $this->resultRedirectFactory->create();
+        $back = ['code' => $key] + ($scope !== 0 ? [FormScope::PARAM => $scope] : []);
         $connection = $this->resource->getConnection();
         $connection->beginTransaction();
         try {
@@ -67,57 +74,50 @@ class Save extends Action implements HttpPostActionInterface
             if (!$config instanceof FilterConfig) {
                 throw new LocalizedException(__('This filter cannot be edited here.'));
             }
-            $saved = $this->repository->save($this->editor->apply($config, $post));
-            $this->saveLabels($key, $post);
-            $attributeId = $saved->isBuiltin() ? null : $saved->getAttributeId();
+            if ($scope === 0) {
+                $config = $this->repository->save($this->editor->apply($config, $post));
+            }
+            if (array_key_exists('label_' . $scope, $post)) {
+                $label = trim((string) $post['label_' . $scope]);
+                $this->repository->saveLabel($key, $scope, $label === '' ? null : $label);
+            }
+            $attributeId = $config->isBuiltin() ? null : $config->getAttributeId();
             if ($attributeId !== null) {
-                $this->saveUrlNames($attributeId, $post);
+                $this->saveUrlNames($attributeId, $scope, $post);
             }
             $connection->commit();
         } catch (LocalizedException $e) {
             $connection->rollBack();
+            $this->afterRollback->forget();
             $this->messageManager->addErrorMessage($e->getMessage());
 
-            return $key === '' ? $redirect->setPath('*/*/index') : $redirect->setPath('*/*/edit', ['code' => $key]);
+            return $key === '' ? $redirect->setPath('*/*/index') : $redirect->setPath('*/*/edit', $back);
         } catch (\Throwable $e) {
             $connection->rollBack();
+            $this->afterRollback->forget();
             throw $e;
         }
         $this->messageManager->addSuccessMessage((string) __('You saved the filter.'));
 
-        return $redirect->setPath('*/*/edit', ['code' => $key]);
+        return $redirect->setPath('*/*/edit', $back);
     }
 
     /**
-     * @param string $key
-     * @param array<string, mixed> $post
-     * @return void
-     */
-    private function saveLabels(string $key, array $post): void
-    {
-        $storeIds = array_merge([0], array_map(
-            static fn ($store): int => (int) $store->getId(),
-            array_values($this->storeManager->getStores())
-        ));
-        foreach ($storeIds as $storeId) {
-            if (array_key_exists('label_' . $storeId, $post)) {
-                $label = trim((string) $post['label_' . $storeId]);
-                $this->repository->saveLabel($key, $storeId, $label === '' ? null : $label);
-            }
-        }
-    }
-
-    /**
+     * URL names of one scope: the filter's name ("url_name" for all store views, "url_name_store" for a store
+     * view) and the options' names in column url_name_<scope>; "generate again" acts on this scope (all store
+     * views = everywhere, as in 1.0).
+     *
      * @param int $attributeId
+     * @param int $scope
      * @param array<string, mixed> $post
      * @return void
      * @throws LocalizedException
      */
-    private function saveUrlNames(int $attributeId, array $post): void
+    private function saveUrlNames(int $attributeId, int $scope, array $post): void
     {
-        $name = trim((string) ($post['url_name'] ?? ''));
-        if ($name !== '' && $name !== $this->slugs->getAttributeSlug($attributeId, 0)) {
-            $this->slugs->saveAttributeSlug($attributeId, 0, $name);
+        $field = $scope === 0 ? 'url_name' : 'url_name_store';
+        if (array_key_exists($field, $post)) {
+            $this->attributeSlugs->save($attributeId, $scope, (string) $post[$field]);
         }
         $names = [];
         $regenerate = [];
@@ -126,17 +126,15 @@ class Save extends Action implements HttpPostActionInterface
                 continue;
             }
             $optionId = (int) $row['option_id'];
-            foreach ($row as $field => $value) {
-                if (is_string($field) && preg_match('/^url_name_(\d+)$/', $field, $match) === 1) {
-                    $names[$optionId][(int) $match[1]] = (string) $value;
-                }
+            if (array_key_exists('url_name_' . $scope, $row)) {
+                $names[$optionId][$scope] = (string) $row['url_name_' . $scope];
             }
             if ((string) ($row['regenerate'] ?? '0') === '1') {
                 $regenerate[] = $optionId;
             }
         }
         if ($names !== [] || $regenerate !== []) {
-            $this->optionSlugs->save($attributeId, $names, $regenerate);
+            $this->optionSlugs->save($attributeId, $names, $regenerate, $scope === 0 ? null : $scope);
         }
     }
 }

@@ -47,16 +47,21 @@ class OptionSlugBatch
      * @param array<int, array<int, string>> $names option id => store id => URL name (store 0 = all store views,
      *     required; '' in a store view = same as all store views); options or stores left out keep their names
      * @param int[] $regenerate option ids whose names are generated again from their labels
+     * @param int|null $regenerateStore store view whose names are generated again (0 = all store views only),
+     *     null = all store views and every store view
      * @return void
      * @throws LocalizedException when a name has the wrong shape, is missing or is used twice (nothing is written)
      */
-    public function save(int $attributeId, array $names, array $regenerate = []): void
+    public function save(int $attributeId, array $names, array $regenerate = [], ?int $regenerateStore = null): void
     {
         $labels = $this->storage->optionLabels($attributeId);
         $rows = $this->storage->optionSlugRows($attributeId);
         $regenerate = array_flip(array_map('intval', $regenerate));
 
-        $admin = $this->resolve($labels['admin'], $labels['admin'], $rows[0] ?? [], $names, 0, $regenerate, []);
+        $only = static fn (int $storeId): array => $regenerateStore === null || $regenerateStore === $storeId
+            ? $regenerate
+            : [];
+        $admin = $this->resolve($labels['admin'], $labels['admin'], $rows[0] ?? [], $names, 0, $only(0), []);
         $writes = [0 => [array_diff_assoc($admin, $rows[0] ?? []), []]];
         foreach ($this->storeIds() as $storeId) {
             $storeLabels = array_replace(
@@ -64,7 +69,7 @@ class OptionSlugBatch
                 array_intersect_key($labels['stores'][$storeId] ?? [], $labels['admin'])
             );
             $current = array_replace($admin, array_intersect_key($rows[$storeId] ?? [], $admin));
-            $final = $this->resolve($labels['admin'], $storeLabels, $current, $names, $storeId, $regenerate, $admin);
+            $final = $this->resolve($labels['admin'], $storeLabels, $current, $names, $storeId, $only($storeId), $admin);
             $write = [];
             $remove = [];
             foreach ($final as $optionId => $slug) {

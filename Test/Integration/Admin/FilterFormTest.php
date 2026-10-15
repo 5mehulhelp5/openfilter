@@ -13,6 +13,7 @@ use Iranimij\OpenFilter\Api\FilterConfigRepositoryInterface;
 use Iranimij\OpenFilter\Api\SlugRepositoryInterface;
 use Iranimij\OpenFilter\Model\Config\FilterConfigProvider;
 use Iranimij\OpenFilter\Model\ResourceModel\SlugStorage;
+use Iranimij\OpenFilter\Model\Url\OptionSlugBatch;
 use Magento\Framework\App\Request\Http as HttpRequest;
 use Magento\Framework\Data\Form\FormKey;
 use Magento\Framework\Message\MessageInterface;
@@ -29,6 +30,8 @@ use Magento\TestFramework\TestCase\AbstractBackendController;
 class FilterFormTest extends AbstractBackendController
 {
     private const CODE = 'of_m2_form_attr';
+
+    private const STORE = 'of_s0_de';
 
     private ?int $attributeId = null;
 
@@ -55,6 +58,12 @@ class FilterFormTest extends AbstractBackendController
         parent::tearDown();
     }
 
+    public static function tearDownAfterClass(): void
+    {
+        AdminFixture::deleteStoreView(self::STORE);
+        parent::tearDownAfterClass();
+    }
+
     public function testTheFormShowsTheFilterWithItsOptions(): void
     {
         $this->dispatch($this->uri);
@@ -66,6 +75,8 @@ class FilterFormTest extends AbstractBackendController
         self::assertStringContainsString('"option_label":"Blau"', $body);
         self::assertStringContainsString('Why is this filter not showing?', $body);
         self::assertStringContainsString('data-of-check=\\"url_names\\"', $body);
+        self::assertStringContainsString('"store":"0"', $body);
+        self::assertStringContainsString('Reset to defaults', $body);
     }
 
     public function testTheWhyPanelIsPartOfTheFormAndAnswersAsJson(): void
@@ -86,9 +97,9 @@ class FilterFormTest extends AbstractBackendController
         $this->assertSessionMessages(self::containsEqual('No filter with the code &quot;no_such_filter&quot;.'), MessageInterface::TYPE_ERROR);
     }
 
-    public function testSaveWritesSettingsLabelsAndUrlNamesAndTheStorefrontSeesThem(): void
+    public function testSaveForAllStoreViewsWritesSettingsTheSharedLabelAndTheSharedNamesOnly(): void
     {
-        $storeId = $this->storeId();
+        $de = $this->germanStore();
         $this->save([
             'display_mode' => 'list',
             'multiselect' => '0',
@@ -101,34 +112,193 @@ class FilterFormTest extends AbstractBackendController
             'active' => '1',
             'position_override' => '-3',
             'label_0' => 'Farbton',
-            'label_' . $storeId => 'Colour',
+            'label_' . $de => 'not for this scope',
             'url_name' => 'farbton',
             'option_urls' => [
-                ['option_id' => $this->options['Rot'], 'url_name_0' => 'blau', 'url_name_' . $storeId => 'red'],
-                ['option_id' => $this->options['Blau'], 'url_name_0' => 'rot', 'url_name_' . $storeId => ''],
+                ['option_id' => $this->options['Rot'], 'url_name_0' => 'blau', 'url_name_' . $de => 'not-for-this-scope'],
+                ['option_id' => $this->options['Blau'], 'url_name_0' => 'rot'],
                 ['option_id' => $this->options['Grün'], 'url_name_0' => 'x', 'regenerate' => '1'],
             ],
         ]);
 
         $this->assertSessionMessages(self::containsEqual('You saved the filter.'), MessageInterface::TYPE_SUCCESS);
+        $this->assertRedirect(self::logicalNot(self::stringContains('/store/')));
         AdminFixture::clean();
-        $config = $this->_objectManager->get(FilterConfigProvider::class)->getForStore($storeId)[self::CODE];
+        $provider = $this->_objectManager->get(FilterConfigProvider::class);
+        $config = $provider->getForStore($de)[self::CODE];
         self::assertSame(Filter::DISPLAY_LIST, $config->getDisplayMode());
         self::assertFalse($config->isMultiselect());
         self::assertSame(3, $config->getVisibleOptions());
         self::assertTrue($config->getExpanded());
         self::assertSame('name', $config->getSortBy());
         self::assertSame(-3, $config->getPosition());
-        self::assertSame('Colour', $config->getLabel());
-        self::assertSame('Farbton', $this->_objectManager->get(FilterConfigProvider::class)->getForStore(0)[self::CODE]->getLabel());
+        self::assertSame('Farbton', $config->getLabel(), 'the store view follows the shared label');
+        self::assertSame('Farbton', $provider->getForStore(0)[self::CODE]->getLabel());
 
         $slugs = $this->_objectManager->get(SlugRepositoryInterface::class);
-        self::assertSame('farbton', $slugs->getAttributeSlug($this->attributeId, $storeId));
+        self::assertSame('farbton', $slugs->getAttributeSlug($this->attributeId, $de));
+        $expected = [$this->options['Rot'] => 'blau', $this->options['Blau'] => 'rot', $this->options['Grün'] => 'gruen'];
+        self::assertSame($expected, $slugs->getOptionSlugs($this->attributeId, 0));
+        self::assertSame($expected, $slugs->getOptionSlugs($this->attributeId, $de), 'no store view row written');
+    }
+
+    public function testSaveForAStoreViewWritesOnlyItsOwnLabelAndNames(): void
+    {
+        $de = $this->germanStore();
+        $this->save([
+            'store' => (string) $de,
+            'display_mode' => 'slider',
+            'visible_options' => '1',
+            'label_0' => 'not for this scope',
+            'label_' . $de => 'Farbe',
+            'url_name' => 'not-for-this-scope',
+            'url_name_store' => 'farbe',
+            'option_urls' => [
+                ['option_id' => $this->options['Rot'], 'url_name_0' => 'nope', 'url_name_' . $de => 'rot-de'],
+                ['option_id' => $this->options['Blau'], 'url_name_0' => 'nope-2', 'url_name_' . $de => ''],
+            ],
+        ]);
+
+        $this->assertSessionMessages(self::containsEqual('You saved the filter.'), MessageInterface::TYPE_SUCCESS);
+        $this->assertRedirect(self::stringContains('openfilter/filter/edit/code/' . self::CODE . '/store/' . $de));
+        $config = $this->freshRepository()->getByCode(self::CODE);
+        self::assertSame(6, $config->getVisibleOptions(), 'settings are not edited in a store view');
+        self::assertNotSame('slider', $config->getDisplayMode());
+        $provider = $this->_objectManager->get(FilterConfigProvider::class);
+        self::assertSame('Of m2 form attr', $provider->getForStore(0)[self::CODE]->getLabel());
+        self::assertSame('Farbe', $provider->getForStore($de)[self::CODE]->getLabel());
+
+        $slugs = $this->_objectManager->get(SlugRepositoryInterface::class);
+        self::assertSame(self::CODE, $slugs->getAttributeSlug($this->attributeId, 0));
+        self::assertSame('farbe', $slugs->getAttributeSlug($this->attributeId, $de));
         self::assertSame(
-            [$this->options['Rot'] => 'red', $this->options['Blau'] => 'rot', $this->options['Grün'] => 'gruen'],
-            $slugs->getOptionSlugs($this->attributeId, $storeId)
+            [$this->options['Rot'] => 'rot', $this->options['Blau'] => 'blau', $this->options['Grün'] => 'gruen'],
+            $slugs->getOptionSlugs($this->attributeId, 0)
         );
-        self::assertSame('blau', $slugs->getOptionSlugs($this->attributeId, 0)[$this->options['Rot']]);
+        self::assertSame(
+            [$this->options['Rot'] => 'rot-de', $this->options['Blau'] => 'blau', $this->options['Grün'] => 'gruen'],
+            $slugs->getOptionSlugs($this->attributeId, $de)
+        );
+    }
+
+    public function testAnEmptyStoreViewUrlNameFollowsTheSharedNameAgain(): void
+    {
+        $de = $this->germanStore();
+        $slugs = $this->_objectManager->get(SlugRepositoryInterface::class);
+        $slugs->saveAttributeSlug($this->attributeId, $de, 'farbe');
+        self::assertSame('farbe', $slugs->getAttributeSlug($this->attributeId, $de));
+
+        $this->save(['store' => (string) $de, 'url_name_store' => '']);
+
+        AdminFixture::clean();
+        self::assertSame(self::CODE, $slugs->getAttributeSlug($this->attributeId, $de));
+    }
+
+    public function testACollisionInAStoreViewIsRefusedAndNothingIsSaved(): void
+    {
+        $de = $this->germanStore();
+        $this->save([
+            'store' => (string) $de,
+            'label_' . $de => 'Should not stay',
+            'option_urls' => [
+                ['option_id' => $this->options['Rot'], 'url_name_' . $de => 'gleich'],
+                ['option_id' => $this->options['Blau'], 'url_name_' . $de => 'gleich'],
+            ],
+        ]);
+
+        $this->assertSessionMessages(
+            self::containsEqual('Another option of this filter already uses the URL name &quot;gleich&quot;.'),
+            MessageInterface::TYPE_ERROR
+        );
+        $this->assertRedirect(self::stringContains('/store/' . $de));
+        AdminFixture::clean();
+        self::assertSame('Of m2 form attr', $this->_objectManager->get(FilterConfigProvider::class)->getForStore($de)[self::CODE]->getLabel());
+        self::assertSame('rot', $this->_objectManager->get(SlugRepositoryInterface::class)->getOptionSlugs($this->attributeId, $de)[$this->options['Rot']]);
+    }
+
+    public function testGenerateAgainInAStoreViewTouchesOnlyThatStoreView(): void
+    {
+        $de = $this->germanStore();
+        $this->_objectManager->get(OptionSlugBatch::class)
+            ->save($this->attributeId, [$this->options['Grün'] => [0 => 'eigenes-gruen']]);
+
+        $this->save([
+            'store' => (string) $de,
+            'option_urls' => [['option_id' => $this->options['Grün'], 'url_name_' . $de => '', 'regenerate' => '1']],
+        ]);
+
+        AdminFixture::clean();
+        $slugs = $this->_objectManager->get(SlugRepositoryInterface::class);
+        self::assertSame('eigenes-gruen', $slugs->getOptionSlugs($this->attributeId, 0)[$this->options['Grün']]);
+        self::assertSame('gruen', $slugs->getOptionSlugs($this->attributeId, $de)[$this->options['Grün']]);
+    }
+
+    public function testARefusedSaveLeavesNoUncommittedNameInTheCache(): void
+    {
+        $de = $this->germanStore();
+        $this->save([
+            'store' => (string) $de,
+            'url_name_store' => 'farbe',
+            'option_urls' => [
+                ['option_id' => $this->options['Rot'], 'url_name_' . $de => 'gleich'],
+                ['option_id' => $this->options['Blau'], 'url_name_' . $de => 'gleich'],
+            ],
+        ]);
+
+        $this->assertSessionMessages(self::containsEqual('Another option of this filter already uses the URL name &quot;gleich&quot;.'), MessageInterface::TYPE_ERROR);
+        self::assertSame(
+            self::CODE,
+            $this->_objectManager->get(SlugRepositoryInterface::class)->getAttributeSlug($this->attributeId, $de),
+            'read without cleaning first: the rollback dropped the cached copy'
+        );
+    }
+
+    public function testTheStoreViewFormShowsItsOwnColumnsAndNoReset(): void
+    {
+        $de = $this->germanStore();
+        $default = $this->storeId();
+
+        $this->dispatch($this->uri . '/store/' . $de);
+
+        $body = $this->getResponse()->getBody();
+        self::assertStringContainsString('store-switcher', $body);
+        self::assertStringContainsString('"store":"' . $de . '"', $body);
+        self::assertStringContainsString('"url_name_' . $de . '":"', $body);
+        self::assertStringContainsString('"option_store_label":"Rot"', $body);
+        self::assertStringContainsString('[GLOBAL]', $body);
+        self::assertStringNotContainsString('"url_name_' . $default . '"', $body);
+        self::assertStringNotContainsString('Reset to defaults', $body);
+    }
+
+    public function testTwentyStoreViewsKeepTheFormToTwoNameColumns(): void
+    {
+        $codes = [];
+        try {
+            $ids = [$this->germanStore()];
+            for ($n = 1; $n <= 18; $n++) {
+                $codes[] = $code = sprintf('of_s0_store_%02d', $n);
+                $ids[] = AdminFixture::storeView($code, 'Store ' . $n, 100 + $n);
+            }
+            self::assertGreaterThanOrEqual(20, count($this->_objectManager->get(StoreManagerInterface::class)->getStores()));
+            $scope = $ids[10];
+
+            $this->dispatch($this->uri . '/store/' . $scope);
+
+            preg_match_all('/"url_name_(\d+)"/', $this->getResponse()->getBody(), $match);
+            self::assertSame(['0', (string) $scope], array_values(array_unique($match[1])));
+
+            $this->_objectManager->get(OptionSlugBatch::class)
+                ->save($this->attributeId, [$this->options['Rot'] => [$scope => 'rouge']]);
+            AdminFixture::clean();
+            $slugs = $this->_objectManager->get(SlugRepositoryInterface::class);
+            foreach ($ids as $id) {
+                self::assertSame($id === $scope ? 'rouge' : 'rot', $slugs->getOptionSlugs($this->attributeId, $id)[$this->options['Rot']]);
+            }
+        } finally {
+            foreach ($codes as $code) {
+                AdminFixture::deleteStoreView($code);
+            }
+        }
     }
 
     public function testACollisionRollsTheWholeSaveBack(): void
@@ -189,6 +359,11 @@ class FilterFormTest extends AbstractBackendController
     private function formKey(): string
     {
         return $this->_objectManager->get(FormKey::class)->getFormKey();
+    }
+
+    private function germanStore(): int
+    {
+        return AdminFixture::storeView(self::STORE, 'Deutsch');
     }
 
     private function storeId(): int

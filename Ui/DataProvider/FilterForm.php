@@ -10,26 +10,42 @@ namespace Iranimij\OpenFilter\Ui\DataProvider;
 
 use Iranimij\OpenFilter\Api\Data\FilterConfigInterface as Filter;
 use Iranimij\OpenFilter\Api\FilterConfigRepositoryInterface;
-use Iranimij\OpenFilter\Api\SlugRepositoryInterface;
+use Iranimij\OpenFilter\Model\Admin\FormScope;
 use Iranimij\OpenFilter\Model\Config\FilterConfigProvider;
 use Iranimij\OpenFilter\Model\Config\Source\DisplayMode;
 use Iranimij\OpenFilter\Model\Config\Validator;
 use Iranimij\OpenFilter\Model\ResourceModel\FilterConfigStorage;
 use Iranimij\OpenFilter\Model\ResourceModel\SlugStorage;
+use Iranimij\OpenFilter\Model\Url\AttributeSlugScope;
 use Magento\Framework\Api\Filter as CriteriaFilter;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Store\Model\StoreManagerInterface;
 use Magento\Ui\DataProvider\AbstractDataProvider;
 
 /**
- * Data and store-specific fields of the filter form. The form asks for one filter by its key (request "code";
- * the meta is built before the form adds its filter, so it reads the request).
+ * Data and fields of the filter form for one scope (Magento's store switcher, request "store"): all store views
+ * edit the settings, the shared label and the shared URL names; a store view edits only its own label and URL
+ * names next to the shared ones (read only), so the form keeps the same width for any number of store views.
+ * The form asks for one filter by its key (request "code"; the meta is built before the form adds its filter,
+ * so it reads the request).
  *
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class FilterForm extends AbstractDataProvider
 {
+    /** Settings that apply to every store view: read only in a store view (fieldset => fields). */
+    public const GLOBAL_FIELDS = [
+        'looks' => ['display_mode'],
+        'behaves' => [
+            'active', 'multiselect', 'visible_options', 'search_threshold', 'expanded', 'sort_by',
+            'hide_single_option', 'position_override',
+        ],
+        'seo' => ['seo_indexable'],
+    ];
+
+    /** Input template that names table inputs after their column and option (no visible label in a cell). */
+    private const ROW_INPUT = 'Iranimij_OpenFilter/form/element/row-input';
+
     /** @var string|null key of the filter the form shows */
     private ?string $key = null;
 
@@ -39,12 +55,12 @@ class FilterForm extends AbstractDataProvider
      * @param string $requestFieldName
      * @param FilterConfigRepositoryInterface $repository
      * @param FilterConfigProvider $provider
-     * @param SlugRepositoryInterface $slugs
+     * @param AttributeSlugScope $attributeSlugs
      * @param FilterConfigStorage $configStorage
      * @param SlugStorage $slugStorage
      * @param Validator $validator
      * @param DisplayMode $displayModes
-     * @param StoreManagerInterface $storeManager
+     * @param FormScope $formScope
      * @param RequestInterface $request
      * @param array<string, mixed> $meta
      * @param array<string, mixed> $data
@@ -56,12 +72,12 @@ class FilterForm extends AbstractDataProvider
         $requestFieldName,
         private readonly FilterConfigRepositoryInterface $repository,
         private readonly FilterConfigProvider $provider,
-        private readonly SlugRepositoryInterface $slugs,
+        private readonly AttributeSlugScope $attributeSlugs,
         private readonly FilterConfigStorage $configStorage,
         private readonly SlugStorage $slugStorage,
         private readonly Validator $validator,
         private readonly DisplayMode $displayModes,
-        private readonly StoreManagerInterface $storeManager,
+        private readonly FormScope $formScope,
         private readonly RequestInterface $request,
         array $meta = [],
         array $data = []
@@ -92,10 +108,12 @@ class FilterForm extends AbstractDataProvider
             return [];
         }
         $key = $this->provider->keyOf($config);
+        $scope = $this->scope();
         $attributeId = $config->getAttributeId();
         $expanded = $config->getExpanded();
         $data = [
             'key' => $key,
+            'store' => (string) $scope,
             'code' => $config->getCode(),
             'display_mode' => $config->getDisplayMode(),
             'multiselect' => $config->isMultiselect() ? '1' : '0',
@@ -108,13 +126,16 @@ class FilterForm extends AbstractDataProvider
             'active' => $config->isActive() ? '1' : '0',
             'position_override' => $config->getPositionOverride(),
         ];
-        foreach ($this->configStorage->labelOverrides($config->isBuiltin() ? null : $attributeId, $config->getCode())
-            as $storeId => $label) {
-            $data['label_' . $storeId] = $label;
+        $labels = $this->configStorage->labelOverrides($config->isBuiltin() ? null : $attributeId, $config->getCode());
+        foreach (array_unique([0, $scope]) as $storeId) {
+            $data['label_' . $storeId] = $labels[$storeId] ?? null;
         }
         if ($this->hasUrlNames($config) && $attributeId !== null) {
-            $data['url_name'] = $this->slugs->getAttributeSlug($attributeId, 0);
-            $data['option_urls'] = $this->optionRows($attributeId);
+            $data['url_name'] = $this->attributeSlugs->own($attributeId, 0);
+            if ($scope !== 0) {
+                $data['url_name_store'] = $this->attributeSlugs->own($attributeId, $scope);
+            }
+            $data['option_urls'] = $this->optionRows($attributeId, $scope);
         }
 
         return [$key => $data];
@@ -130,6 +151,9 @@ class FilterForm extends AbstractDataProvider
         if ($config === null) {
             return $meta;
         }
+        $scope = $this->scope();
+        $stores = $this->formScope->stores();
+        $multiStore = !$this->formScope->isSingleStore();
         $attributeId = $config->getAttributeId();
         $optionCount = !$config->isBuiltin() && $attributeId !== null ? $this->configStorage->optionCount($attributeId) : 0;
         $labels = $this->displayModes->labels();
@@ -145,69 +169,171 @@ class FilterForm extends AbstractDataProvider
             'Empty = the position from layered navigation (now %1). Lower numbers come first.',
             $config->getPosition()
         );
-
-        $stores = $this->stores();
-        $sort = 20;
-        foreach ($stores as $storeId => $name) {
-            $meta['labels']['children']['label_' . $storeId] = $this->field(
-                (string) __('Label in "%1"', $name),
-                'label_' . $storeId,
-                $sort += 10,
-                (string) __('Empty = the label for all store views.')
-            );
+        if ($multiStore) {
+            foreach (self::GLOBAL_FIELDS as $fieldset => $fields) {
+                foreach ($fields as $field) {
+                    $settings = ['scopeLabel' => (string) __('[GLOBAL]')];
+                    if ($scope !== 0) {
+                        $settings['disabled'] = true;
+                    }
+                    $meta = $this->merge($meta, [$fieldset, 'children', $field], $settings);
+                }
+            }
         }
 
+        $meta = $this->labelMeta($meta, $scope, $stores, $multiStore);
         if (!$this->hasUrlNames($config)) {
             $meta['seo']['children']['url_name']['arguments']['data']['config']['visible'] = false;
             $meta['seo']['children']['option_urls']['arguments']['data']['config']['visible'] = false;
-        } else {
-            $sort = 30;
-            $record = [];
-            foreach ($stores as $storeId => $name) {
-                $record['url_name_' . $storeId] = $this->field(
-                    (string) __('URL name in "%1"', $name),
-                    'url_name_' . $storeId,
-                    $sort += 10,
-                    null
-                );
-            }
-            $meta['seo']['children']['option_urls']['children']['record']['children'] = $record;
+
+            return $meta;
         }
+
+        return $this->urlNameMeta($meta, $scope, $stores, $multiStore);
+    }
+
+    /**
+     * Label for all store views; in a store view also the store view's own label.
+     *
+     * @param array<string, mixed> $meta
+     * @param int $scope
+     * @param array<int, string> $stores
+     * @param bool $multiStore
+     * @return array<string, mixed>
+     */
+    private function labelMeta(array $meta, int $scope, array $stores, bool $multiStore): array
+    {
+        $meta['labels']['arguments']['data']['config']['label'] = __('Label');
+        $shared = ['scopeLabel' => $multiStore ? (string) __('[STORE VIEW]') : null];
+        if ($scope === 0) {
+            if ($multiStore) {
+                $shared['notice'] = (string) __('Empty = the attribute\'s own label. Pick a store view at the top for its own.');
+            }
+
+            return $this->merge($meta, ['labels', 'children', 'label_0'], array_filter($shared));
+        }
+        $meta = $this->merge($meta, ['labels', 'children', 'label_0'], array_filter($shared + ['disabled' => true]));
+        $meta['labels']['children']['label_' . $scope] = $this->field([
+            'label' => (string) __('Label in "%1"', $stores[$scope]),
+            'dataScope' => 'label_' . $scope,
+            'sortOrder' => 20,
+            'placeholder' => (string) __('Same as for all store views'),
+            'notice' => (string) __('Empty = the label for all store views.'),
+            'scopeLabel' => (string) __('[STORE VIEW]'),
+        ]);
 
         return $meta;
     }
 
     /**
-     * @param string $label
-     * @param string $scope
-     * @param int $sortOrder
-     * @param string|null $notice
+     * URL name of the filter and its options: shared names for all store views, or a store view's own names
+     * next to the shared ones (read only). Same columns for any number of store views.
+     *
+     * @param array<string, mixed> $meta
+     * @param int $scope
+     * @param array<int, string> $stores
+     * @param bool $multiStore
      * @return array<string, mixed>
      */
-    private function field(string $label, string $scope, int $sortOrder, ?string $notice): array
+    private function urlNameMeta(array $meta, int $scope, array $stores, bool $multiStore): array
+    {
+        $scopeLabel = $multiStore ? (string) __('[STORE VIEW]') : null;
+        if ($scope === 0) {
+            if ($scopeLabel !== null) {
+                $meta = $this->merge($meta, ['seo', 'children', 'url_name'], ['scopeLabel' => $scopeLabel]);
+            }
+
+            return $meta;
+        }
+        $store = $stores[$scope];
+        $meta = $this->merge($meta, ['seo', 'children', 'url_name'], [
+            'label' => (string) __('URL name (all store views)'),
+            'disabled' => true,
+            'scopeLabel' => $scopeLabel,
+        ]);
+        $meta['seo']['children']['url_name_store'] = $this->field([
+            'label' => (string) __('URL name in "%1"', $store),
+            'dataScope' => 'url_name_store',
+            'sortOrder' => 25,
+            'placeholder' => (string) __('Same as for all store views'),
+            'notice' => (string) __('Empty = same as for all store views, also for the option URL names below.'),
+            'scopeLabel' => $scopeLabel,
+        ]);
+        $meta['seo']['children']['option_urls']['arguments']['data']['config']['label'] = __(
+            'URL names of the options in "%1"',
+            $store
+        );
+        $record = [
+            'option_store_label' => $this->field([
+                'label' => (string) __('Label in "%1"', $store),
+                'dataScope' => 'option_store_label',
+                'sortOrder' => 25,
+                'disabled' => true,
+                'elementTmpl' => self::ROW_INPUT,
+            ]),
+            'url_name_0' => ['arguments' => ['data' => ['config' => ['disabled' => true]]]],
+            'url_name_' . $scope => $this->field([
+                'label' => (string) __('URL name in "%1"', $store),
+                'dataScope' => 'url_name_' . $scope,
+                'sortOrder' => 40,
+                'elementTmpl' => self::ROW_INPUT,
+                'placeholder' => (string) __('Same as for all store views'),
+            ]),
+            'regenerate' => ['arguments' => ['data' => ['config' => [
+                'label' => (string) __('Generate again from the label in "%1"', $store),
+            ]]]],
+        ];
+        $meta['seo']['children']['option_urls']['children']['record']['children'] = $record;
+
+        return $meta;
+    }
+
+    /**
+     * @param array<string, mixed> $settings label, dataScope, sortOrder and optional placeholder, notice,
+     *     scopeLabel, disabled
+     * @return array<string, mixed>
+     */
+    private function field(array $settings): array
     {
         $config = [
             'componentType' => 'field',
             'formElement' => 'input',
             'dataType' => 'text',
-            'label' => $label,
-            'dataScope' => $scope,
-            'sortOrder' => $sortOrder,
-        ];
-        if ($notice !== null) {
-            $config['notice'] = $notice;
-        }
+        ] + array_filter($settings, static fn ($value): bool => $value !== null);
 
         return ['arguments' => ['data' => ['config' => $config]]];
     }
 
     /**
-     * Option rows: label, name for all store views, names per store view (empty = same as for all store views).
+     * Adds settings to the config of a component given by its path in the meta.
+     *
+     * @param array<string, mixed> $meta
+     * @param string[] $path
+     * @param array<string, mixed> $settings
+     * @return array<string, mixed>
+     */
+    private function merge(array $meta, array $path, array $settings): array
+    {
+        $node = &$meta;
+        foreach ($path as $step) {
+            $node = &$node[$step];
+        }
+        $node['arguments']['data']['config'] = array_filter($settings, static fn ($value): bool => $value !== null)
+            + ($node['arguments']['data']['config'] ?? []);
+        unset($node);
+
+        return $meta;
+    }
+
+    /**
+     * Option rows of one scope: label, name for all store views and, in a store view, its label and its own name
+     * (empty = same as for all store views).
      *
      * @param int $attributeId
+     * @param int $scope
      * @return array<int, array<string, mixed>>
      */
-    private function optionRows(int $attributeId): array
+    private function optionRows(int $attributeId, int $scope): array
     {
         $labels = $this->slugStorage->optionLabels($attributeId);
         $slugs = $this->slugStorage->optionSlugRows($attributeId);
@@ -219,8 +345,9 @@ class FilterForm extends AbstractDataProvider
                 'url_name_0' => $slugs[0][$optionId] ?? '',
                 'regenerate' => '0',
             ];
-            foreach (array_keys($this->stores()) as $storeId) {
-                $row['url_name_' . $storeId] = $slugs[$storeId][$optionId] ?? '';
+            if ($scope !== 0) {
+                $row['option_store_label'] = $labels['stores'][$scope][$optionId] ?? $label;
+                $row['url_name_' . $scope] = $slugs[$scope][$optionId] ?? '';
             }
             $rows[] = $row;
         }
@@ -240,17 +367,11 @@ class FilterForm extends AbstractDataProvider
     }
 
     /**
-     * @return array<int, string> store view id => name
+     * @return int store view the form edits, 0 = all store views
      */
-    private function stores(): array
+    private function scope(): int
     {
-        $stores = [];
-        foreach ($this->storeManager->getStores() as $store) {
-            $stores[(int) $store->getId()] = (string) $store->getName();
-        }
-        ksort($stores);
-
-        return $stores;
+        return $this->formScope->resolve($this->request->getParam(FormScope::PARAM));
     }
 
     /**

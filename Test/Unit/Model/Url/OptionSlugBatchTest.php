@@ -122,6 +122,20 @@ class OptionSlugBatchTest extends TestCase
         self::assertSame([[12 => 'gruen'], []], $this->writes[self::DE]);
     }
 
+    public function testRegenerateInOneStoreViewLeavesTheOtherScopesAlone(): void
+    {
+        $this->batch()->save(self::ATTRIBUTE, [], [12], self::DE);
+
+        self::assertSame([self::DE => [[12 => 'gruen'], []]], $this->writes);
+    }
+
+    public function testRegenerateForAllStoreViewsOnlyKeepsStoreViewsThatFollowIt(): void
+    {
+        $this->batch()->save(self::ATTRIBUTE, [], [12], 0);
+
+        self::assertSame([0 => [[12 => 'green'], []]], $this->writes);
+    }
+
     public function testNothingPostedNothingWritten(): void
     {
         $this->storage->expects(self::never())->method('writeOptionSlugs');
