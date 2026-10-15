@@ -35,9 +35,9 @@ class FilterForm extends AbstractDataProvider
 {
     /** Settings that apply to every store view: read only in a store view (fieldset => fields). */
     public const GLOBAL_FIELDS = [
-        'looks' => ['display_mode'],
+        'looks' => ['display_mode', 'ranges', 'tree_depth'],
         'behaves' => [
-            'active', 'multiselect', 'visible_options', 'search_threshold', 'expanded', 'sort_by',
+            'active', 'multiselect', 'logic', 'visible_options', 'search_threshold', 'expanded', 'sort_by',
             'hide_single_option', 'position_override',
         ],
         'seo' => ['seo_indexable'],
@@ -117,6 +117,9 @@ class FilterForm extends AbstractDataProvider
             'code' => $config->getCode(),
             'display_mode' => $config->getDisplayMode(),
             'multiselect' => $config->isMultiselect() ? '1' : '0',
+            'logic' => $config->getLogic(),
+            'ranges' => (string) $config->getRanges(),
+            'tree_depth' => (string) $config->getTreeDepth(),
             'visible_options' => $config->getVisibleOptions(),
             'search_threshold' => $config->getSearchThreshold(),
             'expanded' => $expanded === null ? 'auto' : (string) (int) $expanded,
@@ -127,8 +130,13 @@ class FilterForm extends AbstractDataProvider
             'position_override' => $config->getPositionOverride(),
         ];
         $labels = $this->configStorage->labelOverrides($config->isBuiltin() ? null : $attributeId, $config->getCode());
+        $tooltips = $this->configStorage->tooltipOverrides(
+            $config->isBuiltin() ? null : $attributeId,
+            $config->getCode()
+        );
         foreach (array_unique([0, $scope]) as $storeId) {
             $data['label_' . $storeId] = $labels[$storeId] ?? null;
+            $data['tooltip_' . $storeId] = $tooltips[$storeId] ?? null;
         }
         if ($this->hasUrlNames($config) && $attributeId !== null) {
             $data['url_name'] = $this->attributeSlugs->own($attributeId, 0);
@@ -164,6 +172,16 @@ class FilterForm extends AbstractDataProvider
         $meta['looks']['children']['display_mode']['arguments']['data']['config']['options'] = $options;
         if ($this->request->getParam('why')) {
             $meta['why']['arguments']['data']['config']['opened'] = true;
+        }
+        $visible = [
+            ['looks', 'ranges', $this->hasRanges($config)],
+            ['looks', 'tree_depth', $config->isBuiltin() && $config->getCode() === Filter::BUILTIN_CATEGORY],
+            ['behaves', 'logic', !$config->isBuiltin() && in_array($config->getInputType(), ['select', 'multiselect'], true)],
+        ];
+        foreach ($visible as [$fieldset, $field, $shown]) {
+            if (!$shown) {
+                $meta[$fieldset]['children'][$field]['arguments']['data']['config']['visible'] = false;
+            }
         }
         $meta['behaves']['children']['position_override']['arguments']['data']['config']['notice'] = __(
             'Empty = the position from layered navigation (now %1). Lower numbers come first.',
@@ -203,9 +221,10 @@ class FilterForm extends AbstractDataProvider
      */
     private function labelMeta(array $meta, int $scope, array $stores, bool $multiStore): array
     {
-        $meta['labels']['arguments']['data']['config']['label'] = __('Label');
+        $meta['labels']['arguments']['data']['config']['label'] = __('Label and tooltip');
         $shared = ['scopeLabel' => $multiStore ? (string) __('[STORE VIEW]') : null];
         if ($scope === 0) {
+            $meta = $this->merge($meta, ['labels', 'children', 'tooltip_0'], array_filter($shared));
             if ($multiStore) {
                 $shared['notice'] = (string) __('Empty = the attribute\'s own label. Pick a store view at the top for its own.');
             }
@@ -213,6 +232,16 @@ class FilterForm extends AbstractDataProvider
             return $this->merge($meta, ['labels', 'children', 'label_0'], array_filter($shared));
         }
         $meta = $this->merge($meta, ['labels', 'children', 'label_0'], array_filter($shared + ['disabled' => true]));
+        $meta = $this->merge($meta, ['labels', 'children', 'tooltip_0'], array_filter($shared + ['disabled' => true]));
+        $meta['labels']['children']['tooltip_' . $scope] = $this->field([
+            'formElement' => 'textarea',
+            'label' => (string) __('Tooltip in "%1"', $stores[$scope]),
+            'dataScope' => 'tooltip_' . $scope,
+            'sortOrder' => 60,
+            'placeholder' => (string) __('Same as for all store views'),
+            'notice' => (string) __('Empty = the tooltip for all store views.'),
+            'scopeLabel' => (string) __('[STORE VIEW]'),
+        ]);
         $meta['labels']['children']['label_' . $scope] = $this->field([
             'label' => (string) __('Label in "%1"', $stores[$scope]),
             'dataScope' => 'label_' . $scope,
@@ -289,17 +318,17 @@ class FilterForm extends AbstractDataProvider
     }
 
     /**
-     * @param array<string, mixed> $settings label, dataScope, sortOrder and optional placeholder, notice,
-     *     scopeLabel, disabled
+     * @param array<string, mixed> $settings label, dataScope, sortOrder and optional formElement, placeholder,
+     *     notice, scopeLabel, disabled, elementTmpl
      * @return array<string, mixed>
      */
     private function field(array $settings): array
     {
-        $config = [
+        $config = array_filter($settings, static fn ($value): bool => $value !== null) + [
             'componentType' => 'field',
             'formElement' => 'input',
             'dataType' => 'text',
-        ] + array_filter($settings, static fn ($value): bool => $value !== null);
+        ];
 
         return ['arguments' => ['data' => ['config' => $config]]];
     }
@@ -353,6 +382,19 @@ class FilterForm extends AbstractDataProvider
         }
 
         return $rows;
+    }
+
+    /**
+     * Ranges fit price and decimal filters (the "Ranges" display type).
+     *
+     * @param Filter $config
+     * @return bool
+     */
+    private function hasRanges(Filter $config): bool
+    {
+        return $config->isBuiltin()
+            ? $config->getCode() === Filter::BUILTIN_PRICE
+            : $config->getInputType() === 'decimal';
     }
 
     /**

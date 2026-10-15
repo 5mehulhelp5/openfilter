@@ -26,6 +26,20 @@ class Config
     public const XML_PATH_PRICE_STEP = 'openfilter/display/price_step';
     public const XML_PATH_NOFOLLOW_THRESHOLD = 'openfilter/seo/nofollow_threshold';
     public const XML_PATH_MAX_ACTIVE_VALUES = 'openfilter/seo/max_active_values';
+    public const XML_PATH_LAYOUT = 'openfilter/display/layout';
+    public const XML_PATH_APPLY_MODE = 'openfilter/display/apply_mode';
+    public const XML_PATH_STICKY = 'openfilter/display/sticky';
+    public const XML_PATH_META_TITLE = 'openfilter/seo/meta_title';
+    public const XML_PATH_META_DESCRIPTION = 'openfilter/seo/meta_description';
+    public const XML_PATH_H1 = 'openfilter/seo/h1';
+    public const XML_PATH_SITEMAP_ENABLED = 'openfilter/sitemap/enabled';
+    public const XML_PATH_SITEMAP_MIN_PRODUCTS = 'openfilter/sitemap/min_products';
+    public const XML_PATH_SITEMAP_MAX_URLS = 'openfilter/sitemap/max_urls';
+
+    public const LAYOUT_SIDEBAR = 'sidebar';
+    public const LAYOUT_HORIZONTAL = 'horizontal';
+    public const APPLY_INSTANT = 'instant';
+    public const APPLY_BUTTON = 'button';
 
     private bool $loggedReplacement = false;
 
@@ -125,5 +139,108 @@ class Config
     public function getMaxActiveValues(?int $storeId = null): int
     {
         return max(0, $this->reader->getInt(self::XML_PATH_MAX_ACTIVE_VALUES, ScopeInterface::SCOPE_STORE, $storeId));
+    }
+
+    /**
+     * Desktop layout: sidebar (1.0) or a bar above the products (1.1). Unknown values fall back to the sidebar.
+     *
+     * @param int|null $storeId
+     * @return string
+     */
+    public function getLayout(?int $storeId = null): string
+    {
+        $layout = $this->reader->getString(self::XML_PATH_LAYOUT, ScopeInterface::SCOPE_STORE, $storeId);
+
+        return $layout === self::LAYOUT_HORIZONTAL ? self::LAYOUT_HORIZONTAL : self::LAYOUT_SIDEBAR;
+    }
+
+    /**
+     * Desktop: results update with every click (1.0) or after "Show N products" (1.1).
+     *
+     * @param int|null $storeId
+     * @return string
+     */
+    public function getApplyMode(?int $storeId = null): string
+    {
+        $mode = $this->reader->getString(self::XML_PATH_APPLY_MODE, ScopeInterface::SCOPE_STORE, $storeId);
+
+        return $mode === self::APPLY_BUTTON ? self::APPLY_BUTTON : self::APPLY_INSTANT;
+    }
+
+    /**
+     * The sidebar stays in view while the shopper scrolls the products (1.1).
+     *
+     * @param int|null $storeId
+     * @return bool
+     */
+    public function isSticky(?int $storeId = null): bool
+    {
+        return $this->reader->getBool(self::XML_PATH_STICKY, ScopeInterface::SCOPE_STORE, $storeId);
+    }
+
+    /**
+     * Template of the page title of filtered pages ({category}, {filters}, {store}); '' = Magento's title (1.1).
+     *
+     * @param int|null $storeId
+     * @return string
+     */
+    public function getMetaTitleTemplate(?int $storeId = null): string
+    {
+        return trim($this->reader->getString(self::XML_PATH_META_TITLE, ScopeInterface::SCOPE_STORE, $storeId));
+    }
+
+    /**
+     * Template of the meta description of filtered pages; '' = Magento's description (1.1).
+     *
+     * @param int|null $storeId
+     * @return string
+     */
+    public function getMetaDescriptionTemplate(?int $storeId = null): string
+    {
+        return trim($this->reader->getString(self::XML_PATH_META_DESCRIPTION, ScopeInterface::SCOPE_STORE, $storeId));
+    }
+
+    /**
+     * Template of the H1 of filtered pages; '' = the category name (1.1).
+     *
+     * @param int|null $storeId
+     * @return string
+     */
+    public function getH1Template(?int $storeId = null): string
+    {
+        return trim($this->reader->getString(self::XML_PATH_H1, ScopeInterface::SCOPE_STORE, $storeId));
+    }
+
+    /**
+     * Indexable filter pages are added to Magento's XML sitemap (1.1).
+     *
+     * @param int|null $storeId
+     * @return bool
+     */
+    public function isSitemapEnabled(?int $storeId = null): bool
+    {
+        return $this->reader->getBool(self::XML_PATH_SITEMAP_ENABLED, ScopeInterface::SCOPE_STORE, $storeId);
+    }
+
+    /**
+     * A filter page goes into the sitemap only with at least this many products (1.1).
+     *
+     * @param int|null $storeId
+     * @return int
+     */
+    public function getSitemapMinProducts(?int $storeId = null): int
+    {
+        return max(1, $this->reader->getInt(self::XML_PATH_SITEMAP_MIN_PRODUCTS, ScopeInterface::SCOPE_STORE, $storeId));
+    }
+
+    /**
+     * Most filter pages per store view in the sitemap (1.1).
+     *
+     * @param int|null $storeId
+     * @return int
+     */
+    public function getSitemapMaxUrls(?int $storeId = null): int
+    {
+        return max(0, $this->reader->getInt(self::XML_PATH_SITEMAP_MAX_URLS, ScopeInterface::SCOPE_STORE, $storeId));
     }
 }

@@ -39,7 +39,7 @@ class ConfigTest extends TestCase
     }
 
     /**
-     * @return array<string, array{string, string, string, int|float|bool}>
+     * @return array<string, array{string, string, string, int|float|bool|string}>
      */
     public static function storefrontSettings(): array
     {
@@ -49,6 +49,15 @@ class ConfigTest extends TestCase
             'price step' => ['getPriceStep', 'getFloat', 'openfilter/display/price_step', 0.5],
             'nofollow threshold' => ['getNofollowThreshold', 'getInt', 'openfilter/seo/nofollow_threshold', 2],
             'max active values' => ['getMaxActiveValues', 'getInt', 'openfilter/seo/max_active_values', 5],
+            'sticky' => ['isSticky', 'getBool', 'openfilter/display/sticky', true],
+            'title template' => ['getMetaTitleTemplate', 'getString', 'openfilter/seo/meta_title', '{filters} {category}'],
+            'description template' => ['getMetaDescriptionTemplate', 'getString', 'openfilter/seo/meta_description', 'Shop {filters}'],
+            'h1 template' => ['getH1Template', 'getString', 'openfilter/seo/h1', '{filters} {category}'],
+            'sitemap' => ['isSitemapEnabled', 'getBool', 'openfilter/sitemap/enabled', true],
+            'sitemap minimum' => ['getSitemapMinProducts', 'getInt', 'openfilter/sitemap/min_products', 3],
+            'sitemap maximum' => ['getSitemapMaxUrls', 'getInt', 'openfilter/sitemap/max_urls', 5000],
+            'horizontal layout' => ['getLayout', 'getString', 'openfilter/display/layout', 'horizontal'],
+            'apply button' => ['getApplyMode', 'getString', 'openfilter/display/apply_mode', 'button'],
         ];
     }
 
@@ -60,7 +69,7 @@ class ConfigTest extends TestCase
         string $getter,
         string $readerMethod,
         string $path,
-        int|float|bool $value
+        int|float|bool|string $value
     ): void {
         $reader = $this->createMock(TypedReader::class);
         $reader->expects(self::once())->method($readerMethod)
@@ -80,5 +89,25 @@ class ConfigTest extends TestCase
         self::assertSame(0, $config->getMaxActiveValues());
         self::assertSame(0, $config->getExpandedGroups());
         self::assertSame(0.0, $config->getPriceStep());
+        self::assertSame(1, $config->getSitemapMinProducts(), 'at least one product');
+        self::assertSame(0, $config->getSitemapMaxUrls());
+    }
+
+    public function testUnknownLayoutAndApplyModeFallBackTo10Behaviour(): void
+    {
+        $reader = $this->createMock(TypedReader::class);
+        $reader->method('getString')->willReturn('carousel');
+        $config = new Config($reader);
+
+        self::assertSame(Config::LAYOUT_SIDEBAR, $config->getLayout());
+        self::assertSame(Config::APPLY_INSTANT, $config->getApplyMode());
+    }
+
+    public function testTemplatesAreTrimmed(): void
+    {
+        $reader = $this->createMock(TypedReader::class);
+        $reader->method('getString')->willReturn("  {category}\n");
+
+        self::assertSame('{category}', (new Config($reader))->getH1Template());
     }
 }

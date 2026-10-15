@@ -24,7 +24,7 @@ use Magento\Framework\Exception\LocalizedException;
 
 /**
  * Saves the filter form for the scope it shows, all or nothing: for all store views the settings, the shared
- * label and the shared URL names; for a store view only its own label and URL names (settings and other store
+ * label, tooltip and URL names; for a store view only its own label, tooltip and URL names (settings and other store
  * views stay as they are, whatever else the request carries).
  */
 class Save extends Action implements HttpPostActionInterface
@@ -80,6 +80,10 @@ class Save extends Action implements HttpPostActionInterface
             if (array_key_exists('label_' . $scope, $post)) {
                 $label = trim((string) $post['label_' . $scope]);
                 $this->repository->saveLabel($key, $scope, $label === '' ? null : $label);
+            }
+            if (array_key_exists('tooltip_' . $scope, $post)) {
+                $tooltip = trim((string) $post['tooltip_' . $scope]);
+                $this->repository->saveTooltip($key, $scope, $tooltip === '' ? null : $tooltip);
             }
             $attributeId = $config->isBuiltin() ? null : $config->getAttributeId();
             if ($attributeId !== null) {

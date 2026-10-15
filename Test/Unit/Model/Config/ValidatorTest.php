@@ -11,6 +11,8 @@ namespace Iranimij\OpenFilter\Test\Unit\Model\Config;
 use Iranimij\OpenFilter\Api\Data\FilterConfigInterface as Filter;
 use Iranimij\OpenFilter\Model\Config\FilterConfig;
 use Iranimij\OpenFilter\Model\Config\Validator;
+use Iranimij\OpenFilter\Model\Url\Range;
+use Iranimij\OpenFilter\Model\Url\RangeList;
 use Magento\Framework\Exception\InputException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -35,7 +37,23 @@ class ValidatorTest extends TestCase
             'dropdown on a select' => [['display_mode' => 'dropdown'], 0, true],
             'list on a decimal' => [['input_type' => 'decimal', 'display_mode' => 'list'], 0, false],
             'unknown mode' => [['display_mode' => 'carousel'], 0, false],
-            'and logic (1.1)' => [['logic' => 'and'], 0, false],
+            'and on a multi-select option filter' => [['logic' => 'and'], 0, true],
+            'and on a single-select filter' => [['logic' => 'and', 'multiselect' => false], 0, false],
+            'and on a decimal' => [['logic' => 'and', 'input_type' => 'decimal', 'display_mode' => 'slider'], 0, false],
+            'and on a built-in' => [['builtin' => true, 'code' => 'stock', 'display_mode' => 'toggle', 'logic' => 'and'], 0, false],
+            'unknown logic' => [['logic' => 'xor'], 0, false],
+            'ranges on price' => [['builtin' => true, 'code' => 'price', 'display_mode' => 'ranges'], 0, true],
+            'ranges on a decimal' => [['input_type' => 'decimal', 'display_mode' => 'ranges'], 0, true],
+            'ranges on a select' => [['display_mode' => 'ranges'], 0, false],
+            'merchant ranges' => [['builtin' => true, 'code' => 'price', 'display_mode' => 'ranges', 'ranges' => '-50, 50-100,100-'], 0, true],
+            'overlapping ranges' => [['builtin' => true, 'code' => 'price', 'display_mode' => 'ranges', 'ranges' => '0-60,50-100'], 0, false],
+            'open range in the middle' => [['builtin' => true, 'code' => 'price', 'display_mode' => 'ranges', 'ranges' => '0-50,50-,100-200'], 0, false],
+            'not ranges' => [['builtin' => true, 'code' => 'price', 'display_mode' => 'ranges', 'ranges' => 'cheap'], 0, false],
+            'category tree' => [['builtin' => true, 'code' => 'category', 'display_mode' => 'tree'], 0, true],
+            'tree on an attribute' => [['display_mode' => 'tree'], 0, false],
+            'tree depth 5' => [['builtin' => true, 'code' => 'category', 'display_mode' => 'tree', 'tree_depth' => 5], 0, true],
+            'tree depth 6' => [['builtin' => true, 'code' => 'category', 'display_mode' => 'tree', 'tree_depth' => 6], 0, false],
+            'tree depth 0' => [['builtin' => true, 'code' => 'category', 'display_mode' => 'tree', 'tree_depth' => 0], 0, false],
             'unknown order' => [['sort_by' => 'random'], 0, false],
             'negative visible options' => [['visible_options' => -1], 0, false],
             'price slider' => [['builtin' => true, 'code' => 'price', 'display_mode' => 'slider'], 0, true],
@@ -59,20 +77,20 @@ class ValidatorTest extends TestCase
         if (!$valid) {
             $this->expectException(InputException::class);
         }
-        (new Validator())->validate(new FilterConfig(array_replace(['code' => 'attr'], $data)), $optionCount);
+        (new Validator(new RangeList(new Range())))->validate(new FilterConfig(array_replace(['code' => 'attr'], $data)), $optionCount);
         self::assertTrue($valid);
     }
 
     public function testAllProblemsAreReportedTogether(): void
     {
         try {
-            (new Validator())->validate(new FilterConfig([
-                'code' => 'attr', 'display_mode' => Filter::DISPLAY_SWATCH, 'logic' => 'and', 'search_threshold' => -2,
+            (new Validator(new RangeList(new Range())))->validate(new FilterConfig([
+                'code' => 'attr', 'display_mode' => Filter::DISPLAY_SWATCH, 'logic' => 'xor', 'search_threshold' => -2,
             ]));
             self::fail('expected an exception');
         } catch (InputException $e) {
             self::assertStringContainsString('does not fit', $e->getMessage());
-            self::assertStringContainsString('"or"', $e->getMessage());
+            self::assertStringContainsString('"xor" is not a filter logic', $e->getMessage());
             self::assertStringContainsString('negative', $e->getMessage());
         }
     }
@@ -80,7 +98,7 @@ class ValidatorTest extends TestCase
     public function testAllowedModesListOnlyWhatFits(): void
     {
         $defaults = new \Iranimij\OpenFilter\Model\Config\Defaults();
-        $validator = new Validator();
+        $validator = new Validator(new RangeList(new Range()));
 
         self::assertSame(
             ['list', 'swatch', 'dropdown'],
@@ -90,9 +108,10 @@ class ValidatorTest extends TestCase
             ['list', 'toggle', 'dropdown'],
             $validator->allowedModes($defaults->forAttribute('gift', 95, 'select', null, 10), 2)
         );
-        self::assertSame(['slider', 'from_to'], $validator->allowedModes($defaults->forBuiltin('price')));
+        self::assertSame(['slider', 'from_to', 'ranges'], $validator->allowedModes($defaults->forBuiltin('price')));
+        self::assertSame(['list', 'tree'], $validator->allowedModes($defaults->forBuiltin('category')));
         self::assertSame(['list', 'rating'], $validator->allowedModes($defaults->forBuiltin('rating')));
         self::assertSame(['toggle'], $validator->allowedModes($defaults->forBuiltin('sale')));
-        self::assertSame(['slider', 'from_to'], $validator->allowedModes($defaults->forAttribute('weight', 80, 'decimal', null, 10)));
+        self::assertSame(['slider', 'from_to', 'ranges'], $validator->allowedModes($defaults->forAttribute('weight', 80, 'decimal', null, 10)));
     }
 }

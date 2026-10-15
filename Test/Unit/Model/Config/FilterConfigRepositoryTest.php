@@ -17,6 +17,8 @@ use Iranimij\OpenFilter\Model\Config\FilterConfigProvider;
 use Iranimij\OpenFilter\Model\Config\FilterConfigRepository;
 use Iranimij\OpenFilter\Model\Config\Validator;
 use Iranimij\OpenFilter\Model\ResourceModel\FilterConfigStorage;
+use Iranimij\OpenFilter\Model\Url\Range;
+use Iranimij\OpenFilter\Model\Url\RangeList;
 use Magento\Framework\Api\Filter;
 use Magento\Framework\Api\Search\FilterGroup;
 use Magento\Framework\Api\SearchCriteria;
@@ -60,7 +62,7 @@ class FilterConfigRepositoryTest extends TestCase
         $this->repository = new FilterConfigRepository(
             $this->provider,
             $this->storage,
-            new Validator(),
+            new Validator(new RangeList(new Range())),
             $defaults,
             $this->cache,
             $this->typeList,

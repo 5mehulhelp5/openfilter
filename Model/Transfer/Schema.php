@@ -18,7 +18,10 @@ namespace Iranimij\OpenFilter\Model\Transfer;
  */
 class Schema
 {
-    public const VERSION = 1;
+    public const VERSION = 2;
+
+    /** Versions this module reads: 1 (OpenFilter 1.0) and 2 (1.1: logic "and", ranges, tree depth, tooltips). */
+    public const READS = [1, 2];
 
     public const ADMIN = 'admin';
 
@@ -35,9 +38,11 @@ class Schema
         'seo_indexable' => 'bool',
         'position_override' => '?int',
         'active' => 'bool',
+        'ranges' => '?string',
+        'tree_depth' => 'int',
     ];
 
-    private const SECTIONS = ['settings', 'labels', 'url_name', 'options'];
+    private const SECTIONS = ['settings', 'labels', 'tooltips', 'url_name', 'options'];
 
     /** Option URL names: lowercase letters, digits, single dashes. */
     private const URL_NAME = '/^[a-z0-9]+(?:-[a-z0-9]+)*$/';
@@ -59,10 +64,10 @@ class Schema
         if (!is_array($data)) {
             return ['The file is not a JSON object.'];
         }
-        if (($data['schema'] ?? null) !== self::VERSION) {
+        if (!in_array($data['schema'] ?? null, self::READS, true)) {
             $schema = json_encode($data['schema'] ?? null);
 
-            return [sprintf('Unsupported schema "%s" (this version reads %d).', $schema, self::VERSION)];
+            return [sprintf('Unsupported schema "%s" (this version reads %s).', $schema, implode(' and ', self::READS))];
         }
         $filtersData = $data['filters'] ?? null;
         if (!is_array($filtersData) || (array_is_list($filtersData) && $filtersData !== [])) {
@@ -86,6 +91,7 @@ class Schema
                 $errors,
                 ...$this->settings($key, $filter['settings'] ?? []),
                 ...$this->storeValues($key, 'labels', $filter['labels'] ?? [], $stores, null),
+                ...$this->storeValues($key, 'tooltips', $filter['tooltips'] ?? [], $stores, null),
                 ...$this->storeValues($key, 'url_name', $filter['url_name'] ?? [], $stores, self::PARAMETER)
             );
             $options = $filter['options'] ?? [];

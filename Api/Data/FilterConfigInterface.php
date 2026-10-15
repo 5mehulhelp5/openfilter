@@ -23,6 +23,10 @@ interface FilterConfigInterface
     public const DISPLAY_RATING = 'rating';
     public const DISPLAY_TOGGLE = 'toggle';
     public const DISPLAY_DROPDOWN = 'dropdown';
+    /** Price or decimal values as a list of ranges (1.1). */
+    public const DISPLAY_RANGES = 'ranges';
+    /** Category tree with several levels (1.1). */
+    public const DISPLAY_TREE = 'tree';
     public const DISPLAY_MODES = [
         self::DISPLAY_LIST,
         self::DISPLAY_SWATCH,
@@ -31,9 +35,19 @@ interface FilterConfigInterface
         self::DISPLAY_RATING,
         self::DISPLAY_TOGGLE,
         self::DISPLAY_DROPDOWN,
+        self::DISPLAY_RANGES,
+        self::DISPLAY_TREE,
     ];
 
+    /** Products matching any of the picked values. */
     public const LOGIC_OR = 'or';
+    /** Products matching all of the picked values (1.1, multi-select option filters). */
+    public const LOGIC_AND = 'and';
+    public const LOGICS = [self::LOGIC_OR, self::LOGIC_AND];
+
+    /** Category tree levels: default and limits (1.1). */
+    public const TREE_DEPTH_DEFAULT = 3;
+    public const TREE_DEPTH_MAX = 5;
 
     public const SORT_POSITION = 'position';
     public const SORT_NAME = 'name';
@@ -233,4 +247,38 @@ interface FilterConfigInterface
      * @return string|null
      */
     public function getLabel(): ?string;
+
+    /**
+     * Ranges of the "ranges" display type in the URL range format ("0-50,50-100,100-"); null = automatic ranges
+     * from the price step and the prices found (1.1).
+     *
+     * @return string|null
+     */
+    public function getRanges(): ?string;
+
+    /**
+     * @param string|null $ranges
+     * @return $this
+     */
+    public function setRanges(?string $ranges): self;
+
+    /**
+     * Levels shown by the category tree, 1 to TREE_DEPTH_MAX (1.1).
+     *
+     * @return int
+     */
+    public function getTreeDepth(): int;
+
+    /**
+     * @param int $depth
+     * @return $this
+     */
+    public function setTreeDepth(int $depth): self;
+
+    /**
+     * Resolved tooltip in the provider's store view; null = none (1.1).
+     *
+     * @return string|null
+     */
+    public function getTooltip(): ?string;
 }

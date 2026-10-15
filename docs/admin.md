@@ -19,10 +19,10 @@ One row per filter: label, code, type (attribute or built-in), how it looks, sev
 | Section | Settings |
 |---|---|
 | Why is this filter not showing? | the checks below, for any store view and category page |
-| How it looks | display type: only the types that fit the attribute are offered (swatches need swatch data, sliders a number attribute, the on/off switch a Yes/No attribute or a list with two options) |
-| How it behaves | show on the storefront, several values, options before "Show more" (0 = all), search box from N options (0 = never), open when the page loads (automatic / open / closed), option order, hide when only one option is left, position (empty = the attribute's position) |
+| How it looks | display type: only the types that fit the attribute are offered (swatches need swatch data, sliders and ranges a number attribute or price, the on/off switch a Yes/No attribute or a list with two options, the category tree the category filter); **Ranges** (price and number filters, 1.1): a list such as `0-50,50-100,100-`, empty = automatic; **Category tree levels** (category filter, 1.1): 1–5 |
+| How it behaves | show on the storefront, several values, **Products must match** (option filters, 1.1): *any* of the picked values (more products) or *all* of them (fewer products, for features a product has several of), options before "Show more" (0 = all), search box from N options (0 = never), open when the page loads (automatic / open / closed), option order, hide when only one option is left, position (empty = the attribute's position) |
 | SEO | "Let Google index pages filtered by this" (single-value pages only), URL name of the filter, URL names of the options |
-| Label | the label for all store views (empty = the attribute's label), or the chosen store view's own label |
+| Label and tooltip | the label for all store views (empty = the attribute's label) and a tooltip (a short plain-text hint shoppers open next to the filter name, 1.1), or the chosen store view's own label and tooltip |
 
 Saving is all or nothing: settings, labels and URL names are written in one transaction.
 
@@ -80,8 +80,13 @@ The same checks power `bin/magento openfilter:doctor` (1.0).
 | Debug mode | `openfilter/general/debug` | No | global |
 | Filters open by default | `openfilter/display/expanded_groups` | 3 | store view |
 | Price slider step | `openfilter/display/price_step` | 1 | store view |
+| Where filters show on desktop (1.1) | `openfilter/display/layout` | Sidebar next to the products | store view |
+| When results update on desktop (1.1) | `openfilter/display/apply_mode` | At once, with every click | store view |
+| Keep the sidebar in view while scrolling (1.1) | `openfilter/display/sticky` | No | store view |
 | Ask search engines not to follow filter links from this many active values | `openfilter/seo/nofollow_threshold` | 2 | store view |
 | Most filter values active at once | `openfilter/seo/max_active_values` | 5 | store view |
+| Page title / meta description / H1 of filtered pages (1.1) | `openfilter/seo/meta_title`, `meta_description`, `h1` | empty (Magento's own) | store view |
+| Add indexable filter pages to the XML sitemap (1.1) | `openfilter/sitemap/enabled`, `min_products`, `max_urls` | No, 1, 5000 | store view |
 | How filter counts are computed | `openfilter/search/count_strategy` | Automatic | global |
 
 Numbers are validated in the browser and on the server. Changing a setting, a filter, a label or a URL name marks the full page cache as invalid: refresh it in System › Cache Management, as with other catalog settings.

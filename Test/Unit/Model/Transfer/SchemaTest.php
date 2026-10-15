@@ -38,6 +38,21 @@ class SchemaTest extends TestCase
         self::assertSame([], (new Schema())->validate(['schema' => 1, 'filters' => []], self::FILTERS, self::STORES));
     }
 
+    public function testVersionTwoAddsLogicRangesTreeDepthAndTooltipsAndOneStillReads(): void
+    {
+        $file = ['schema' => 2, 'filters' => [
+            'color' => [
+                'settings' => ['logic' => 'and', 'ranges' => null, 'tree_depth' => 3],
+                'tooltips' => ['admin' => 'Pick all colours a product must have', 'de' => 'Alle gewählten Farben'],
+            ],
+            'rating' => ['settings' => ['ranges' => '0-50,50-']],
+        ]];
+
+        self::assertSame([], (new Schema())->validate($file, self::FILTERS, self::STORES));
+        self::assertSame(2, Schema::VERSION);
+        self::assertSame([1, 2], Schema::READS);
+    }
+
     /**
      * @return array<string, array{mixed, string}>
      */
@@ -47,7 +62,10 @@ class SchemaTest extends TestCase
 
         return [
             'not an object' => ['nonsense', 'not a JSON object'],
-            'other schema' => [['schema' => 2, 'filters' => []], 'Unsupported schema "2"'],
+            'other schema' => [['schema' => 3, 'filters' => []], 'Unsupported schema "3" (this version reads 1 and 2)'],
+            'tree depth as text' => [$filter(['settings' => ['tree_depth' => '3']]), 'tree_depth: expected int'],
+            'tooltip for an unknown store view' => [$filter(['tooltips' => ['fr' => 'x']]), 'no store view "fr"'],
+            'tooltip not text' => [$filter(['tooltips' => ['de' => 5]]), 'invalid value 5'],
             'filters as a list' => [['schema' => 1, 'filters' => [['code' => 'color']]], 'must be an object keyed by filter'],
             'unknown filter' => [['schema' => 1, 'filters' => ['ghost' => []]], 'ghost: no such filter'],
             'unknown section' => [$filter(['extra' => 1]), 'unknown section "extra"'],

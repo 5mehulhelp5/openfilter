@@ -107,6 +107,67 @@ class FilterConfigRepositoryTest extends TestCase
         self::assertNotEmpty($this->repository->getAll());
     }
 
+    public function testThe11SettingsAreValidatedAndPersisted(): void
+    {
+        $this->repository->save($this->repository->getByCode(self::CODE)->setLogic(Filter::LOGIC_AND));
+        $price = $this->repository->getByCode(Filter::BUILTIN_PRICE);
+        $this->repository->save($price->setDisplayMode(Filter::DISPLAY_RANGES)->setRanges('0-50,50-100,100-'));
+        $category = $this->repository->getByCode(Filter::BUILTIN_CATEGORY);
+        $this->repository->save($category->setDisplayMode(Filter::DISPLAY_TREE)->setTreeDepth(2));
+
+        $configs = $this->freshProvider()->getForStore(0);
+        self::assertSame(Filter::LOGIC_AND, $configs[self::CODE]->getLogic());
+        self::assertSame(Filter::DISPLAY_RANGES, $configs[Filter::BUILTIN_PRICE]->getDisplayMode());
+        self::assertSame('0-50,50-100,100-', $configs[Filter::BUILTIN_PRICE]->getRanges());
+        self::assertSame(Filter::DISPLAY_TREE, $configs[Filter::BUILTIN_CATEGORY]->getDisplayMode());
+        self::assertSame(2, $configs[Filter::BUILTIN_CATEGORY]->getTreeDepth());
+
+        $this->expectException(InputException::class);
+        $this->expectExceptionMessage('not a list like');
+        $this->repository->save($this->freshRepository()->getByCode(Filter::BUILTIN_PRICE)->setRanges('0-60,50-100'));
+    }
+
+    public function testTooltipsPerStoreViewAndALabelClearedKeepsTheTooltip(): void
+    {
+        $storeId = (int) $this->om->get(StoreManagerInterface::class)->getStore('default')->getId();
+        $this->repository->saveTooltip(Filter::BUILTIN_STOCK, 0, 'Ships today');
+        $this->repository->saveTooltip(Filter::BUILTIN_STOCK, $storeId, 'Ready to ship');
+        $this->repository->saveTooltip(self::CODE, 0, 'For all');
+        $this->repository->saveLabel(Filter::BUILTIN_STOCK, $storeId, 'Available');
+
+        self::assertSame('Ready to ship', $this->freshProvider()->getForStore($storeId)[Filter::BUILTIN_STOCK]->getTooltip());
+        self::assertSame('Ships today', $this->freshProvider()->getForStore(0)[Filter::BUILTIN_STOCK]->getTooltip());
+        self::assertSame('For all', $this->freshProvider()->getForStore($storeId)[self::CODE]->getTooltip());
+
+        $this->repository->saveLabel(Filter::BUILTIN_STOCK, $storeId, null);
+        self::assertSame('Ready to ship', $this->freshProvider()->getForStore($storeId)[Filter::BUILTIN_STOCK]->getTooltip());
+
+        $this->repository->saveTooltip(Filter::BUILTIN_STOCK, $storeId, '');
+        $this->repository->saveTooltip(self::CODE, 0, null);
+        $connection = $this->om->get(ResourceConnection::class)->getConnection();
+        $rows = $connection->fetchOne($connection->select()
+            ->from($connection->getTableName('openfilter_builtin_store'), ['COUNT(*)'])
+            ->where('code = ?', Filter::BUILTIN_STOCK)->where('store_id = ?', $storeId));
+        self::assertSame('0', (string) $rows, 'a store row without label and tooltip is removed');
+        self::assertSame('Ships today', $this->freshProvider()->getForStore($storeId)[Filter::BUILTIN_STOCK]->getTooltip());
+        self::assertNull($this->freshProvider()->getForStore($storeId)[self::CODE]->getTooltip());
+    }
+
+    public function testAFilterIsShownInCategoriesThroughItsOwnTable(): void
+    {
+        $connection = $this->om->get(ResourceConnection::class)->getConnection();
+        $table = $connection->getTableName('openfilter_filter_category');
+        $connection->insert($table, ['filter_key' => self::CODE, 'category_id' => 2, 'mode' => 'show']);
+        try {
+            self::assertSame(
+                ['filter_key' => self::CODE, 'category_id' => '2', 'mode' => 'show'],
+                $connection->fetchRow($connection->select()->from($table)->where('filter_key = ?', self::CODE))
+            );
+        } finally {
+            $connection->delete($table, ['filter_key = ?' => self::CODE]);
+        }
+    }
+
     public function testDeletingTheAttributeRemovesItsSettings(): void
     {
         $config = $this->repository->getByCode(self::CODE);
