@@ -60,8 +60,8 @@ Themes can style or extend these; class names and attributes stay stable within 
 | Element | Selector |
 |---|---|
 | Filter region (swapped) | `#of-filters` inside `dialog#of-drawer.of-drawer` |
-| Chips region (swapped) | `#of-state.of-state` (`data-of-count`, `data-of-announce`) |
-| Results region (swapped) | `#of-results.of-results` |
+| Chips region (swapped) | `#of-state.of-state` (`data-of-clear-url`) |
+| Results region (swapped) | `#of-results.of-results`, ending with `#of-count` (`data-of-count`, `data-of-announce`: the product count, printed after the product list) |
 | One filter | `details.of-group.of-group--{list,swatch,slider,from_to,rating,toggle,category}[data-of-group="<key>"]` |
 | Option | `a.of-option` / `a.of-swatch` with `data-of-link`, `data-of-value`, `aria-current="true"` when selected |
 | Show more | `details.of-more` |
