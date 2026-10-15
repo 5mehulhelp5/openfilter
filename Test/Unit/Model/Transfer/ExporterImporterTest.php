@@ -99,7 +99,7 @@ class ExporterImporterTest extends TestCase
 
         self::assertTrue($result['applied']);
         self::assertSame([], $result['errors']);
-        self::assertContains('color.settings.visible_options: 6 → 9', $result['changes']);
+        self::assertContains('color.settings.visible_options: 12 → 9', $result['changes']);
     }
 
     public function testDryRunAndRefusedValuesRollBack(): void

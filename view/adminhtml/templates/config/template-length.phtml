@@ -1,0 +1,14 @@
+<?php
+/**
+ * Copyright © Iman Aboheydary. All rights reserved.
+ * See LICENSE for license details (MIT).
+ */
+
+/** @var \Magento\Backend\Block\Template $block */
+/** @var \Magento\Framework\Escaper $escaper */
+$options = [
+    'fields' => ['openfilter_seo_meta_title' => 60, 'openfilter_seo_meta_description' => 160],
+    'label' => (string) __('%1 of about %2 characters shown in search results'),
+];
+?>
+<script type="text/x-magento-init">{"*": {"Iranimij_OpenFilter/js/template-length": <?= /* @noEscape */ json_encode($options) ?>}}</script>

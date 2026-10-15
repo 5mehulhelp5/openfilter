@@ -83,6 +83,25 @@ class FiltersGridTest extends AbstractBackendController
         self::assertArrayHasKey('rating', $rows);
         self::assertSame(0, $rows['rating']['active']);
         self::assertStringContainsString('openfilter/filter/edit/code/' . self::CODE, $rows[self::CODE]['actions']['edit']['href']);
+        // Review #1: the storefront place, logic and "Where it shows" at a glance.
+        $places = array_column($rows, 'order');
+        sort($places);
+        self::assertSame(range(1, count($places)), $places, 'every filter has its own place');
+        self::assertSame('or', $rows[self::CODE]['logic']);
+        self::assertSame('Every category', $rows[self::CODE]['where']);
+    }
+
+    public function testShowOnSearchPagesSetsTheAttributesFlagAndSkipsBuiltins(): void
+    {
+        $attributes = $this->_objectManager->get(\Magento\Catalog\Api\ProductAttributeRepositoryInterface::class);
+        $attribute = $attributes->get(self::CODE);
+        $attributes->save($attribute->setIsFilterableInSearch(0));
+
+        $this->massAction('search_on', ['selected' => [self::CODE, 'rating']]);
+
+        self::assertSame(1, (int) $this->_objectManager->create(\Magento\Catalog\Api\ProductAttributeRepositoryInterface::class)
+            ->get(self::CODE)->getIsFilterableInSearch());
+        $this->assertSessionMessages(self::containsEqual('1 filter(s) show on search result pages too.'), MessageInterface::TYPE_SUCCESS);
     }
 
     public function testInlineEditSavesEachRowAndReportsBadRowsWithoutStoppingTheOthers(): void

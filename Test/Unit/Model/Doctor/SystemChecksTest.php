@@ -23,8 +23,8 @@ class SystemChecksTest extends TestCase
     {
         $checks = $this->rows($this->checks()->run(1, [93 => 'color']));
 
-        self::assertSame(['engine', 'strategy', 'cache', 'url_names', 'replacements'], array_keys($checks));
-        self::assertSame([true, true, true, true, true], array_column($checks, 'ok'));
+        self::assertSame(['engine', 'strategy', 'cache', 'url_names', 'search_page_filters', 'replacements'], array_keys($checks));
+        self::assertSame([true, true, true, true, true, true], array_column($checks, 'ok'));
         self::assertStringContainsString('single_query (engine opensearch)', $checks['strategy']['detail']);
         self::assertStringContainsString('2 fields', $checks['engine']['detail']);
     }
@@ -42,9 +42,9 @@ class SystemChecksTest extends TestCase
                 ]],
             ],
         ];
-        $checks = $this->rows($this->checks(null, false, [93 => [1 => 'red']], $di)->run(1, [93 => 'color']));
+        $checks = $this->rows($this->checks(null, false, [93 => [1 => 'red']], $di, 0)->run(1, [93 => 'color']));
 
-        foreach (['engine', 'cache', 'url_names', 'replacements'] as $code) {
+        foreach (['engine', 'cache', 'url_names', 'search_page_filters', 'replacements'] as $code) {
             self::assertFalse($checks[$code]['ok'], $code);
             self::assertNotNull($checks[$code]['fix'], $code);
         }
@@ -80,7 +80,8 @@ class SystemChecksTest extends TestCase
         ?array $fields = ['color', 'price_0_1'],
         bool $cache = true,
         array $unnamed = [],
-        array $di = []
+        array $di = [],
+        int $searchAttributes = 3
     ): SystemChecks {
         $engine = $this->createStub(EngineProbe::class);
         $engine->method('fields')->willReturn($fields);
@@ -100,6 +101,12 @@ class SystemChecksTest extends TestCase
         $loader = $this->createStub(ConfigLoaderInterface::class);
         $loader->method('load')->willReturnCallback(static fn (string $area): array => $di[$area] ?? []);
 
-        return new SystemChecks($engine, $strategies, $state, $slugs, $loader);
+        $collection = $this->createStub(\Magento\Catalog\Model\ResourceModel\Product\Attribute\Collection::class);
+        $collection->method('addFieldToFilter')->willReturnSelf();
+        $collection->method('getSize')->willReturn($searchAttributes);
+        $attributes = $this->createStub(\Magento\Catalog\Model\ResourceModel\Product\Attribute\CollectionFactory::class);
+        $attributes->method('create')->willReturn($collection);
+
+        return new SystemChecks($engine, $strategies, $state, $slugs, $loader, $attributes);
     }
 }

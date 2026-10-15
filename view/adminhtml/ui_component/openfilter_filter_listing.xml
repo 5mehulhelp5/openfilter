@@ -69,6 +69,24 @@
                     <label translate="true">Hide from the storefront</label>
                 </settings>
             </action>
+            <action name="search_on">
+                <settings>
+                    <url path="openfilter/filter/massAction">
+                        <param name="do">search_on</param>
+                    </url>
+                    <type>search_on</type>
+                    <label translate="true">Show on search pages</label>
+                </settings>
+            </action>
+            <action name="search_off">
+                <settings>
+                    <url path="openfilter/filter/massAction">
+                        <param name="do">search_off</param>
+                    </url>
+                    <type>search_off</type>
+                    <label translate="true">Hide on search pages</label>
+                </settings>
+            </action>
             <action name="reset">
                 <settings>
                     <confirm>
@@ -206,6 +224,26 @@
                 </editor>
                 <sorting>asc</sorting>
                 <label translate="true">Position</label>
+            </settings>
+        </column>
+        <column name="order" sortOrder="85">
+            <settings>
+                <sortable>false</sortable>
+                <label translate="true">Order</label>
+            </settings>
+        </column>
+        <column name="logic" component="Magento_Ui/js/grid/columns/select" sortOrder="95">
+            <settings>
+                <options class="Iranimij\OpenFilter\Model\Config\Source\Logic"/>
+                <sortable>false</sortable>
+                <dataType>select</dataType>
+                <label translate="true">Products must match</label>
+            </settings>
+        </column>
+        <column name="where" sortOrder="97">
+            <settings>
+                <sortable>false</sortable>
+                <label translate="true">Where it shows</label>
             </settings>
         </column>
         <column name="active" component="Magento_Ui/js/grid/columns/select" sortOrder="100">

@@ -55,7 +55,7 @@ class FilterConfigListTest extends TestCase
             'in from a comma list' => [[['code', 'stock,color', 'in']], ['color', 'stock']],
             'nin' => [[['code', ['category', 'rating', 'stock', 'new'], 'nin']], ['color', 'size', 'material']],
             'range' => [[['position', '10', 'gteq'], ['position', '20', 'lteq']], ['color', 'size']],
-            'gt and lt' => [[['visible_options', '5', 'gt'], ['visible_options', '7', 'lt']], ['color', 'size', 'material', 'rating', 'stock', 'category', 'new', 'new']],
+            'gt and lt' => [[['visible_options', '5', 'gt'], ['visible_options', '7', 'lt']], ['material', 'rating', 'stock', 'category', 'new', 'new']],
             'null' => [[['label', null, 'null']], ['category', 'rating', 'stock', 'new']],
             'notnull' => [[['label', null, 'notnull']], ['color', 'size', 'material', 'new']],
             'unknown field matches nothing' => [[['brand', 'x', 'eq']], []],

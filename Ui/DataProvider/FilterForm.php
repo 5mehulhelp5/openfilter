@@ -47,6 +47,9 @@ class FilterForm extends AbstractDataProvider
     /** Input template that names table inputs after their column and option (no visible label in a cell). */
     private const ROW_INPUT = 'Iranimij_OpenFilter/form/element/row-input';
 
+    /** Read-only cells of the options table (Review #1). */
+    private const ROW_TEXT = 'Iranimij_OpenFilter/form/element/row-text';
+
     /** @var string|null key of the filter the form shows */
     private ?string $key = null;
 
@@ -301,9 +304,9 @@ class FilterForm extends AbstractDataProvider
                 'dataScope' => 'option_store_label',
                 'sortOrder' => 25,
                 'disabled' => true,
-                'elementTmpl' => self::ROW_INPUT,
+                'elementTmpl' => self::ROW_TEXT,
             ]),
-            'url_name_0' => ['arguments' => ['data' => ['config' => ['disabled' => true]]]],
+            'url_name_0' => ['arguments' => ['data' => ['config' => ['disabled' => true, 'elementTmpl' => self::ROW_TEXT]]]],
             'url_name_' . $scope => $this->field([
                 'label' => (string) __('URL name in "%1"', $store),
                 'dataScope' => 'url_name_' . $scope,

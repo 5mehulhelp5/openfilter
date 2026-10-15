@@ -64,13 +64,10 @@
                     <comment>The filters stay next to the products while shoppers scroll a long list (sidebar layout only).</comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <backend_model>Iranimij\OpenFilter\Model\Config\Backend\PageCacheValue</backend_model>
-                    <depends>
-                        <field id="layout">sidebar</field>
-                    </depends>
                 </field>
             </group>
             <group id="seo" translate="label" type="text" sortOrder="18" showInDefault="1" showInWebsite="1" showInStore="1">
-                <label>Search engines</label>
+                <label>SEO</label>
                 <field id="nofollow_threshold" translate="label comment" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
                     <label>Ask search engines not to follow filter links from this many active values</label>
                     <comment>Keeps crawlers out of endless filter combinations. 0 = never.</comment>
@@ -126,7 +123,7 @@
                 </field>
             </group>
             <group id="search" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="0" showInStore="0">
-                <label>Search engine</label>
+                <label>Filter counts</label>
                 <field id="count_strategy" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
                     <label>How filter counts are computed</label>
                     <comment>Automatic picks the fastest method proven for your search engine. Both methods show the same numbers.</comment>

@@ -46,6 +46,23 @@ define(['jquery'], function ($) {
      * document and reads its options from the panel.
      */
     return function () {
+        var tries = 0,
+            timer;
+
+        // Opened from the grid's "Why is this filter not showing?" link: the panel is last in the form, bring it
+        // into view once Knockout has inserted it.
+        if (/\/why\/1(\/|$)/.test(window.location.pathname)) {
+            timer = setInterval(function () {
+                var panel = document.querySelector('.of-why');
+
+                if (panel || ++tries > 50) {
+                    clearInterval(timer);
+                    if (panel) {
+                        panel.scrollIntoView({block: 'start'});
+                    }
+                }
+            }, 100);
+        }
         $(document).on('click', '.of-why [data-of-why-run]', function () {
             var root = $(this).closest('.of-why'),
                 list = root.find('[data-of-why-checks]')[0],

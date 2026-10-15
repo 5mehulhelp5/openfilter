@@ -359,7 +359,7 @@
                     <settings>
                         <dataType>text</dataType>
                         <label translate="true">Option</label>
-                        <elementTmpl>Iranimij_OpenFilter/form/element/row-input</elementTmpl>
+                        <elementTmpl>Iranimij_OpenFilter/form/element/row-text</elementTmpl>
                         <disabled>true</disabled>
                     </settings>
                 </field>
@@ -390,7 +390,7 @@
             </container>
         </dynamicRows>
     </fieldset>
-    <fieldset name="why" sortOrder="5">
+    <fieldset name="why" sortOrder="90">
         <settings>
             <label translate="true">Why is this filter not showing?</label>
             <collapsible>true</collapsible>
