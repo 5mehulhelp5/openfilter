@@ -1,0 +1,30 @@
+:root { --ink: #1f2937; --muted: #6b7280; --line: #e5e7eb; --accent: #2563eb; --bg: #fff; color-scheme: light; }
+* { box-sizing: border-box; }
+body { margin: 0; font: 16px/1.5 system-ui, sans-serif; color: var(--ink); background: var(--bg); }
+.top { padding: 16px; border-bottom: 1px solid var(--line); }
+.top h1 { margin: 0; font-size: 1.5rem; }
+.top p { margin: 4px 0 0; color: var(--muted); }
+.page { display: grid; grid-template-columns: 260px 1fr; gap: 24px; padding: 16px; }
+@media (max-width: 720px) { .page { grid-template-columns: 1fr; } }
+.filters details { border-bottom: 1px solid var(--line); padding: 8px 0; }
+.filters summary { cursor: pointer; font-weight: 600; }
+.filters .hint { margin: 4px 0; color: var(--muted); font-size: .875rem; }
+.filters ul { list-style: none; margin: 8px 0 0; padding: 0; }
+.filters li { margin: 2px 0; }
+.filters label { display: flex; gap: 8px; align-items: center; cursor: pointer; }
+.filters .count { margin-inline-start: auto; color: var(--muted); font-size: .875rem; }
+.filters .depth-2 { padding-inline-start: 16px; } .filters .depth-3 { padding-inline-start: 32px; }
+.swatch { inline-size: 16px; block-size: 16px; border-radius: 50%; border: 1px solid var(--line); }
+.range { display: flex; gap: 8px; align-items: end; margin-top: 8px; }
+.range label { flex-direction: column; align-items: start; font-size: .875rem; }
+.range input { inline-size: 80px; padding: 4px; }
+button { font: inherit; padding: 4px 10px; border: 1px solid var(--line); border-radius: 6px; background: #f9fafb; cursor: pointer; }
+button:focus-visible, input:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.chips button { border-radius: 999px; }
+.products { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px; }
+.products img { inline-size: 100%; block-size: auto; aspect-ratio: 3 / 4; object-fit: cover; background: #f3f4f6; }
+.products h2 { font-size: .95rem; margin: 6px 0 2px; }
+.products p { margin: 0; color: var(--muted); }
+.error { color: #b91c1c; }
+[aria-busy="true"] .products { opacity: .5; }

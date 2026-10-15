@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>OpenFilter headless example</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="app.js" defer></script>
+</head>
+<body>
+<!--
+  OpenFilter headless example: one static page, plain JavaScript, no build and no dependencies. It reads
+  products { openfilter_aggregations } from Magento's GraphQL endpoint (same origin by default) and keeps the
+  storefront's URL format (?color=black,blue&price=10-30). Options: ?category=<id> (default: the store's first
+  category with products), ?store=<store view code>, ?endpoint=<GraphQL URL>.
+-->
+<header class="top">
+    <h1 id="title">Products</h1>
+    <p id="count" role="status" aria-live="polite"></p>
+</header>
+<main class="page">
+    <nav id="filters" class="filters" aria-label="Filters"></nav>
+    <section class="results" aria-labelledby="title">
+        <div id="chips" class="chips"></div>
+        <ul id="products" class="products"></ul>
+        <p id="error" class="error" role="alert" hidden></p>
+    </section>
+</main>
+</body>
+</html>
