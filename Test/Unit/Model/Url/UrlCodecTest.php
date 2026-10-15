@@ -11,6 +11,7 @@ namespace Iranimij\OpenFilter\Test\Unit\Model\Url;
 use Iranimij\OpenFilter\Model\Config\Defaults;
 use Iranimij\OpenFilter\Model\Config\FilterConfig;
 use Iranimij\OpenFilter\Model\Config\FilterConfigProvider;
+use Iranimij\OpenFilter\Model\Layer\CategoryTree;
 use Iranimij\OpenFilter\Model\Url\FilterState;
 use Iranimij\OpenFilter\Model\Url\Range;
 use Iranimij\OpenFilter\Model\Url\SlugProvider;
@@ -48,7 +49,7 @@ class UrlCodecTest extends TestCase
                 144 => [167 => 's', 168 => 'm', 169 => 'l'],
             ],
         ]);
-        $this->codec = new UrlCodec($configProvider, $slugProvider, new Range());
+        $this->codec = new UrlCodec($configProvider, $slugProvider, new Range(), $this->createStub(CategoryTree::class));
     }
 
     public function testDecodesSlugsIdsRangesAndToggles(): void
@@ -151,7 +152,7 @@ class UrlCodecTest extends TestCase
         $configProvider->method('getActive')->willReturn($configs);
         $slugProvider = $this->createStub(SlugProvider::class);
         $slugProvider->method('forStore')->willReturn(['attributes' => [82 => 'weight'], 'options' => []]);
-        $codec = new UrlCodec($configProvider, $slugProvider, new Range());
+        $codec = new UrlCodec($configProvider, $slugProvider, new Range(), $this->createStub(CategoryTree::class));
 
         $state = $codec->decode(['price' => '100-,50-100,0-50,50-100,cheap,-20', 'weight' => '2-3,1-2'], 1);
 
@@ -163,5 +164,25 @@ class UrlCodecTest extends TestCase
             $codec->encode($state->with('price', ['100-', '0-50']), 1),
             'a range added at the end is put in order'
         );
+    }
+
+    public function testTheCategoryTreeUsesCatWithIdsInTreeOrder(): void
+    {
+        $defaults = new Defaults();
+        $configProvider = $this->createStub(FilterConfigProvider::class);
+        $configProvider->method('getActive')->willReturn([
+            'category' => $defaults->forBuiltin('category')->setDisplayMode('tree')->setMultiselect(true),
+        ]);
+        $slugProvider = $this->createStub(SlugProvider::class);
+        $slugProvider->method('forStore')->willReturn(['attributes' => [], 'options' => []]);
+        $tree = $this->createStub(CategoryTree::class);
+        $tree->method('order')->willReturn([20 => 0, 23 => 1, 21 => 2]);
+        $codec = new UrlCodec($configProvider, $slugProvider, new Range(), $tree);
+
+        $state = $codec->decode(['cat' => '21,99,abc,20,21'], 1);
+
+        self::assertSame(['20', '21'], $state->get('category'), 'unknown ids dropped, tree order');
+        self::assertSame(['cat' => '20,23,21'], $codec->encode($state->with('category', ['21', '23', '20']), 1));
+        self::assertSame(['cat' => 'category'], $codec->getParameterNames(1));
     }
 }

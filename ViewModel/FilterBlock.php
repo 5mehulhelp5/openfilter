@@ -130,7 +130,8 @@ class FilterBlock implements ArgumentInterface
             (string) $item->getUrl(),
             (int) $item->getData('count'),
             $selected,
-            $this->nofollow->rel($this->context->state()->count(), $selected, $storeId)
+            $this->nofollow->rel($this->context->state()->count(), $selected, $storeId),
+            (int) $item->getData('depth')
         );
     }
 }

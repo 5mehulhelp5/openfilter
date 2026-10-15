@@ -20,6 +20,7 @@ class FilterOption
      * @param int $count products the link leads to
      * @param bool $selected
      * @param string $rel the link's rel attribute ('nofollow' beyond the SEO threshold, '' otherwise)
+     * @param int $depth level in the category tree (1 = a child of the page's category; 0 outside a tree)
      */
     public function __construct(
         private readonly string $label,
@@ -27,7 +28,8 @@ class FilterOption
         private readonly string $url,
         private readonly int $count,
         private readonly bool $selected,
-        private readonly string $rel = ''
+        private readonly string $rel = '',
+        private readonly int $depth = 0
     ) {
     }
 
@@ -79,5 +81,15 @@ class FilterOption
     public function getRel(): string
     {
         return $this->rel;
+    }
+
+    /**
+     * Level in the category tree (1.1): 1 = a child of the page's category, 0 = not a tree option.
+     *
+     * @return int
+     */
+    public function getDepth(): int
+    {
+        return $this->depth;
     }
 }

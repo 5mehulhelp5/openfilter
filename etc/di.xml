@@ -118,6 +118,11 @@
             <argument name="filterItemFactory" xsi:type="object">Iranimij\OpenFilter\Model\Layer\Filter\ItemFactory</argument>
         </arguments>
     </type>
+    <type name="Iranimij\OpenFilter\Model\Layer\Filter\CategoryTree">
+        <arguments>
+            <argument name="filterItemFactory" xsi:type="object">Iranimij\OpenFilter\Model\Layer\Filter\ItemFactory</argument>
+        </arguments>
+    </type>
     <type name="Iranimij\OpenFilter\Model\Layer\Filter\Builtin">
         <arguments>
             <argument name="filterItemFactory" xsi:type="object">Iranimij\OpenFilter\Model\Layer\Filter\ItemFactory</argument>

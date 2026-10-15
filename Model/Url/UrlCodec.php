@@ -12,6 +12,8 @@ use Iranimij\OpenFilter\Api\Data\FilterConfigInterface as Filter;
 use Iranimij\OpenFilter\Api\FilterStateInterface;
 use Iranimij\OpenFilter\Api\UrlCodecInterface;
 use Iranimij\OpenFilter\Model\Config\FilterConfigProvider;
+use Iranimij\OpenFilter\Model\Layer\CategoryTree;
+use Iranimij\OpenFilter\Model\Layer\Filter\CategoryTree as CategoryTreeFilter;
 
 /**
  * Query parameters <-> filter state (Spec UrlCodec). Reads only the cached config and URL names: no SQL.
@@ -23,10 +25,12 @@ class UrlCodec implements UrlCodecInterface
     public const TYPE_RANGE = 'range';
     public const TYPE_RATING = 'rating';
     public const TYPE_TOGGLE = 'toggle';
+    /** Category ids of the category tree (1.1); in the list display core's drill-down keeps `cat`. */
+    public const TYPE_CATEGORY = 'category';
 
     /**
      * @var array<int, array<string, array{param: string, type: string, multiselect: bool, ranges: bool,
-     *     options: array<int, string>, bySlug: array<string, int>}>>
+     *     options: array<int, string|int>, bySlug: array<string, int>}>>
      */
     private array $lookups = [];
 
@@ -34,11 +38,13 @@ class UrlCodec implements UrlCodecInterface
      * @param FilterConfigProvider $configProvider
      * @param SlugProvider $slugProvider
      * @param Range $range
+     * @param CategoryTree $categoryTree category ids and their tree order (category tree display)
      */
     public function __construct(
         private readonly FilterConfigProvider $configProvider,
         private readonly SlugProvider $slugProvider,
-        private readonly Range $range
+        private readonly Range $range,
+        private readonly CategoryTree $categoryTree
     ) {
     }
 
@@ -85,6 +91,10 @@ class UrlCodec implements UrlCodecInterface
                 usort($values, static fn (string $a, string $b): int =>
                     [$position[(int) $a] ?? PHP_INT_MAX, (int) $a] <=> [$position[(int) $b] ?? PHP_INT_MAX, (int) $b]);
                 $values = array_map(static fn (string $id): string => $filter['options'][(int) $id] ?? $id, $values);
+            }
+            if ($filter['type'] === self::TYPE_CATEGORY) {
+                usort($values, static fn (string $a, string $b): int =>
+                    ($filter['options'][(int) $a] ?? PHP_INT_MAX) <=> ($filter['options'][(int) $b] ?? PHP_INT_MAX));
             }
             if ($filter['type'] === self::TYPE_RANGE && $filter['ranges']) {
                 $values = $this->sortRanges($values);
@@ -175,6 +185,17 @@ class UrlCodec implements UrlCodecInterface
                 ))));
 
                 return $filter['multiselect'] ? $ranges : array_slice($ranges, 0, 1);
+            case self::TYPE_CATEGORY:
+                $ids = [];
+                foreach ($tokens as $token) {
+                    if (ctype_digit($token) && isset($filter['options'][(int) $token])) {
+                        $ids[(int) $token] = $filter['options'][(int) $token];
+                    }
+                }
+                asort($ids);
+                $ids = array_map('strval', array_keys($ids));
+
+                return $filter['multiselect'] ? $ids : array_slice($ids, 0, 1);
             case self::TYPE_RATING:
                 return ctype_digit($tokens[0]) ? [(string) min(5, max(1, (int) $tokens[0]))] : [];
             default:
@@ -187,7 +208,7 @@ class UrlCodec implements UrlCodecInterface
      *
      * @param int $storeId
      * @return array<string, array{param: string, type: string, multiselect: bool, ranges: bool,
-     *     options: array<int, string>, bySlug: array<string, int>}>
+     *     options: array<int, string|int>, bySlug: array<string, int>}>
      */
     private function lookup(int $storeId): array
     {
@@ -202,15 +223,22 @@ class UrlCodec implements UrlCodecInterface
                 continue;
             }
             $attributeId = (int) $config->getAttributeId();
-            $options = $type === self::TYPE_OPTIONS ? ($slugs['options'][$attributeId] ?? []) : [];
+            $options = match ($type) {
+                self::TYPE_OPTIONS => $slugs['options'][$attributeId] ?? [],
+                self::TYPE_CATEGORY => $this->categoryTree->order($storeId),
+                default => [],
+            };
             $lookup[$key] = [
-                'param' => $config->isBuiltin() ? $config->getCode()
-                    : ($slugs['attributes'][$attributeId] ?? $config->getCode()),
+                'param' => match (true) {
+                    $type === self::TYPE_CATEGORY => CategoryTreeFilter::REQUEST_VAR,
+                    $config->isBuiltin() => $config->getCode(),
+                    default => $slugs['attributes'][$attributeId] ?? $config->getCode(),
+                },
                 'type' => $type,
                 'multiselect' => $config->isMultiselect(),
                 'ranges' => $config->getDisplayMode() === Filter::DISPLAY_RANGES,
                 'options' => $options,
-                'bySlug' => array_flip($options),
+                'bySlug' => $type === self::TYPE_OPTIONS ? array_flip($options) : [],
             ];
         }
 
@@ -237,7 +265,7 @@ class UrlCodec implements UrlCodecInterface
 
     /**
      * @param Filter $config
-     * @return string|null null for filters the codec does not handle (category: core's `cat`)
+     * @return string|null null for filters the codec does not handle (category list: core's `cat` drill-down)
      */
     private function typeOf(Filter $config): ?string
     {
@@ -245,7 +273,7 @@ class UrlCodec implements UrlCodecInterface
             return match ($config->getCode()) {
                 Filter::BUILTIN_PRICE => self::TYPE_RANGE,
                 Filter::BUILTIN_RATING => self::TYPE_RATING,
-                Filter::BUILTIN_CATEGORY => null,
+                Filter::BUILTIN_CATEGORY => $config->getDisplayMode() === Filter::DISPLAY_TREE ? self::TYPE_CATEGORY : null,
                 default => self::TYPE_TOGGLE,
             };
         }
