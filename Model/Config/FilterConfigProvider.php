@@ -153,9 +153,14 @@ class FilterConfigProvider
             static fn (FilterConfig $a, FilterConfig $b): int =>
                 [$a->getPosition(), $a->getCode()] <=> [$b->getPosition(), $b->getCode()]
         );
+        $rules = $this->storage->categoryRules();
         $byCode = [];
         foreach ($configs as $config) {
-            $byCode[$this->keyOf($config)] = $config;
+            $key = $this->keyOf($config);
+            if (isset($rules[$key])) {
+                $config = $config->with(['category_mode' => $rules[$key]['mode'], 'category_ids' => $rules[$key]['ids']]);
+            }
+            $byCode[$key] = $config;
         }
 
         return $byCode;

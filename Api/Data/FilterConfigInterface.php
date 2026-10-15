@@ -45,6 +45,12 @@ interface FilterConfigInterface
     public const LOGIC_AND = 'and';
     public const LOGICS = [self::LOGIC_OR, self::LOGIC_AND];
 
+    /** Where the filter shows on category pages (1.1): everywhere, only in, or everywhere except some categories. */
+    public const CATEGORIES_ALL = 'all';
+    public const CATEGORIES_ONLY = 'only';
+    public const CATEGORIES_EXCEPT = 'except';
+    public const CATEGORY_MODES = [self::CATEGORIES_ALL, self::CATEGORIES_ONLY, self::CATEGORIES_EXCEPT];
+
     /** Category tree levels: default and limits (1.1). */
     public const TREE_DEPTH_DEFAULT = 3;
     public const TREE_DEPTH_MAX = 5;
@@ -281,4 +287,29 @@ interface FilterConfigInterface
      * @return string|null
      */
     public function getTooltip(): ?string;
+
+    /**
+     * Where the filter shows on category pages (1.1): CATEGORIES_ALL, CATEGORIES_ONLY or CATEGORIES_EXCEPT the
+     * categories of getCategoryIds() and the categories below them. Search pages always show it.
+     *
+     * @return string
+     */
+    public function getCategoryMode(): string;
+
+    /**
+     * @param string $mode
+     * @return $this
+     */
+    public function setCategoryMode(string $mode): self;
+
+    /**
+     * @return int[]
+     */
+    public function getCategoryIds(): array;
+
+    /**
+     * @param int[] $categoryIds
+     * @return $this
+     */
+    public function setCategoryIds(array $categoryIds): self;
 }

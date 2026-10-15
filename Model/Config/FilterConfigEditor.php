@@ -39,6 +39,16 @@ class FilterConfigEditor
             $ranges = preg_replace('/\s+/', '', (string) $values['ranges']);
             $edited->setRanges($ranges === '' || $ranges === null ? null : $ranges);
         }
+        if (isset($values['category_mode'])) {
+            $edited->setCategoryMode(trim((string) $values['category_mode']));
+        }
+        if (isset($values['category_mode']) && !array_key_exists('category_ids', $values)) {
+            $values['category_ids'] = []; // the form posts no ids when every chip was removed
+        }
+        if (array_key_exists('category_ids', $values)) {
+            $ids = is_array($values['category_ids']) ? $values['category_ids'] : explode(',', (string) $values['category_ids']);
+            $edited->setCategoryIds(array_map('intval', array_filter(array_map('trim', array_map('strval', $ids)), 'ctype_digit')));
+        }
         if (array_key_exists('tree_depth', $values)) {
             $edited->setTreeDepth($this->count($values['tree_depth'], __('Category tree levels')));
         }

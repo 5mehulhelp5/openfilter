@@ -54,6 +54,8 @@ class FilterConfig implements FilterConfigInterface
         'ranges' => null,
         'tree_depth' => self::TREE_DEPTH_DEFAULT,
         'tooltip' => null,
+        'category_mode' => self::CATEGORIES_ALL,
+        'category_ids' => [],
     ];
 
     /**
@@ -123,6 +125,8 @@ class FilterConfig implements FilterConfigInterface
             ->setPositionOverride($config->getPositionOverride())
             ->setRanges($config->getRanges())
             ->setTreeDepth($config->getTreeDepth())
+            ->setCategoryMode($config->getCategoryMode())
+            ->setCategoryIds($config->getCategoryIds())
             ->setActive($config->isActive());
 
         return $copy;
@@ -453,6 +457,43 @@ class FilterConfig implements FilterConfigInterface
     }
 
     /**
+     * @inheritDoc
+     */
+    public function getCategoryMode(): string
+    {
+        return (string) $this->data['category_mode'];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setCategoryMode(string $mode): self
+    {
+        $this->data['category_mode'] = $mode;
+
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getCategoryIds(): array
+    {
+        return $this->data['category_ids'];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setCategoryIds(array $categoryIds): self
+    {
+        $this->data['category_ids'] = array_values(array_unique(array_map('intval', $categoryIds)));
+        sort($this->data['category_ids']);
+
+        return $this;
+    }
+
+    /**
      * Database rows carry strings; keep the internal types stable for the cache round trip.
      */
     private function normalise(): void
@@ -470,6 +511,8 @@ class FilterConfig implements FilterConfigInterface
             $value = $this->data[$key];
             $this->data[$key] = $value === null || trim((string) $value) === '' ? null : (string) $value;
         }
+        $this->data['category_ids'] = array_values(array_unique(array_map('intval', (array) $this->data['category_ids'])));
+        sort($this->data['category_ids']);
         $expanded = $this->data['expanded'];
         $this->data['expanded'] = $expanded === null || $expanded === '' ? null : (bool) $expanded;
     }

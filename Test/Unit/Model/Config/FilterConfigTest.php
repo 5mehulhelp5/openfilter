@@ -86,4 +86,16 @@ class FilterConfigTest extends TestCase
         ));
         self::assertSame('7', (string) (new FilterConfig(['tree_depth' => '7']))->getTreeDepth());
     }
+
+    public function testWhereItShowsKeepsSortedUniqueIdsAndTravelsWithTheBehaviour(): void
+    {
+        $config = (new FilterConfig(['code' => 'color', 'category_ids' => ['21', 20, 21]]))->setCategoryMode('only');
+
+        self::assertSame([20, 21], $config->getCategoryIds());
+        self::assertSame([3, 21], $config->setCategoryIds([21, '3'])->getCategoryIds());
+        $copy = (new FilterConfig(['code' => 'x']))->withBehaviourOf($config);
+        self::assertSame(['only', [3, 21]], [$copy->getCategoryMode(), $copy->getCategoryIds()]);
+        self::assertArrayNotHasKey('category_mode', $config->toRow(), 'stored in its own table');
+        self::assertSame('all', (new FilterConfig())->getCategoryMode());
+    }
 }

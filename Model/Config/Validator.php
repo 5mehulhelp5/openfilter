@@ -54,6 +54,11 @@ class Validator
                 RangeList::MAX_RANGES
             );
         }
+        if (!in_array($config->getCategoryMode(), Filter::CATEGORY_MODES, true)) {
+            $errors[] = __('"%1" is not a choice for where the filter shows.', $config->getCategoryMode());
+        } elseif ($config->getCategoryMode() !== Filter::CATEGORIES_ALL && $config->getCategoryIds() === []) {
+            $errors[] = __('Pick at least one category for where the filter shows.');
+        }
         if ($config->getTreeDepth() < 1 || $config->getTreeDepth() > Filter::TREE_DEPTH_MAX) {
             $errors[] = __('The category tree shows 1 to %1 levels.', Filter::TREE_DEPTH_MAX);
         }

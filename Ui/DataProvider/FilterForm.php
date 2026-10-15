@@ -40,6 +40,7 @@ class FilterForm extends AbstractDataProvider
             'active', 'multiselect', 'logic', 'visible_options', 'search_threshold', 'expanded', 'sort_by',
             'hide_single_option', 'position_override',
         ],
+        'where' => ['category_mode', 'category_ids'],
         'seo' => ['seo_indexable'],
     ];
 
@@ -120,6 +121,8 @@ class FilterForm extends AbstractDataProvider
             'logic' => $config->getLogic(),
             'ranges' => (string) $config->getRanges(),
             'tree_depth' => (string) $config->getTreeDepth(),
+            'category_mode' => $config->getCategoryMode(),
+            'category_ids' => array_map('strval', $config->getCategoryIds()),
             'visible_options' => $config->getVisibleOptions(),
             'search_threshold' => $config->getSearchThreshold(),
             'expanded' => $expanded === null ? 'auto' : (string) (int) $expanded,

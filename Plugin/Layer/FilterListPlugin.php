@@ -18,6 +18,7 @@ use Iranimij\OpenFilter\Model\Search\BuiltinFilters;
 use Magento\Catalog\Model\Layer;
 use Magento\Catalog\Model\Layer\Filter\AbstractFilter;
 use Magento\Catalog\Model\Layer\FilterList;
+use Magento\Catalog\Model\Layer\Search as SearchLayer;
 use Magento\Eav\Model\Entity\Attribute\AbstractAttribute;
 
 /**
@@ -72,9 +73,14 @@ class FilterListPlugin
                 $filters
             );
         }
-        $all = array_merge(
-            array_filter($filters, fn (AbstractFilter $filter): bool => !$this->isHidden($filter)),
-            $this->builtins[$id]
+        $category = $layer instanceof SearchLayer ? null : $layer->getCurrentCategory();
+        $path = $category === null ? null : array_map('intval', (array) $category->getPathIds());
+        $all = array_filter(
+            array_merge(
+                array_filter($filters, fn (AbstractFilter $filter): bool => !$this->isHidden($filter)),
+                $this->builtins[$id]
+            ),
+            fn (AbstractFilter $filter): bool => $path === null || $this->showsIn($filter, $path)
         );
         $positions = [];
         foreach ($all as $index => $filter) {
@@ -108,15 +114,45 @@ class FilterListPlugin
     }
 
     /**
+     * The merchant's "Where it shows" (1.1): everywhere, only in some categories, or everywhere except some — a
+     * category counts with the categories below it.
+     *
+     * @param AbstractFilter $filter
+     * @param int[] $path ids of the page's category and the categories above it
+     * @return bool
+     */
+    private function showsIn(AbstractFilter $filter, array $path): bool
+    {
+        $key = $this->key($filter);
+        $config = $key === null ? null : $this->context->config($key);
+        if ($config === null || $config->getCategoryMode() === Filter::CATEGORIES_ALL) {
+            return true;
+        }
+        $inside = array_intersect($path, $config->getCategoryIds()) !== [];
+
+        return $config->getCategoryMode() === Filter::CATEGORIES_ONLY ? $inside : !$inside;
+    }
+
+    /**
+     * @param AbstractFilter $filter
+     * @return string|null
+     */
+    private function key(AbstractFilter $filter): ?string
+    {
+        if ($filter instanceof OpenFilterInterface) {
+            return $filter->getOpenFilterKey();
+        }
+
+        return $filter->hasData('attribute_model') ? null : Filter::BUILTIN_CATEGORY;
+    }
+
+    /**
      * @param AbstractFilter $filter
      * @return int
      */
     private function position(AbstractFilter $filter): int
     {
-        $key = $filter instanceof OpenFilterInterface ? $filter->getOpenFilterKey() : null;
-        if ($key === null) {
-            $key = $filter->hasData('attribute_model') ? null : Filter::BUILTIN_CATEGORY;
-        }
+        $key = $this->key($filter);
 
         return $key === null ? PHP_INT_MAX - 1 : ($this->context->config($key)?->getPosition() ?? PHP_INT_MAX - 1);
     }

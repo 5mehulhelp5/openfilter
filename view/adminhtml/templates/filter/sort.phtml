@@ -1,0 +1,40 @@
+<?php
+/**
+ * Copyright © Iman Aboheydary. All rights reserved.
+ * See LICENSE for license details (MIT).
+ */
+
+/** @var \Iranimij\OpenFilter\Block\Adminhtml\Filter\Sort $block */
+/** @var \Magento\Framework\Escaper $escaper */
+$filters = $block->getFilters();
+?>
+<form class="of-sort" method="post" action="<?= $escaper->escapeUrl($block->getSaveUrl()) ?>">
+    <input type="hidden" name="form_key" value="<?= $escaper->escapeHtmlAttr($block->getFormKey()) ?>">
+    <p class="of-sort-intro" id="of-sort-help">
+        <?= $escaper->escapeHtml(__('Drag a filter by its handle, or use Move up and Move down. The storefront shows the filters in this order; hidden filters keep their place for when you show them again.')) ?>
+    </p>
+    <ol class="of-sort-list" aria-describedby="of-sort-help">
+        <?php foreach ($filters as $index => $filter): ?>
+            <li class="of-sort-item<?= /* @noEscape */ $filter['active'] ? '' : ' _hidden' ?>" draggable="true" data-of-key="<?= $escaper->escapeHtmlAttr($filter['key']) ?>">
+                <input type="hidden" name="order[]" value="<?= $escaper->escapeHtmlAttr($filter['key']) ?>">
+                <span class="of-sort-handle" aria-hidden="true">⋮⋮</span>
+                <span class="of-sort-label"><?= $escaper->escapeHtml($filter['label']) ?></span>
+                <?php if (!$filter['active']): ?>
+                    <span class="of-sort-note"><?= $escaper->escapeHtml(__('hidden')) ?></span>
+                <?php endif; ?>
+                <span class="of-sort-actions">
+                    <button type="button" class="action-default" data-of-move="up"
+                            aria-label="<?= $escaper->escapeHtmlAttr(__('Move %1 up', $filter['label'])) ?>"><?= $escaper->escapeHtml(__('Move up')) ?></button>
+                    <button type="button" class="action-default" data-of-move="down"
+                            aria-label="<?= $escaper->escapeHtmlAttr(__('Move %1 down', $filter['label'])) ?>"><?= $escaper->escapeHtml(__('Move down')) ?></button>
+                </span>
+            </li>
+        <?php endforeach; ?>
+    </ol>
+    <p class="of-sort-status" role="status" aria-live="polite"></p>
+    <div class="of-sort-buttons">
+        <a class="action-default back" href="<?= $escaper->escapeUrl($block->getBackUrl()) ?>"><?= $escaper->escapeHtml(__('Back')) ?></a>
+        <button type="submit" class="action-primary" id="save"><?= $escaper->escapeHtml(__('Save order')) ?></button>
+    </div>
+</form>
+<script type="text/x-magento-init">{".of-sort": {"Iranimij_OpenFilter/js/sort": {"movedLabel": <?= /* @noEscape */ json_encode((string) __('%1 is now at position %2 of %3.')) ?>}}}</script>

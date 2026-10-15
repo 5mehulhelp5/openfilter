@@ -95,6 +95,53 @@ class FilterListPluginTest extends TestCase
         self::assertSame($first, $again, 'one tree filter per layer');
     }
 
+    /**
+     * @return array<string, array{string, int[], bool, bool}>
+     */
+    public static function rules(): array
+    {
+        return [
+            'only, in the category' => ['only', [20, 21], true, true],
+            'only, below the category' => ['only', [2, 20, 21, 25], true, true],
+            'only, elsewhere' => ['only', [2, 11, 12], false, true],
+            'except, in the category' => ['except', [2, 20, 21], false, true],
+            'except, elsewhere' => ['except', [2, 11], true, true],
+            'search page ignores rules' => ['only', [], true, false],
+        ];
+    }
+
+    /**
+     * @dataProvider rules
+     * @param int[] $path
+     */
+    #[\PHPUnit\Framework\Attributes\DataProvider('rules')]
+    #[AllowMockObjectsWithoutExpectations]
+    public function testWhereItShows(string $mode, array $path, bool $shown, bool $categoryPage): void
+    {
+        $colour = new FilterConfig(['code' => 'color', 'category_mode' => $mode, 'category_ids' => [21]]);
+        $context = $this->createStub(LayerContext::class);
+        $context->method('isActive')->willReturn(true);
+        $context->method('isHidden')->willReturn(false);
+        $context->method('config')->willReturnCallback(static fn (string $key) => $key === 'color' ? $colour : null);
+        $builtins = $this->createStub(BuiltinFilters::class);
+        $builtins->method('activeCodes')->willReturn([]);
+        $plugin = new FilterListPlugin($context, $builtins, $this->createStub(BuiltinFactory::class), $this->createStub(CategoryTreeFactory::class));
+        $filter = $this->getMockBuilder(\Iranimij\OpenFilter\Model\Layer\Filter\Attribute::class)->disableOriginalConstructor()
+            ->onlyMethods(['getOpenFilterKey', 'hasData'])->getMock();
+        $filter->method('getOpenFilterKey')->willReturn('color');
+        $filter->method('hasData')->willReturn(true);
+        $category = $this->createStub(\Magento\Catalog\Model\Category::class);
+        $category->method('getPathIds')->willReturn($path);
+        $layer = $categoryPage
+            ? $this->createStub(Layer::class)
+            : $this->createStub(\Magento\Catalog\Model\Layer\Search::class);
+        $layer->method('getCurrentCategory')->willReturn($category);
+
+        $result = $plugin->afterGetFilters($this->createStub(FilterList::class), [$filter], $layer);
+
+        self::assertSame($shown ? [$filter] : [], $result);
+    }
+
     private function attributeFilter(int $id, string $code): AbstractFilter
     {
         $attribute = $this->createStub(Attribute::class);

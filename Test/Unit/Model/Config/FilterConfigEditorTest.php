@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace Iranimij\OpenFilter\Test\Unit\Model\Config;
 
 use Iranimij\OpenFilter\Model\Config\Defaults;
+use Iranimij\OpenFilter\Model\Config\FilterConfig;
 use Iranimij\OpenFilter\Model\Config\FilterConfigEditor;
 use Magento\Framework\Exception\InputException;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -95,5 +96,22 @@ class FilterConfigEditorTest extends TestCase
         $this->expectExceptionMessage($field);
 
         (new FilterConfigEditor())->apply($config, $values);
+    }
+
+    public function test11SettingsFromTheForm(): void
+    {
+        $editor = new FilterConfigEditor();
+        $config = new FilterConfig(['code' => 'color', 'category_mode' => 'only', 'category_ids' => [20]]);
+
+        $edited = $editor->apply($config, [
+            'logic' => 'and', 'ranges' => ' 0-50, 50- ', 'tree_depth' => '2',
+            'category_mode' => 'except', 'category_ids' => ['21', 'x', '25'],
+        ]);
+        self::assertSame(['and', '0-50,50-', 2, 'except', [21, 25]], [
+            $edited->getLogic(), $edited->getRanges(), $edited->getTreeDepth(), $edited->getCategoryMode(), $edited->getCategoryIds(),
+        ]);
+        self::assertSame([], $editor->apply($config, ['category_mode' => 'only'])->getCategoryIds(), 'every chip removed');
+        self::assertSame([20], $editor->apply($config, ['visible_options' => '3'])->getCategoryIds(), 'untouched');
+        self::assertNull($editor->apply($config, ['ranges' => ''])->getRanges());
     }
 }
