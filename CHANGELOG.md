@@ -2,6 +2,25 @@
 
 All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/): `Api/` interfaces, the filter URL format, the storefront markup contract (`docs/storefront.md`) and the CLI JSON format change only in a major version.
 
+## [1.1.0] - unreleased
+
+Everything new is opt-in: with the 1.0 settings, the storefront, URLs, head tags and counts stay as they were.
+
+### Added
+- **Products must match all of the picked values** per multi-select filter (AND): one clause per value in the same search request; such filters count with their own picks, the others without theirs.
+- **Ranges** display type for price and decimal filters: the merchant's list (`0-50,50-100,100-`) or automatic round ranges, several picks with any of, counted in the same request.
+- **Category tree** display type: the categories below the page's category, 1–5 levels, several picks narrow the same page (`?cat=21,25`); cached, fewer SQL queries than Magento's drill-down.
+- **Where it shows**: every category, only in some, or all except some (a category counts with the ones below it); table `openfilter_filter_category`.
+- **Sort filters** admin page (drag handle, or Move up / Move down by keyboard); a storefront preview link in the "Why is this filter not showing?" panel; tooltips per store view.
+- Filter form per store view through Magento's store switcher (no column per store view); "Generate again" per store view.
+- Store settings for the Hyvä package: horizontal layout, desktop apply mode ("Show N products"), sticky sidebar; dropdown display type.
+- **SEO templates** for filtered category pages: page title, meta description and H1 with `{filters}`, `{category}`, `{store}`.
+- **XML sitemap** of the filter pages the robots rule leaves indexable (Magento_Sitemap item provider): only where the filter shows, a minimum product count, most products first, a cap per store view. Off by default.
+- **GraphQL** `products { openfilter_aggregations }` for headless storefronts: the store view's filters in order, disjunctive counts from the same request, picks, URL names, swatches, slider bounds, ranges, categories; opt-in per query, Magento's GraphQL modules stay optional. Headless example page in `examples/headless`.
+- **REST**: `GET/PUT /V1/openfilter/filters[/:code]` (a PUT changes only the sent settings), `GET/POST /V1/openfilter/config` (the export document; import is a dry run unless asked).
+- Config export schema 2: match all, ranges, tree levels, tooltips, where it shows (schema 1 files still import).
+- `docs/benchmark.md`: OpenFilter against Magento's layered navigation on the same store (1 engine request per page instead of 4, no server time added).
+
 ## [1.0.0] - 2026-10-16
 
 No changes since 1.0.0-rc1.

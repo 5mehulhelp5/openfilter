@@ -60,7 +60,7 @@ From each vendor's public product page and documentation on 2026-10-13; features
 | Limit on combined filter values | yes | not documented | yes | not documented | no |
 | Rating, stock, sale, new filters | yes | yes | yes | Pro edition | no |
 
-Paid modules offer more in their higher tiers (brand and landing pages, infinite scroll, analytics). OpenFilter's [roadmap](https://github.com/iranimij/openfilter/milestones) brings AND logic, horizontal layout, meta templates, a sitemap and GraphQL in 1.1, path URLs, landing pages and a Luma package in 1.2.
+Paid modules offer more in their higher tiers (brand and landing pages, infinite scroll, analytics). OpenFilter 1.1 adds "match all" filters, price ranges, a category tree, per-category visibility, horizontal and apply-button layouts, title/description/H1 templates, an XML sitemap of indexable filter pages, GraphQL for headless storefronts and a REST API; the [roadmap](https://github.com/iranimij/openfilter/milestones) brings path URLs, landing pages and a Luma package in 1.2. How it compares on speed with Magento's own layered navigation: [benchmark](docs/benchmark.md).
 
 ## SEO notes
 
