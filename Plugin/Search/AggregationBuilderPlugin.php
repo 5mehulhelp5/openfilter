@@ -13,6 +13,7 @@ use Iranimij\OpenFilter\Model\Search\BuiltinClauses;
 use Iranimij\OpenFilter\Model\Search\BuiltinCounts;
 use Iranimij\OpenFilter\Model\Search\FacetFilterCollector;
 use Iranimij\OpenFilter\Model\Search\QueryState;
+use Iranimij\OpenFilter\Model\Search\RangeLists;
 use Magento\Elasticsearch\SearchAdapter\Aggregation\Builder;
 use Magento\Elasticsearch\SearchAdapter\QueryContainer;
 use Magento\Elasticsearch\SearchAdapter\QueryContainerFactory;
@@ -31,6 +32,7 @@ class AggregationBuilderPlugin
      * @param Config $config
      * @param BuiltinClauses $builtinClauses
      * @param BuiltinCounts $builtinCounts
+     * @param RangeLists $rangeLists counts of filters shown as a list of ranges
      */
     public function __construct(
         private readonly QueryState $state,
@@ -38,7 +40,8 @@ class AggregationBuilderPlugin
         private readonly FacetFilterCollector $collector,
         private readonly Config $config,
         private readonly BuiltinClauses $builtinClauses,
-        private readonly BuiltinCounts $builtinCounts
+        private readonly BuiltinCounts $builtinCounts,
+        private readonly RangeLists $rangeLists
     ) {
     }
 
@@ -76,6 +79,7 @@ class AggregationBuilderPlugin
         $handling = $this->collector->isLayeredRequest($request) && $this->config->isEnabled();
         if ($handling) {
             $this->builtinCounts->set($this->builtinClauses->counts((array) ($queryResult['aggregations'] ?? [])));
+            $this->rangeLists->collect((array) ($queryResult['aggregations'] ?? []));
         }
         $this->state->setHandling($handling);
         try {

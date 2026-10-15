@@ -8,7 +8,9 @@ declare(strict_types=1);
 
 namespace Iranimij\OpenFilter\Model\Layer\Filter;
 
+use Iranimij\OpenFilter\Api\Data\FilterConfigInterface as Filter;
 use Iranimij\OpenFilter\Model\Layer\LayerContext;
+use Iranimij\OpenFilter\Model\Layer\RangeListItems;
 use Iranimij\OpenFilter\Model\Url\Range;
 use Iranimij\OpenFilter\Plugin\Search\DynamicBucketPlugin;
 use Magento\Catalog\Model\Layer;
@@ -35,6 +37,7 @@ abstract class AbstractRangeFilter extends AbstractFilter implements OpenFilterI
      * @param DataBuilder $itemDataBuilder
      * @param LayerContext $context
      * @param Range $range
+     * @param RangeListItems $rangeListItems the "ranges" display type (1.1)
      * @param array<string, mixed> $data
      */
     public function __construct(
@@ -44,6 +47,7 @@ abstract class AbstractRangeFilter extends AbstractFilter implements OpenFilterI
         DataBuilder $itemDataBuilder,
         protected readonly LayerContext $context,
         protected readonly Range $range,
+        protected readonly RangeListItems $rangeListItems,
         array $data = []
     ) {
         parent::__construct($filterItemFactory, $storeManager, $layer, $itemDataBuilder, $data);
@@ -94,7 +98,17 @@ abstract class AbstractRangeFilter extends AbstractFilter implements OpenFilterI
      */
     public function isMultiselect(): bool
     {
-        return false;
+        return $this->isRangeList() && ($this->openFilterConfig()?->isMultiselect() ?? false);
+    }
+
+    /**
+     * Shown as a list of ranges ("ranges" display type, 1.1) instead of a slider.
+     *
+     * @return bool
+     */
+    public function isRangeList(): bool
+    {
+        return $this->openFilterConfig()?->getDisplayMode() === Filter::DISPLAY_RANGES;
     }
 
     /**
@@ -109,6 +123,9 @@ abstract class AbstractRangeFilter extends AbstractFilter implements OpenFilterI
             $this->core()->apply($request);
 
             return $this;
+        }
+        if ($this->isRangeList()) {
+            return $this->applyRangeList();
         }
         $key = $this->getOpenFilterKey();
         $value = $key === null ? null : ($this->context->state()->get($key)[0] ?? null);
@@ -166,6 +183,9 @@ abstract class AbstractRangeFilter extends AbstractFilter implements OpenFilterI
      */
     protected function _getItemsData()
     {
+        if ($this->isRangeList()) {
+            return $this->rangeListItemsData();
+        }
         $key = $this->getOpenFilterKey();
         $value = $key === null ? null : ($this->context->state()->get($key)[0] ?? null);
         $range = $value === null ? null : $this->range->parse($value);
@@ -183,6 +203,103 @@ abstract class AbstractRangeFilter extends AbstractFilter implements OpenFilterI
     /**
      * @return AbstractFilter
      */
+    /**
+     * Picked ranges narrow core's request to their outer bounds; the search mapper puts the exact "any of" clause
+     * in its place and counts the ranges in the same request.
+     *
+     * @return $this
+     */
+    private function applyRangeList(): self
+    {
+        $key = (string) $this->getOpenFilterKey();
+        $values = $this->context->state()->get($key);
+        $picked = $this->rangeListItems->picked($values);
+        $this->rangeListItems->register(
+            $this->field(),
+            $values,
+            $this->openFilterConfig()?->getRanges(),
+            fn (float $display): float => $this->toIndex($display)
+        );
+        if ($picked === []) {
+            return $this;
+        }
+        $froms = array_column($picked, 0);
+        $tos = array_column($picked, 1);
+        $condition = [];
+        if (!in_array(null, $froms, true)) {
+            $condition['from'] = $this->toIndex((float) min($froms));
+        }
+        if (!in_array(null, $tos, true)) {
+            $condition['to'] = $this->toIndex((float) max($tos));
+        }
+        if ($condition !== []) {
+            $this->getLayer()->getProductCollection()->addFieldToFilter($this->field(), $condition);
+        }
+        foreach ($values as $value) {
+            $range = $this->range->parse($value);
+            if ($range !== null) {
+                $this->getLayer()->getState()->addFilter($this->_createItem($this->rangeLabel($range[0], $range[1]), $value));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return array<int, array{label: string, value: string, count: int}>
+     */
+    private function rangeListItemsData(): array
+    {
+        $key = (string) $this->getOpenFilterKey();
+        $stats = $this->getStats();
+        $items = $this->rangeListItems->items(
+            $this->field(),
+            $this->context->state()->get($key),
+            $this->openFilterConfig()?->getRanges(),
+            $stats === null ? null : ['min' => (float) $stats['min'], 'max' => (float) $stats['max']],
+            fn (float $index): float => $this->toDisplay($index)
+        );
+
+        return array_map(fn (array $item): array => [
+            'label' => $this->rangeLabel($item['from'], $item['to']),
+            'value' => $item['value'],
+            'count' => $item['count'],
+        ], $items);
+    }
+
+    /**
+     * Label of a [from, to) range of the list ("€0.00 - €49.99" for prices).
+     *
+     * @param float|null $from
+     * @param float|null $to
+     * @return string
+     */
+    protected function rangeLabel(?float $from, ?float $to): string
+    {
+        return $this->label($from, $to);
+    }
+
+    /**
+     * Index value as shoppers see it (currency and tax for prices).
+     *
+     * @param float $index
+     * @return float
+     */
+    protected function toDisplay(float $index): float
+    {
+        return $this->toDisplayRange($index, $index)[0];
+    }
+
+    /**
+     * @return Filter|null
+     */
+    private function openFilterConfig(): ?Filter
+    {
+        $key = $this->getOpenFilterKey();
+
+        return $key === null ? null : $this->context->config($key);
+    }
+
     private function core(): AbstractFilter
     {
         return $this->core ??= $this->createCoreFilter();

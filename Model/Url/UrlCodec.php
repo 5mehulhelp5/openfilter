@@ -25,7 +25,7 @@ class UrlCodec implements UrlCodecInterface
     public const TYPE_TOGGLE = 'toggle';
 
     /**
-     * @var array<int, array<string, array{param: string, type: string, multiselect: bool,
+     * @var array<int, array<string, array{param: string, type: string, multiselect: bool, ranges: bool,
      *     options: array<int, string>, bySlug: array<string, int>}>>
      */
     private array $lookups = [];
@@ -86,6 +86,9 @@ class UrlCodec implements UrlCodecInterface
                     [$position[(int) $a] ?? PHP_INT_MAX, (int) $a] <=> [$position[(int) $b] ?? PHP_INT_MAX, (int) $b]);
                 $values = array_map(static fn (string $id): string => $filter['options'][(int) $id] ?? $id, $values);
             }
+            if ($filter['type'] === self::TYPE_RANGE && $filter['ranges']) {
+                $values = $this->sortRanges($values);
+            }
             $params[$filter['param']] = implode(',', $values);
         }
 
@@ -136,7 +139,7 @@ class UrlCodec implements UrlCodecInterface
     }
 
     /**
-     * @param array{param: string, type: string, multiselect: bool, options: array<int, string>,
+     * @param array{param: string, type: string, multiselect: bool, ranges: bool, options: array<int, string>,
      *     bySlug: array<string, int>} $filter
      * @param string[] $tokens
      * @return string[]
@@ -162,9 +165,16 @@ class UrlCodec implements UrlCodecInterface
             case self::TYPE_BOOLEAN:
                 return in_array($tokens[0], ['0', '1'], true) ? [$tokens[0]] : [];
             case self::TYPE_RANGE:
-                $range = $this->range->normalise($tokens[0]);
+                if (!$filter['ranges']) {
+                    $range = $this->range->normalise($tokens[0]);
 
-                return $range === null ? [] : [$range];
+                    return $range === null ? [] : [$range];
+                }
+                $ranges = $this->sortRanges(array_values(array_unique(array_filter(
+                    array_map(fn (string $token): ?string => $this->range->normalise($token), $tokens)
+                ))));
+
+                return $filter['multiselect'] ? $ranges : array_slice($ranges, 0, 1);
             case self::TYPE_RATING:
                 return ctype_digit($tokens[0]) ? [(string) min(5, max(1, (int) $tokens[0]))] : [];
             default:
@@ -176,8 +186,8 @@ class UrlCodec implements UrlCodecInterface
      * Parameter, type and option names of every active filter, in position order.
      *
      * @param int $storeId
-     * @return array<string, array{param: string, type: string, multiselect: bool, options: array<int, string>,
-     *     bySlug: array<string, int>}>
+     * @return array<string, array{param: string, type: string, multiselect: bool, ranges: bool,
+     *     options: array<int, string>, bySlug: array<string, int>}>
      */
     private function lookup(int $storeId): array
     {
@@ -198,12 +208,31 @@ class UrlCodec implements UrlCodecInterface
                     : ($slugs['attributes'][$attributeId] ?? $config->getCode()),
                 'type' => $type,
                 'multiselect' => $config->isMultiselect(),
+                'ranges' => $config->getDisplayMode() === Filter::DISPLAY_RANGES,
                 'options' => $options,
                 'bySlug' => array_flip($options),
             ];
         }
 
         return $this->lookups[$storeId] = $lookup;
+    }
+
+    /**
+     * Ranges of the "ranges" display type in canonical order: by lower bound (open first), then upper bound.
+     *
+     * @param string[] $values normalised ranges
+     * @return string[]
+     */
+    private function sortRanges(array $values): array
+    {
+        $key = function (string $value): array {
+            $range = $this->range->parse($value) ?? [null, null];
+
+            return [$range[0] ?? -1.0, $range[1] ?? PHP_FLOAT_MAX];
+        };
+        usort($values, static fn (string $a, string $b): int => $key($a) <=> $key($b));
+
+        return $values;
     }
 
     /**

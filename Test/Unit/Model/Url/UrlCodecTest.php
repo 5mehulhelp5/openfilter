@@ -138,4 +138,30 @@ class UrlCodecTest extends TestCase
         $this->codec->reset();
         self::assertSame(['color' => 'red'], $this->codec->encode(new FilterState(['color' => ['50']]), 1));
     }
+
+    public function testARangeListTakesSeveralRangesInCanonicalOrder(): void
+    {
+        $defaults = new Defaults();
+        $configs = [
+            'price' => $defaults->forBuiltin('price')->with(['attribute_id' => 77])
+                ->setDisplayMode('ranges')->setMultiselect(true),
+            'weight' => $defaults->forAttribute('weight', 82, 'decimal', null, 40)->setDisplayMode('ranges'),
+        ];
+        $configProvider = $this->createStub(FilterConfigProvider::class);
+        $configProvider->method('getActive')->willReturn($configs);
+        $slugProvider = $this->createStub(SlugProvider::class);
+        $slugProvider->method('forStore')->willReturn(['attributes' => [82 => 'weight'], 'options' => []]);
+        $codec = new UrlCodec($configProvider, $slugProvider, new Range());
+
+        $state = $codec->decode(['price' => '100-,50-100,0-50,50-100,cheap,-20', 'weight' => '2-3,1-2'], 1);
+
+        self::assertSame(['-20', '0-50', '50-100', '100-'], $state->get('price'));
+        self::assertSame(['1-2'], $state->get('weight'), 'one range when the filter is single-select');
+        self::assertSame(['price' => '-20,0-50,50-100,100-', 'weight' => '1-2'], $codec->encode($state, 1));
+        self::assertSame(
+            ['price' => '0-50,100-', 'weight' => '1-2'],
+            $codec->encode($state->with('price', ['100-', '0-50']), 1),
+            'a range added at the end is put in order'
+        );
+    }
 }
