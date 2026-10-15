@@ -1,0 +1,44 @@
+# Copyright © Iman Aboheydary. All rights reserved.
+# See LICENSE for license details (MIT).
+
+type Products {
+    openfilter_aggregations: [OpenFilterAggregation!] @doc(description: "OpenFilter's layered navigation for the products found: the store view's filters in the merchant's order and only where they show, with counts from the same search request. Each filter is counted without its own picks, so picking another value of a filter shows how many products it adds (filters set to match all values count with them). Asking for this field makes Magento's `aggregations` of the same query count the same way. Built-in rating, stock, sale and new filters are not included.") @resolver(class: "Iranimij\\OpenFilter\\Model\\Resolver\\Aggregations")
+}
+
+type OpenFilterAggregation @doc(description: "One filter of OpenFilter's layered navigation.") {
+    code: String! @doc(description: "The filter's code: an attribute code, `price` or `category`.")
+    filter_key: String! @doc(description: "The key of the `products` `filter` argument that picks values of this filter (`category_id` for categories).")
+    label: String! @doc(description: "The filter's label in the store view.")
+    url_param: String! @doc(description: "The query parameter of this filter in the storefront's URLs (the store view's URL name).")
+    display_mode: String! @doc(description: "How the merchant shows it: list, swatch, dropdown, slider, from_to, ranges, tree.")
+    multiselect: Boolean! @doc(description: "Whether shoppers may pick several values.")
+    logic: String! @doc(description: "`or`: products match any picked value; `and`: products match all picked values.")
+    tooltip: String @doc(description: "The merchant's help text for the filter in the store view.")
+    position: Int! @doc(description: "The filter's place in the list, from 0.")
+    options: [OpenFilterOption!]! @doc(description: "Values with at least one product, and the picked ones. Empty for sliders (see `range`).")
+    range: OpenFilterRange @doc(description: "Sliders and from–to fields: the lowest and highest value of the products found without this filter's own pick.")
+}
+
+type OpenFilterOption @doc(description: "A value of an OpenFilter filter.") {
+    value: String! @doc(description: "What to put into the `filter` argument: an option id, a category id, or a range `from-to` (see `from` and `to`).")
+    label: String! @doc(description: "The value's label in the store view.")
+    url_value: String @doc(description: "The value in the storefront's URLs (the store view's URL name).")
+    count: Int! @doc(description: "Products found with this value, counted without the filter's own picks (with them for filters set to match all values).")
+    selected: Boolean! @doc(description: "Picked in the `filter` argument.")
+    swatch: OpenFilterSwatch @doc(description: "Swatch filters: the colour, image or text of the value.")
+    depth: Int @doc(description: "Categories: the level below the listed category (1 = a child).")
+    from: Float @doc(description: "Ranges: the lowest value (inclusive), in the units of Magento's price filter.")
+    to: Float @doc(description: "Ranges: the highest value (exclusive), in the units of Magento's price filter.")
+}
+
+type OpenFilterSwatch @doc(description: "The swatch of a value.") {
+    type: String! @doc(description: "`color` (value = #hex), `image` (value = URL) or `text`.")
+    value: String! @doc(description: "The colour, image URL or text.")
+}
+
+type OpenFilterRange @doc(description: "The bounds of a slider, in the units of Magento's price filter.") {
+    min: Float! @doc(description: "The lowest value of the products found.")
+    max: Float! @doc(description: "The highest value of the products found.")
+    from: Float @doc(description: "The picked lower bound, if any.")
+    to: Float @doc(description: "The picked upper bound, if any.")
+}

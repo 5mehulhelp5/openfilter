@@ -48,8 +48,12 @@
         "magento/module-ui": "^101.2.7",
         "magento/module-url-rewrite": "^102.0"
     },
+    "require-dev": {
+        "magento/module-catalog-graph-ql": "^100.4.7"
+    },
     "suggest": {
-        "iranimij/openfilter-hyva": "Storefront rendering for Hyvä themes (AJAX, mobile drawer, sliders)"
+        "iranimij/openfilter-hyva": "Storefront rendering for Hyvä themes (AJAX, mobile drawer, sliders)",
+        "magento/module-catalog-graph-ql": "Headless storefronts: products { openfilter_aggregations } in GraphQL"
     },
     "autoload": {
         "files": [

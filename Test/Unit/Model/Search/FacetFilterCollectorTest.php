@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace Iranimij\OpenFilter\Test\Unit\Model\Search;
 
+use Iranimij\OpenFilter\Model\GraphQl\RequestState;
 use Iranimij\OpenFilter\Model\Search\FacetFilterCollector;
 use Magento\Elasticsearch\SearchAdapter\Filter\Builder as FilterBuilder;
 use Magento\Framework\Search\Request\Aggregation\DynamicBucket;
@@ -24,7 +25,7 @@ class FacetFilterCollectorTest extends TestCase
 {
     public function testCollectsActiveTermAndSliderFiltersOfAggregatedFieldsInMustOnly(): void
     {
-        $collector = new FacetFilterCollector($this->builder());
+        $collector = new FacetFilterCollector($this->builder(), new RequestState());
         $query = new BoolExpression('catalog_view_container', 1, [
             'category' => $this->filter(new Term('category_filter', '3', 'category_ids')),
             'color' => $this->filter(new Term('color_filter', ['1', '2'], 'color')),
@@ -51,11 +52,30 @@ class FacetFilterCollectorTest extends TestCase
     public function testOtherRequestsAreLeftAlone(): void
     {
         $query = new BoolExpression('graphql', 1, ['color' => $this->filter(new Term('color_filter', '1', 'color'))]);
-        $collector = new FacetFilterCollector($this->builder());
+        $collector = new FacetFilterCollector($this->builder(), new RequestState());
 
         self::assertSame([], $collector->collect($this->request('graphql_product_search', $query)));
         self::assertFalse($collector->isLayeredRequest($this->request('graphql_product_search', $query)));
         self::assertTrue($collector->isLayeredRequest($this->request('quick_search_container', $query)));
+    }
+
+    public function testGraphQlSearchesAreLayeredOnlyWhileOpenFiltersFieldIsAsked(): void
+    {
+        $query = new BoolExpression('graphql', 1, ['color' => $this->filter(new Term('color_filter', '1', 'color'))]);
+        $state = new RequestState();
+        $collector = new FacetFilterCollector($this->builder(), $state);
+        $request = $this->request('graphql_product_search_with_aggregation', $query);
+
+        self::assertFalse($collector->isLayeredRequest($request));
+        $state->start();
+        self::assertTrue($collector->isLayeredRequest($request));
+        self::assertTrue($collector->isGraphQlRequest($request));
+        self::assertFalse($collector->isGraphQlRequest($this->request('catalog_view_container', $query)));
+        self::assertSame(['color'], array_map(static fn ($f) => $f->getField(), $collector->collect($request)));
+        $state->keep(['price_bucket' => ['min' => 1]]);
+        self::assertSame(['price_bucket' => ['min' => 1]], $state->finish());
+        self::assertFalse($collector->isLayeredRequest($request));
+        self::assertSame([], $state->finish());
     }
 
     private function filter(Term|Range $filter): FilterQuery

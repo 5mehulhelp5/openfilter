@@ -47,11 +47,29 @@ class Swatch implements ArgumentInterface
         if ($group->getKey() === null || $group->getOptions() === []) {
             return [];
         }
-        $values = array_map(static fn ($option): string => $option->getValue(), $group->getOptions());
-        $data = $this->swatchData->getSwatchesByOptionsId($values);
-        $swatches = [];
+        $labels = [];
         foreach ($group->getOptions() as $option) {
-            $swatches[$option->getValue()] = $this->swatch($data[$option->getValue()] ?? null, $option->getLabel());
+            $labels[$option->getValue()] = $option->getLabel();
+        }
+
+        return $this->forOptions($labels);
+    }
+
+    /**
+     * Swatch per option id (also for GraphQL); options without usable swatch data show their label as text.
+     *
+     * @param array<int|string, string> $labels option id => label
+     * @return array<int|string, array{type: string, value: string}>
+     */
+    public function forOptions(array $labels): array
+    {
+        if ($labels === []) {
+            return [];
+        }
+        $data = $this->swatchData->getSwatchesByOptionsId(array_map('strval', array_keys($labels)));
+        $swatches = [];
+        foreach ($labels as $value => $label) {
+            $swatches[$value] = $this->swatch($data[$value] ?? null, $label);
         }
 
         return $swatches;
