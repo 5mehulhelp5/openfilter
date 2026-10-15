@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © Iman Aboheydary. All rights reserved.
+ * See LICENSE for license details (MIT).
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <!-- 1.1 headless: `products { openfilter_aggregations }` (Model\Resolver\Aggregations). -->
+    <type name="Magento\CatalogGraphQl\Model\Resolver\Products">
+        <plugin name="openfilter_graphql_products" type="Iranimij\OpenFilter\Plugin\GraphQl\ProductsPlugin"/>
+    </type>
+    <type name="Magento\CatalogGraphQl\DataProvider\Product\SearchCriteriaBuilder">
+        <plugin name="openfilter_graphql_aggregations" type="Iranimij\OpenFilter\Plugin\GraphQl\SearchCriteriaPlugin"/>
+    </type>
+</config>

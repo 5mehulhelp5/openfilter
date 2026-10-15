@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace Iranimij\OpenFilter\Test\Unit\Model\Sitemap;
 
 use Iranimij\OpenFilter\Model\Config;
+use Iranimij\OpenFilter\Model\Config\CategoryRule;
 use Iranimij\OpenFilter\Model\Config\Defaults;
 use Iranimij\OpenFilter\Model\Config\FilterConfigProvider;
 use Iranimij\OpenFilter\Model\Layer\CategoryTree;
@@ -133,6 +134,6 @@ class FilterPagesTest extends TestCase
         $categoryConfig->method('getPriority')->willReturn('0.5');
         $categoryConfig->method('getChangeFrequency')->willReturn('daily');
 
-        return new FilterPages($config, $filters, $slugs, $categories, $tree, $counts, $factory, $categoryConfig);
+        return new FilterPages($config, $filters, $slugs, $categories, $tree, $counts, $factory, $categoryConfig, new CategoryRule());
     }
 }

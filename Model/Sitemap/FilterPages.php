@@ -10,6 +10,7 @@ namespace Iranimij\OpenFilter\Model\Sitemap;
 
 use Iranimij\OpenFilter\Api\Data\FilterConfigInterface as Filter;
 use Iranimij\OpenFilter\Model\Config;
+use Iranimij\OpenFilter\Model\Config\CategoryRule;
 use Iranimij\OpenFilter\Model\Config\FilterConfigProvider;
 use Iranimij\OpenFilter\Model\Layer\CategoryTree;
 use Iranimij\OpenFilter\Model\Url\SlugProvider;
@@ -35,6 +36,7 @@ class FilterPages implements ItemProviderInterface
      * @param OptionCounts $counts
      * @param SitemapItemInterfaceFactory $itemFactory
      * @param ConfigReaderInterface $categoryConfig the sitemap settings of categories
+     * @param CategoryRule $categoryRule "Where it shows"
      */
     public function __construct(
         private readonly Config $config,
@@ -44,7 +46,8 @@ class FilterPages implements ItemProviderInterface
         private readonly CategoryTree $tree,
         private readonly OptionCounts $counts,
         private readonly SitemapItemInterfaceFactory $itemFactory,
-        private readonly ConfigReaderInterface $categoryConfig
+        private readonly ConfigReaderInterface $categoryConfig,
+        private readonly CategoryRule $categoryRule
     ) {
     }
 
@@ -96,7 +99,7 @@ class FilterPages implements ItemProviderInterface
         foreach ((array) $this->categories->create()->getCollection($storeId) as $category) {
             $categoryId = (int) $category->getId();
             $path = $this->tree->pathIds($categoryId, $storeId);
-            $shown = array_filter($indexable, fn (Filter $filter): bool => $this->showsIn($filter, $path));
+            $shown = array_filter($indexable, fn (Filter $filter): bool => $this->categoryRule->showsIn($filter, $path));
             if ($shown === []) {
                 continue;
             }
@@ -122,22 +125,5 @@ class FilterPages implements ItemProviderInterface
         }
 
         return $pages;
-    }
-
-    /**
-     * "Where it shows": a category counts with the categories below it.
-     *
-     * @param Filter $filter
-     * @param int[] $path
-     * @return bool
-     */
-    private function showsIn(Filter $filter, array $path): bool
-    {
-        if ($filter->getCategoryMode() === Filter::CATEGORIES_ALL) {
-            return true;
-        }
-        $inside = array_intersect($path, $filter->getCategoryIds()) !== [];
-
-        return $filter->getCategoryMode() === Filter::CATEGORIES_ONLY ? $inside : !$inside;
     }
 }

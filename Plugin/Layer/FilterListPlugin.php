@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace Iranimij\OpenFilter\Plugin\Layer;
 
 use Iranimij\OpenFilter\Api\Data\FilterConfigInterface as Filter;
+use Iranimij\OpenFilter\Model\Config\CategoryRule;
 use Iranimij\OpenFilter\Model\Layer\Filter\BuiltinFactory;
 use Iranimij\OpenFilter\Model\Layer\Filter\CategoryTree;
 use Iranimij\OpenFilter\Model\Layer\Filter\CategoryTreeFactory;
@@ -38,12 +39,14 @@ class FilterListPlugin
      * @param BuiltinFilters $builtinFilters
      * @param BuiltinFactory $builtinFactory
      * @param CategoryTreeFactory $treeFactory the category tree (1.1) in place of core's drill-down
+     * @param CategoryRule $categoryRule "Where it shows" (1.1)
      */
     public function __construct(
         private readonly LayerContext $context,
         private readonly BuiltinFilters $builtinFilters,
         private readonly BuiltinFactory $builtinFactory,
-        private readonly CategoryTreeFactory $treeFactory
+        private readonly CategoryTreeFactory $treeFactory,
+        private readonly CategoryRule $categoryRule
     ) {
     }
 
@@ -114,8 +117,7 @@ class FilterListPlugin
     }
 
     /**
-     * The merchant's "Where it shows" (1.1): everywhere, only in some categories, or everywhere except some — a
-     * category counts with the categories below it.
+     * The merchant's "Where it shows" (1.1).
      *
      * @param AbstractFilter $filter
      * @param int[] $path ids of the page's category and the categories above it
@@ -125,12 +127,8 @@ class FilterListPlugin
     {
         $key = $this->key($filter);
         $config = $key === null ? null : $this->context->config($key);
-        if ($config === null || $config->getCategoryMode() === Filter::CATEGORIES_ALL) {
-            return true;
-        }
-        $inside = array_intersect($path, $config->getCategoryIds()) !== [];
 
-        return $config->getCategoryMode() === Filter::CATEGORIES_ONLY ? $inside : !$inside;
+        return $config === null || $this->categoryRule->showsIn($config, $path);
     }
 
     /**

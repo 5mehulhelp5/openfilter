@@ -68,7 +68,9 @@ class MapperPlugin
         }
         [$query, $filters] = $this->rangeLists->apply($query, $filters);
         [$query, $filters] = $this->categoryPicks->apply($query, $filters);
-        foreach ($this->builtins->forRequest() as $builtin) {
+        // Built-ins depend on the shopper's session (customer group), which GraphQL does not use.
+        $builtins = $this->collector->isGraphQlRequest($request) ? [] : $this->builtins->forRequest();
+        foreach ($builtins as $builtin) {
             $query['body']['aggregations'][$builtin['bucket']] = $builtin['aggregation'];
             if ($builtin['clause'] !== null) {
                 $query['body']['query']['bool']['must'][] = $builtin['clause'];

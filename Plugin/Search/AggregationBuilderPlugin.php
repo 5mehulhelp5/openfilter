@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace Iranimij\OpenFilter\Plugin\Search;
 
 use Iranimij\OpenFilter\Model\Config;
+use Iranimij\OpenFilter\Model\GraphQl\RequestState;
 use Iranimij\OpenFilter\Model\Search\BuiltinClauses;
 use Iranimij\OpenFilter\Model\Search\BuiltinCounts;
 use Iranimij\OpenFilter\Model\Search\FacetFilterCollector;
@@ -33,6 +34,7 @@ class AggregationBuilderPlugin
      * @param BuiltinClauses $builtinClauses
      * @param BuiltinCounts $builtinCounts
      * @param RangeLists $rangeLists counts of filters shown as a list of ranges
+     * @param RequestState $graphQlState GraphQL searches asking for `openfilter_aggregations` (1.1)
      */
     public function __construct(
         private readonly QueryState $state,
@@ -41,7 +43,8 @@ class AggregationBuilderPlugin
         private readonly Config $config,
         private readonly BuiltinClauses $builtinClauses,
         private readonly BuiltinCounts $builtinCounts,
-        private readonly RangeLists $rangeLists
+        private readonly RangeLists $rangeLists,
+        private readonly RequestState $graphQlState
     ) {
     }
 
@@ -76,12 +79,19 @@ class AggregationBuilderPlugin
         if ($state !== null) {
             $queryResult = $state['strategy']->prepareResponse($state['prepared'], $queryResult, $state['filters']);
         }
-        $handling = $this->collector->isLayeredRequest($request) && $this->config->isEnabled();
-        if ($handling) {
-            $this->builtinCounts->set($this->builtinClauses->counts((array) ($queryResult['aggregations'] ?? [])));
-            $this->rangeLists->collect((array) ($queryResult['aggregations'] ?? []));
+        $layered = $this->collector->isLayeredRequest($request) && $this->config->isEnabled();
+        $graphQl = $layered && $this->collector->isGraphQlRequest($request);
+        $aggregations = (array) ($queryResult['aggregations'] ?? []);
+        if ($layered) {
+            $this->rangeLists->collect($aggregations);
         }
-        $this->state->setHandling($handling);
+        if ($graphQl) {
+            // Magento's GraphQL `aggregations` keep their price intervals; OpenFilter's field reads the stats.
+            $this->graphQlState->keep($aggregations);
+        } elseif ($layered) {
+            $this->builtinCounts->set($this->builtinClauses->counts($aggregations));
+        }
+        $this->state->setHandling($layered && !$graphQl);
         try {
             return $proceed($request, $queryResult);
         } finally {

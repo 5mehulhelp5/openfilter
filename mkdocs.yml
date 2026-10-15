@@ -13,6 +13,7 @@ nav:
   - Storefront: storefront.md
   - Filter URLs: url-format.md
   - SEO rules: seo.md
+  - GraphQL (headless): graphql.md
   - Command line: cli.md
   - Import and export: import-export.md
   - Troubleshooting: troubleshooting.md
