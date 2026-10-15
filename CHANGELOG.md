@@ -2,6 +2,10 @@
 
 All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/): `Api/` interfaces, the filter URL format, the storefront markup contract (`docs/storefront.md`) and the CLI JSON format change only in a major version.
 
+## [1.0.0] - 2026-10-16
+
+No changes since 1.0.0-rc1.
+
 ## [1.0.0-rc1] - 2026-10-15
 
 First release: layered navigation for Magento 2.4.7–2.4.9 on OpenSearch (Elasticsearch 8 on 2.4.7).
