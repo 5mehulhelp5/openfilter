@@ -114,6 +114,6 @@ class Decimal extends AbstractRangeFilter
             return (string) __('up to %1', $this->number($to));
         }
 
-        return (string) __('%1 - %2', $this->number($from), $this->number($to));
+        return (string) __('%1 – %2', $this->number($from), $this->number($to));
     }
 }

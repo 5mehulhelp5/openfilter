@@ -60,6 +60,34 @@ class StateTest extends TestCase
         self::assertSame('/women/tops-women.html?product_list_order=name', $url);
     }
 
+    public function testPicksAreOptionIdsPerSelectAttribute(): void
+    {
+        $picks = $this->state(new FilterState([]))->picks([
+            $this->picked('color', 'select', '49'),
+            $this->picked('color', 'select', '50'),
+            $this->picked('material', 'multiselect', '33'),
+            $this->picked('width', 'price', '1-2'),
+            $this->item('Category', 'Jackets', '/c', 'cat'),
+        ]);
+
+        self::assertSame(['color' => ['49', '50'], 'material' => ['33']], $picks);
+    }
+
+    private function picked(string $code, string $input, string $value): Item
+    {
+        $attribute = $this->createStub(\Magento\Eav\Model\Entity\Attribute\AbstractAttribute::class);
+        $attribute->method('getAttributeCode')->willReturn($code);
+        $attribute->method('getFrontendInput')->willReturn($input);
+        $filter = $this->createStub(AbstractFilter::class);
+        $filter->method('hasData')->willReturn(true);
+        $filter->method('getAttributeModel')->willReturn($attribute);
+        $item = $this->getMockBuilder(Item::class)->disableOriginalConstructor()->onlyMethods(['getFilter'])->getMock();
+        $item->setData(['value' => $value]);
+        $item->method('getFilter')->willReturn($filter);
+
+        return $item;
+    }
+
     private function state(FilterStateInterface $state): State
     {
         $context = $this->createStub(LayerContext::class);
