@@ -32,10 +32,25 @@ bin/magento openfilter:config:import openfilter.json
 - Store views are keyed by store code; `admin` means all store views.
 - Options are keyed by their admin label. When an attribute has several options with the same label, they are numbered in option order: `"Wool #1"`, `"Wool #2"`.
 - Every section and setting is optional: a file may contain only what it changes.
-- Schema 2 (OpenFilter 1.1) adds `"logic": "and"` ("Match all"), `ranges` (the list of the *Ranges* display type, for example `"0-50,50-100,100-"`; `null` = automatic), `tree_depth` (levels of the category tree, 1–5) and the `tooltips` section. Files with schema 1 from OpenFilter 1.0 import unchanged.
+- Schema 2 (OpenFilter 1.1) adds `"logic": "and"` ("Match all"), `ranges` (the list of the *Ranges* display type, for example `"0-50,50-100,100-"`; `null` = automatic), `tree_depth` (levels of the category tree, 1–5), `category_mode` and `category_ids` (**Where it shows**: `all`, `only` or `except` the listed category ids; ids are those of the store the file comes from) and the `tooltips` section. Files with schema 1 from OpenFilter 1.0 import unchanged.
 
 ## All or nothing
 
 The import first checks the whole file: schema, known filters, store views and options, value types, URL name format. Then it writes every filter inside one database transaction through the same rules as the admin (display types that fit the attribute, URL names unique per attribute and store view). If any value is refused, nothing is written and the command lists the reason and exits with `1`.
 
 `--dry-run` runs the same checks and writes inside a transaction it always rolls back, so URL name collisions are found exactly as in a real import. OpenFilter's cache is cleaned afterwards; Magento may show "full page cache invalidated" as after any admin save.
+
+## Over REST
+
+Integrations use the same document over Magento's REST API (admin token, or an integration with the **OpenFilter › Filters** resource):
+
+| Call | What it does |
+|---|---|
+| `GET /rest/V1/openfilter/config` | the document as a JSON string |
+| `POST /rest/V1/openfilter/config` with `{"config": "<document>", "dryRun": true}` | checks and lists the changes (`applied`, `changes`, `errors`); `"dryRun": false` saves them, all or nothing |
+| `GET /rest/V1/openfilter/filters?searchCriteria[...]` | the filters (search criteria on `code`, `builtin`, `active`, …) |
+| `GET /rest/V1/openfilter/filters/:code` | one filter |
+| `PUT /rest/V1/openfilter/filters/:code` with `{"config": {"sort_by": "name"}}` | changes the settings you send; the others stay. Read-only fields (code, attribute, label, position) cannot be sent. |
+
+A value that does not fit the filter answers `400` with the reason; an unknown code `404`; a call without the resource `401`.
+

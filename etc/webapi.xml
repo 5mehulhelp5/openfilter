@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © Iman Aboheydary. All rights reserved.
+ * See LICENSE for license details (MIT).
+ */
+-->
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Webapi:etc/webapi.xsd">
+    <!-- 1.1: filters and the config document for integrations (admin token or integration with these resources). -->
+    <route url="/V1/openfilter/filters" method="GET">
+        <service class="Iranimij\OpenFilter\Api\FilterConfigRepositoryInterface" method="getList"/>
+        <resources>
+            <resource ref="Iranimij_OpenFilter::filters"/>
+        </resources>
+    </route>
+    <route url="/V1/openfilter/filters/:code" method="GET">
+        <service class="Iranimij\OpenFilter\Api\FilterConfigRepositoryInterface" method="getByCode"/>
+        <resources>
+            <resource ref="Iranimij_OpenFilter::filters"/>
+        </resources>
+    </route>
+    <route url="/V1/openfilter/filters/:code" method="PUT">
+        <service class="Iranimij\OpenFilter\Api\FilterConfigManagementInterface" method="update"/>
+        <resources>
+            <resource ref="Iranimij_OpenFilter::filters"/>
+        </resources>
+    </route>
+    <route url="/V1/openfilter/config" method="GET">
+        <service class="Iranimij\OpenFilter\Api\ConfigTransferInterface" method="export"/>
+        <resources>
+            <resource ref="Iranimij_OpenFilter::filters"/>
+        </resources>
+    </route>
+    <route url="/V1/openfilter/config" method="POST">
+        <service class="Iranimij\OpenFilter\Api\ConfigTransferInterface" method="import"/>
+        <resources>
+            <resource ref="Iranimij_OpenFilter::filters"/>
+        </resources>
+    </route>
+</routes>

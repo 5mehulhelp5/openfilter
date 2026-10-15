@@ -19,6 +19,10 @@
     <preference for="Iranimij\OpenFilter\Api\SlugRepositoryInterface"
                 type="Iranimij\OpenFilter\Model\Url\SlugRepository"/>
 
+    <preference for="Iranimij\OpenFilter\Api\Data\FilterConfigInterface" type="Iranimij\OpenFilter\Model\Config\FilterConfig"/>
+    <preference for="Iranimij\OpenFilter\Api\FilterConfigManagementInterface" type="Iranimij\OpenFilter\Model\Api\FilterConfigManagement"/>
+    <preference for="Iranimij\OpenFilter\Api\ConfigTransferInterface" type="Iranimij\OpenFilter\Model\Api\ConfigTransfer"/>
+    <preference for="Iranimij\OpenFilter\Api\Data\ImportResultInterface" type="Iranimij\OpenFilter\Model\Api\ImportResult"/>
     <preference for="Iranimij\OpenFilter\Api\UrlCodecInterface" type="Iranimij\OpenFilter\Model\Url\UrlCodec"/>
     <preference for="Iranimij\OpenFilter\Api\FilterStateInterface" type="Iranimij\OpenFilter\Model\Url\FilterState"/>
 

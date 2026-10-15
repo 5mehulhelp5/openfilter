@@ -67,9 +67,9 @@ class ExporterImporterTest extends TestCase
         self::assertSame(['de' => 'Farbe'], $export['filters']['color']['labels']);
         self::assertSame(['admin' => 'Pick one or more'], $export['filters']['color']['tooltips']);
         self::assertArrayNotHasKey('tooltips', $export['filters']['rating']);
-        self::assertSame(['logic' => 'or', 'ranges' => null, 'tree_depth' => 3], array_intersect_key(
+        self::assertSame(['logic' => 'or', 'ranges' => null, 'tree_depth' => 3, 'category_mode' => 'all', 'category_ids' => []], array_intersect_key(
             $export['filters']['color']['settings'],
-            ['logic' => 1, 'ranges' => 1, 'tree_depth' => 1]
+            ['logic' => 1, 'ranges' => 1, 'tree_depth' => 1, 'category_mode' => 1, 'category_ids' => 1]
         ));
         self::assertSame(['admin' => 'color', 'de' => 'farbe'], $export['filters']['color']['url_name']);
         self::assertSame(
@@ -124,7 +124,7 @@ class ExporterImporterTest extends TestCase
         self::assertStringContainsString('Unsupported schema "9"', implode('', $importer->import(['schema' => 9], false)['errors']));
     }
 
-    public function testASchemaOneFileStillImportsAndMatchAllIsImported(): void
+    public function testASchemaOneFileStillImportsAndMatchAllAndWhereItShowsAreImported(): void
     {
         $importer = $this->importer();
         $saved = [];
@@ -142,6 +142,11 @@ class ExporterImporterTest extends TestCase
 
         self::assertSame([], $importer->import($file, false)['errors']);
         self::assertSame('and', $saved['color']->getLogic());
+
+        $file['schema'] = 2;
+        $file['filters']['color']['settings'] = ['category_mode' => 'except', 'category_ids' => [21, 4]];
+        self::assertSame([], $importer->import($file, false)['errors']);
+        self::assertSame(['except', [4, 21]], [$saved['color']->getCategoryMode(), $saved['color']->getCategoryIds()], 'where it shows');
     }
 
     /**

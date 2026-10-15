@@ -140,6 +140,8 @@ class Exporter
             'active' => $config->isActive(),
             'ranges' => $config->getRanges(),
             'tree_depth' => $config->getTreeDepth(),
+            'category_mode' => $config->getCategoryMode(),
+            'category_ids' => $config->getCategoryIds(),
         ];
     }
 
