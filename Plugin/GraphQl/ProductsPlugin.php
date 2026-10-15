@@ -14,6 +14,7 @@ use Iranimij\OpenFilter\Model\GraphQl\RequestState;
 use Magento\CatalogGraphQl\Model\Resolver\Products;
 use Magento\Framework\GraphQl\Config\Element\Field;
 use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
+use Magento\Store\Model\StoreManagerInterface;
 
 /**
  * A `products` field that selects `openfilter_aggregations` runs its search as a layered navigation request
@@ -28,11 +29,13 @@ class ProductsPlugin
      * @param Config $config
      * @param RequestState $state
      * @param RangeFilters $ranges
+     * @param StoreManagerInterface $storeManager GraphQL's store view (the Store header)
      */
     public function __construct(
         private readonly Config $config,
         private readonly RequestState $state,
-        private readonly RangeFilters $ranges
+        private readonly RangeFilters $ranges,
+        private readonly StoreManagerInterface $storeManager
     ) {
     }
 
@@ -56,7 +59,7 @@ class ProductsPlugin
         ?array $value = null,
         ?array $args = null
     ) {
-        $storeId = (int) $context->getExtensionAttributes()->getStore()->getId();
+        $storeId = (int) $this->storeManager->getStore()->getId();
         if (!isset($info->getFieldSelection(1)['openfilter_aggregations']) || !$this->config->isEnabled($storeId)) {
             return $proceed($field, $context, $info, $value, $args);
         }

@@ -15,9 +15,8 @@ use Magento\CatalogGraphQl\Model\Resolver\Products\SearchResult;
 use Magento\Framework\Api\Search\AggregationInterface;
 use Magento\Framework\GraphQl\Config\Element\Field;
 use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
-use Magento\GraphQl\Model\Query\ContextExtensionInterface;
-use Magento\GraphQl\Model\Query\ContextInterface;
 use Magento\Store\Api\Data\StoreInterface;
+use Magento\Store\Model\StoreManagerInterface;
 use PHPUnit\Framework\TestCase;
 
 class AggregationsTest extends TestCase
@@ -59,11 +58,9 @@ class AggregationsTest extends TestCase
     {
         $store = $this->createStub(StoreInterface::class);
         $store->method('getId')->willReturn(1);
-        $extension = $this->createStub(ContextExtensionInterface::class);
-        $extension->method('getStore')->willReturn($store);
-        $context = $this->createStub(ContextInterface::class);
-        $context->method('getExtensionAttributes')->willReturn($extension);
+        $stores = $this->createStub(StoreManagerInterface::class);
+        $stores->method('getStore')->willReturn($store);
 
-        return (new Aggregations($builder))->resolve($this->createStub(Field::class), $context, $this->createStub(ResolveInfo::class), $value);
+        return (new Aggregations($builder, $stores))->resolve($this->createStub(Field::class), new \stdClass(), $this->createStub(ResolveInfo::class), $value);
     }
 }

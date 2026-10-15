@@ -17,9 +17,8 @@ use Magento\CatalogGraphQl\DataProvider\Product\SearchCriteriaBuilder;
 use Magento\CatalogGraphQl\Model\Resolver\Products;
 use Magento\Framework\GraphQl\Config\Element\Field;
 use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
-use Magento\GraphQl\Model\Query\ContextExtensionInterface;
-use Magento\GraphQl\Model\Query\ContextInterface;
 use Magento\Store\Api\Data\StoreInterface;
+use Magento\Store\Model\StoreManagerInterface;
 use PHPUnit\Framework\TestCase;
 
 class ProductsPluginTest extends TestCase
@@ -42,7 +41,7 @@ class ProductsPluginTest extends TestCase
             $this->createStub(Products::class),
             $proceed,
             $this->createStub(Field::class),
-            $this->context(),
+            new \stdClass(),
             $this->info(['items' => true, 'openfilter_aggregations' => true]),
             null,
             ['filter' => ['color' => ['eq' => '5']]]
@@ -68,7 +67,7 @@ class ProductsPluginTest extends TestCase
                 $this->createStub(Products::class),
                 $proceed,
                 $this->createStub(Field::class),
-                $this->context(),
+                new \stdClass(),
                 $this->info($selection),
                 null,
                 []
@@ -82,7 +81,12 @@ class ProductsPluginTest extends TestCase
         $config = $this->createStub(Config::class);
         $config->method('isEnabled')->willReturn($enabled);
 
-        return new ProductsPlugin($config, $state, $ranges);
+        $store = $this->createStub(StoreInterface::class);
+        $store->method('getId')->willReturn(1);
+        $stores = $this->createStub(StoreManagerInterface::class);
+        $stores->method('getStore')->willReturn($store);
+
+        return new ProductsPlugin($config, $state, $ranges, $stores);
     }
 
     /**
@@ -96,15 +100,4 @@ class ProductsPluginTest extends TestCase
         return $info;
     }
 
-    private function context(): ContextInterface
-    {
-        $store = $this->createStub(StoreInterface::class);
-        $store->method('getId')->willReturn(1);
-        $extension = $this->createStub(ContextExtensionInterface::class);
-        $extension->method('getStore')->willReturn($store);
-        $context = $this->createStub(ContextInterface::class);
-        $context->method('getExtensionAttributes')->willReturn($extension);
-
-        return $context;
-    }
 }

@@ -14,7 +14,7 @@ use Magento\CatalogGraphQl\Model\Resolver\Products\SearchResult;
 use Magento\Framework\GraphQl\Config\Element\Field;
 use Magento\Framework\GraphQl\Query\ResolverInterface;
 use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
-use Magento\GraphQl\Model\Query\ContextInterface;
+use Magento\Store\Model\StoreManagerInterface;
 
 /**
  * `products { openfilter_aggregations }` (1.1). Empty when OpenFilter is off in the store view or nothing was found.
@@ -23,15 +23,17 @@ class Aggregations implements ResolverInterface
 {
     /**
      * @param AggregationsBuilder $builder
+     * @param StoreManagerInterface $storeManager GraphQL's store view (the Store header)
      */
     public function __construct(
-        private readonly AggregationsBuilder $builder
+        private readonly AggregationsBuilder $builder,
+        private readonly StoreManagerInterface $storeManager
     ) {
     }
 
     /**
      * @param Field $field
-     * @param ContextInterface $context
+     * @param mixed $context
      * @param ResolveInfo $info
      * @param array<string, mixed>|null $value the `products` result
      * @param array<string, mixed>|null $args
@@ -50,7 +52,7 @@ class Aggregations implements ResolverInterface
             $search->getSearchAggregation(),
             (array) $openFilter['aggregations'],
             (array) $openFilter['filter'],
-            (int) $context->getExtensionAttributes()->getStore()->getId()
+            (int) $this->storeManager->getStore()->getId()
         );
     }
 }
