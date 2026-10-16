@@ -32,6 +32,10 @@ Stores › Configuration › Iranimij › OpenFilter › Display (per store view
 
 These parts load a small extra script (`js/extras.phtml`, under 1.5 KB gzipped) only on store views that use one of them; the default page keeps the 6 KB budget.
 
+## Quick filter bar (1.2)
+
+With *Stores › Configuration › OpenFilter › Display › Quick filter bar above the products* above 0, the values of the filters marked *In the quick filter bar* (filter form › How it behaves) show as one-click links above the products: picked values first, then the values with the most products, up to that number. They are ordinary filter links (they work without JavaScript and swap with it), with the filter's name for screen readers; on phones the row scrolls sideways. The bar is built from the page's own filters: no extra search request.
+
 ## Phones
 
 Below 768 px the filters move into a drawer, opened by a sticky **Filter (N)** button above the results (N counts the active values).
@@ -86,6 +90,8 @@ Themes can style or extend these; class names and attributes stay stable within 
 | Category tree level (1.1) | `li.of-options__item--depth-{1..5}` |
 | Horizontal bar, sticky sidebar (1.1) | `dialog.of-drawer--horizontal`, `dialog.of-drawer--sticky` |
 | Desktop apply bar (1.1) | `[data-of-apply-bar]` with `[data-of-apply-show]` and `[data-of-apply-reset]` |
+| Quick filter bar (1.2) | `nav.of-quick` with `a.of-quick__link[data-of-link]` (`.of-quick__link--selected`, `aria-current`) at the top of `#of-state` |
+| Option images (1.2) | the *Images* display type uses the swatch markup (`a.of-swatch` with `img.of-swatch__visual`) |
 
 Any link with `data-of-link` inside the regions uses the swap. After every swap the window receives the event `openfilter:swapped` (`detail.url`); other components can listen to it. `window.openFilter.navigate(url)` swaps to a URL.
 

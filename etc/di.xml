@@ -49,6 +49,12 @@
             <argument name="cache" xsi:type="object">Iranimij\OpenFilter\Model\Cache\Type</argument>
         </arguments>
     </type>
+    <type name="Iranimij\OpenFilter\ViewModel\QuickBar">
+        <arguments>
+            <argument name="categoryFilters" xsi:type="object">categoryFilterList</argument>
+            <argument name="searchFilters" xsi:type="object">searchFilterList</argument>
+        </arguments>
+    </type>
     <type name="Iranimij\OpenFilter\Model\Config\OptionImages">
         <arguments>
             <argument name="cache" xsi:type="object">Iranimij\OpenFilter\Model\Cache\Type</argument>

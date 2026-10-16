@@ -65,6 +65,12 @@
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <backend_model>Iranimij\OpenFilter\Model\Config\Backend\PageCacheValue</backend_model>
                 </field>
+                <field id="quick_bar_size" translate="label comment" type="text" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Quick filter bar above the products: values shown</label>
+                    <comment>0 = no bar. One-click links to the values of the filters you mark with "In the quick filter bar" (filter form › How it behaves), picked values first, then the values with the most products.</comment>
+                    <validate>required-entry validate-digits validate-zero-or-greater</validate>
+                    <backend_model>Iranimij\OpenFilter\Model\Config\Backend\NonNegativeNumber</backend_model>
+                </field>
             </group>
             <group id="seo" translate="label" type="text" sortOrder="18" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>SEO</label>
