@@ -114,4 +114,17 @@ class FilterConfigEditorTest extends TestCase
         self::assertSame([20], $editor->apply($config, ['visible_options' => '3'])->getCategoryIds(), 'untouched');
         self::assertNull($editor->apply($config, ['ranges' => ''])->getRanges());
     }
+
+    public function test12SettingsFromTheForm(): void
+    {
+        $editor = new FilterConfigEditor();
+        $config = new FilterConfig(['code' => 'size']);
+
+        $edited = $editor->apply($config, ['depends_on' => ' color ', 'depends_values' => ['49', '50'], 'quick_bar' => '1']);
+        self::assertSame(['color', ['49', '50'], true], [$edited->getDependsOn(), $edited->getDependsValues(), $edited->isQuickBar()]);
+        self::assertSame(['50', '51'], $editor->apply($config, ['depends_values' => '50,51'])->getDependsValues(), 'inline edit sends text');
+        $cleared = $editor->apply($edited, ['depends_on' => '', 'depends_values' => [], 'quick_bar' => '0']);
+        self::assertSame([null, [], false], [$cleared->getDependsOn(), $cleared->getDependsValues(), $cleared->isQuickBar()]);
+        self::assertSame('color', $editor->apply($edited, ['visible_options' => '3'])->getDependsOn(), 'untouched');
+    }
 }

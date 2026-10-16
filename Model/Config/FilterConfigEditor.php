@@ -52,8 +52,16 @@ class FilterConfigEditor
         if (array_key_exists('tree_depth', $values)) {
             $edited->setTreeDepth($this->count($values['tree_depth'], __('Category tree levels')));
         }
+        if (array_key_exists('depends_on', $values)) {
+            $parent = trim((string) $values['depends_on']);
+            $edited->setDependsOn($parent === '' ? null : $parent);
+        }
+        if (array_key_exists('depends_values', $values)) {
+            $chosen = $values['depends_values'];
+            $edited->setDependsValues(is_array($chosen) ? array_map('strval', $chosen) : explode(',', (string) $chosen));
+        }
         foreach (['multiselect' => 'setMultiselect', 'hide_single_option' => 'setHideSingleOption',
-            'seo_indexable' => 'setSeoIndexable', 'active' => 'setActive'] as $key => $setter) {
+            'seo_indexable' => 'setSeoIndexable', 'active' => 'setActive', 'quick_bar' => 'setQuickBar'] as $key => $setter) {
             if (array_key_exists($key, $values)) {
                 $edited->{$setter}($this->flag($values[$key]));
             }

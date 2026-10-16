@@ -52,6 +52,7 @@ class FilterConfigTest extends TestCase
             'display_mode' => 'dropdown', 'multiselect' => 0, 'logic' => 'or', 'visible_options' => 0,
             'search_threshold' => 20, 'expanded' => 1, 'sort_by' => 'count', 'hide_single_option' => 0,
             'seo_indexable' => 1, 'position_override' => null, 'ranges' => null, 'tree_depth' => 3,
+            'depends_on' => null, 'depends_values' => null, 'quick_bar' => 0,
         ], $config->toRow());
         self::assertFalse($config->isActive());
         self::assertSame(FilterConfig::BEHAVIOUR_COLUMNS, array_keys($config->toRow()));
@@ -97,5 +98,33 @@ class FilterConfigTest extends TestCase
         self::assertSame(['only', [3, 21]], [$copy->getCategoryMode(), $copy->getCategoryIds()]);
         self::assertArrayNotHasKey('category_mode', $config->toRow(), 'stored in its own table');
         self::assertSame('all', (new FilterConfig())->getCategoryMode());
+    }
+
+    public function testDependentFilterAndQuickBarOf12(): void
+    {
+        $row = new FilterConfig([
+            'code' => 'size', 'depends_on' => ' color ', 'depends_values' => '49, 50,,49', 'quick_bar' => '1',
+        ]);
+
+        self::assertSame('color', $row->getDependsOn());
+        self::assertSame(['49', '50'], $row->getDependsValues(), 'a stored comma list, trimmed and distinct');
+        self::assertTrue($row->isQuickBar());
+        self::assertSame(['depends_on' => 'color', 'depends_values' => '49,50', 'quick_bar' => 1], array_intersect_key(
+            $row->toRow(),
+            ['depends_on' => 1, 'depends_values' => 1, 'quick_bar' => 1]
+        ));
+        self::assertEquals($row, new FilterConfig(json_decode(json_encode($row->toArray()), true)));
+
+        $copy = (new FilterConfig(['code' => 'x']))->withBehaviourOf($row);
+        self::assertSame(['color', ['49', '50'], true], [$copy->getDependsOn(), $copy->getDependsValues(), $copy->isQuickBar()]);
+
+        $cleared = $row->with([])->setDependsOn('  ')->setDependsValues([])->setQuickBar(false);
+        self::assertNull($cleared->getDependsOn());
+        self::assertSame(['depends_on' => null, 'depends_values' => null, 'quick_bar' => 0], array_intersect_key(
+            $cleared->toRow(),
+            ['depends_on' => 1, 'depends_values' => 1, 'quick_bar' => 1]
+        ));
+        $defaults = new FilterConfig();
+        self::assertSame([null, [], false], [$defaults->getDependsOn(), $defaults->getDependsValues(), $defaults->isQuickBar()]);
     }
 }

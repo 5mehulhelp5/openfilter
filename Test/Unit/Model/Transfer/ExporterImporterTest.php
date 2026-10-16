@@ -63,7 +63,7 @@ class ExporterImporterTest extends TestCase
     {
         $export = $this->exporter()->export();
 
-        self::assertSame(2, $export['schema']);
+        self::assertSame(3, $export['schema']);
         self::assertSame(['de' => 'Farbe'], $export['filters']['color']['labels']);
         self::assertSame(['admin' => 'Pick one or more'], $export['filters']['color']['tooltips']);
         self::assertArrayNotHasKey('tooltips', $export['filters']['rating']);
@@ -147,6 +147,29 @@ class ExporterImporterTest extends TestCase
         $file['filters']['color']['settings'] = ['category_mode' => 'except', 'category_ids' => [21, 4]];
         self::assertSame([], $importer->import($file, false)['errors']);
         self::assertSame(['except', [4, 21]], [$saved['color']->getCategoryMode(), $saved['color']->getCategoryIds()], 'where it shows');
+    }
+
+    public function testAFilterWaitingForOptionsTravelsByOptionKeys(): void
+    {
+        $this->configs['size'] = (new Defaults())->forAttribute('size', 94, 'select', null, 20)
+            ->with(['depends_on' => 'color', 'depends_values' => ['10', '12', '77'], 'quick_bar' => true]);
+
+        $settings = $this->exporter()->export()['filters']['size']['settings'];
+        self::assertSame(['color', ['Red', 'Wool #2'], true], [$settings['depends_on'], $settings['depends_values'], $settings['quick_bar']], 'ids become keys, unknown ids drop');
+
+        $importer = $this->importer();
+        $saved = [];
+        $this->repository->method('save')->willReturnCallback(static function ($config) use (&$saved) {
+            $saved[$config->getCode()] = $config;
+
+            return $config;
+        });
+        $file = ['schema' => 3, 'filters' => ['size' => ['settings' => ['depends_on' => 'color', 'depends_values' => ['Wool #2']]]]];
+        self::assertSame([], $importer->import($file, false)['errors']);
+        self::assertSame(['12'], $saved['size']->getDependsValues(), 'keys become this installation\'s ids');
+
+        $file['filters']['size']['settings']['depends_values'] = ['Purple'];
+        self::assertStringContainsString('not options of "color"', implode(' ', $importer->import($file, false)['errors']));
     }
 
     /**

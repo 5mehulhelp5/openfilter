@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/): `Api/` interfaces, the filter URL format, the storefront markup contract (`docs/storefront.md`) and the CLI JSON format change only in a major version.
 
+## [Unreleased]
+
+### Added
+- Settings for 1.2: a filter can wait for a pick in another filter (`depends_on`, `depends_values`) and can put its options in the quick filter bar (`quick_bar`); stored for attributes and built-ins, part of the REST shape and of the config export (schema 3; schema 1 and 2 files still import).
+
 ## [1.1.0] - 2026-10-16
 
 No changes since 1.1.0-rc1.

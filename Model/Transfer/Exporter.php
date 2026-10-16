@@ -47,9 +47,10 @@ class Exporter
             $attributeSlugs[$code] = $this->slugStorage->attributeSlugsForStore($storeId);
         }
         $filters = [];
-        foreach ($this->provider->getForStore(Store::DEFAULT_STORE_ID) as $key => $config) {
+        $configs = $this->provider->getForStore(Store::DEFAULT_STORE_ID);
+        foreach ($configs as $key => $config) {
             $attributeId = $config->isBuiltin() ? null : $config->getAttributeId();
-            $filter = ['settings' => $this->settings($config)];
+            $filter = ['settings' => $this->settings($config, $configs)];
             $labels = $this->byCode($this->configStorage->labelOverrides($attributeId, $config->getCode()), $codes);
             if ($labels !== []) {
                 $filter['labels'] = $labels;
@@ -122,9 +123,10 @@ class Exporter
 
     /**
      * @param FilterConfig $config
+     * @param array<string, FilterConfig> $configs every filter by key (the parent of a dependent filter)
      * @return array<string, mixed>
      */
-    private function settings(FilterConfig $config): array
+    private function settings(FilterConfig $config, array $configs): array
     {
         return [
             'display_mode' => $config->getDisplayMode(),
@@ -142,7 +144,32 @@ class Exporter
             'tree_depth' => $config->getTreeDepth(),
             'category_mode' => $config->getCategoryMode(),
             'category_ids' => $config->getCategoryIds(),
+            'depends_on' => $config->getDependsOn(),
+            'depends_values' => $this->parentValues($config, $configs[$config->getDependsOn() ?? ''] ?? null, true),
+            'quick_bar' => $config->isQuickBar(),
         ];
+    }
+
+    /**
+     * The values a dependent filter waits for, between the parent's option ids (stored) and its option keys (file);
+     * a built-in parent's values are the same in both. Unknown values are dropped.
+     *
+     * @param FilterConfig $config
+     * @param FilterConfig|null $parent
+     * @param bool $toKeys option ids to keys (export), or keys to ids (import)
+     * @return string[]
+     */
+    public function parentValues(FilterConfig $config, ?FilterConfig $parent, bool $toKeys): array
+    {
+        $values = $config->getDependsValues();
+        $attributeId = $parent === null || $parent->isBuiltin() ? null : $parent->getAttributeId();
+        if ($attributeId === null || $values === []) {
+            return $values;
+        }
+        $keys = array_map('strval', $this->optionKeys($attributeId));
+        $map = $toKeys ? $keys : array_map('strval', array_flip($keys));
+
+        return array_values(array_filter(array_map(static fn (string $value) => $map[$value] ?? null, $values)));
     }
 
     /**

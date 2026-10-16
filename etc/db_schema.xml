@@ -21,6 +21,9 @@
         <column xsi:type="int" name="position_override" nullable="true" comment="Null = attribute position"/>
         <column xsi:type="varchar" name="ranges" length="255" nullable="true" comment="Price ranges list (1.1): from-to,... in the URL format; null = automatic"/>
         <column xsi:type="smallint" name="tree_depth" unsigned="true" nullable="false" default="3" comment="Category tree levels (1.1)"/>
+        <column xsi:type="varchar" name="depends_on" length="80" nullable="true" comment="Shown only after a pick in this filter (1.2)"/>
+        <column xsi:type="varchar" name="depends_values" length="255" nullable="true" comment="Values of depends_on that show it, comma-separated; null = any (1.2)"/>
+        <column xsi:type="smallint" name="quick_bar" unsigned="true" nullable="false" default="0" comment="Options in the quick filter bar (1.2)"/>
         <column xsi:type="smallint" name="is_active" unsigned="true" nullable="false" default="1" comment="Shown on the storefront"/>
         <constraint xsi:type="primary" referenceId="PRIMARY">
             <column name="attribute_id"/>
@@ -57,6 +60,9 @@
         <column xsi:type="int" name="position_override" nullable="true" comment="Null = default position"/>
         <column xsi:type="varchar" name="ranges" length="255" nullable="true" comment="Price ranges list (1.1): from-to,... in the URL format; null = automatic"/>
         <column xsi:type="smallint" name="tree_depth" unsigned="true" nullable="false" default="3" comment="Category tree levels (1.1)"/>
+        <column xsi:type="varchar" name="depends_on" length="80" nullable="true" comment="Shown only after a pick in this filter (1.2)"/>
+        <column xsi:type="varchar" name="depends_values" length="255" nullable="true" comment="Values of depends_on that show it, comma-separated; null = any (1.2)"/>
+        <column xsi:type="smallint" name="quick_bar" unsigned="true" nullable="false" default="0" comment="Options in the quick filter bar (1.2)"/>
         <constraint xsi:type="primary" referenceId="PRIMARY">
             <column name="code"/>
         </constraint>
