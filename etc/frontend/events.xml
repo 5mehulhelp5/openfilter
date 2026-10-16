@@ -13,7 +13,11 @@
     <event name="controller_action_predispatch_catalogsearch_result_index">
         <observer name="openfilter_normalize_filter_params" instance="Iranimij\OpenFilter\Observer\NormalizeFilterParams"/>
     </event>
+    <event name="controller_action_predispatch_openfilter_all_index">
+        <observer name="openfilter_normalize_filter_params" instance="Iranimij\OpenFilter\Observer\NormalizeFilterParams"/>
+    </event>
     <event name="layout_generate_blocks_after">
+        <observer name="openfilter_all_products_heading" instance="Iranimij\OpenFilter\Observer\AllProductsHeading"/>
         <observer name="openfilter_seo_head" instance="Iranimij\OpenFilter\Observer\ApplySeoHead"/>
     </event>
 </config>

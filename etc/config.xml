@@ -23,6 +23,11 @@
                 <quick_bar_size>0</quick_bar_size>
                 <pagination>pages</pagination>
             </display>
+            <all_products>
+                <enabled>0</enabled>
+                <url_key>all-products</url_key>
+                <title>All products</title>
+            </all_products>
             <seo>
                 <nofollow_threshold>2</nofollow_threshold>
                 <max_active_values>5</max_active_values>

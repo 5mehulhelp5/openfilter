@@ -78,6 +78,22 @@
                     <backend_model>Iranimij\OpenFilter\Model\Config\Backend\NonNegativeNumber</backend_model>
                 </field>
             </group>
+            <group id="all_products" translate="label comment" type="text" sortOrder="17" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>All Products page</label>
+                <comment>Every product of the store view with the filters, on its own page (the store's root category; it must be an anchor category, as Magento's default root is).</comment>
+                <field id="enabled" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Show the All Products page</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="url_key" translate="label comment" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>URL key</label>
+                    <comment>Below the store's address, for example all-products or shop/all.html. A page that already has this address (a category, a CMS page) keeps it.</comment>
+                    <validate>required-entry</validate>
+                </field>
+                <field id="title" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Page title and heading</label>
+                </field>
+            </group>
             <group id="seo" translate="label" type="text" sortOrder="18" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>SEO</label>
                 <field id="nofollow_threshold" translate="label comment" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">

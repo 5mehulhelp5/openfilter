@@ -5,6 +5,7 @@ All notable changes to this project are documented here. The format follows [Kee
 ## [Unreleased]
 
 ### Added
+- **All Products page**: every product of the store view with the filters at a URL key of your choice (*All Products page* settings, off by default); own title, H1 and canonical URL, XML sitemap entry; filter links stay on the URL key.
 - **More products**: *Load more* button or loading as shoppers scroll (two pages, then the button), set under *Display › More products*; page links stay for search engines and without JavaScript, Back restores the loaded pages (Hyvä package).
 - **Quick filter bar**: one-click links above the products to values of the filters marked for it (picked first, then by product count), up to the number set under *Display* (0 = off, the default); real links, no JavaScript, no extra search request.
 - **Option images**: the display type *Images* shows the merchant's image per option (uploaded in the filter form's new *Option images* section) for attributes without swatches; text for options without an image; GraphQL reports them as image swatches. Table `openfilter_option_image`.

@@ -91,6 +91,9 @@ The same checks power `bin/magento openfilter:doctor` (1.0). With a category pic
 | Where filters show on desktop (1.1) | `openfilter/display/layout` | Sidebar next to the products | store view |
 | When results update on desktop (1.1) | `openfilter/display/apply_mode` | At once, with every click | store view |
 | Keep the sidebar in view while scrolling (1.1) | `openfilter/display/sticky` | No | store view |
+| More products (1.2) | `openfilter/display/pagination` | Page links (Magento's pager); or a "Load more" button, or as shoppers scroll | store view |
+| Quick filter bar above the products: values shown (1.2) | `openfilter/display/quick_bar_size` | 0 (no bar) | store view |
+| All Products page (1.2): on, URL key, title | `openfilter/all_products/enabled`, `url_key`, `title` | No, `all-products`, All products | store view |
 | Ask search engines not to follow filter links from this many active values | `openfilter/seo/nofollow_threshold` | 2 | store view |
 | Most filter values active at once | `openfilter/seo/max_active_values` | 5 | store view |
 | Page title / meta description / H1 of filtered pages (1.1) | `openfilter/seo/meta_title`, `meta_description`, `h1` | empty (Magento's own) | store view |
