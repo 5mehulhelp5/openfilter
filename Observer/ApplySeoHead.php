@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace Iranimij\OpenFilter\Observer;
 
+use Iranimij\OpenFilter\Model\AllProducts;
 use Iranimij\OpenFilter\Model\Config;
 use Iranimij\OpenFilter\Model\Layer\LayerContext;
 use Iranimij\OpenFilter\Model\Seo\CanonicalResolver;
@@ -33,7 +34,11 @@ use Magento\Theme\Block\Html\Title;
 class ApplySeoHead implements ObserverInterface
 {
     /** Full action names of layered pages => search page. */
-    private const PAGES = ['catalog_category_view' => false, 'catalogsearch_result_index' => true];
+    private const PAGES = [
+        'catalog_category_view' => false,
+        'catalogsearch_result_index' => true,
+        AllProducts::ACTION => false,
+    ];
 
     /** Core's category filter parameter (not handled by the codec). */
     private const CATEGORY_PARAM = 'cat';
@@ -52,6 +57,7 @@ class ApplySeoHead implements ObserverInterface
      * @param Config $config
      * @param SeoTemplates $templates title, description and H1 templates (1.1)
      * @param StoreManagerInterface $storeManager
+     * @param AllProducts $allProducts the All Products page (1.2): its own URL and title instead of the root category's
      */
     public function __construct(
         private readonly LayerContext $context,
@@ -64,7 +70,8 @@ class ApplySeoHead implements ObserverInterface
         private readonly CategoryUrl $categoryUrl,
         private readonly Config $config,
         private readonly SeoTemplates $templates,
-        private readonly StoreManagerInterface $storeManager
+        private readonly StoreManagerInterface $storeManager,
+        private readonly AllProducts $allProducts
     ) {
     }
 
@@ -93,8 +100,11 @@ class ApplySeoHead implements ObserverInterface
             return;
         }
         $layer = $this->layerResolver->get();
-        $this->applyTemplates($observer, $layer, $storeId);
-        $categoryUrl = $this->categoryUrl->get($layer->getCurrentCategory(), $storeId);
+        $allProducts = $action === AllProducts::ACTION;
+        $this->applyTemplates($observer, $layer, $storeId, $allProducts ? $this->allProducts->title($storeId) : null);
+        $categoryUrl = $allProducts
+            ? $this->allProducts->url($storeId)
+            : $this->categoryUrl->get($layer->getCurrentCategory(), $storeId);
         $page = $this->request->getParam('p');
         $url = $this->canonical->resolve(
             $state,
@@ -112,9 +122,10 @@ class ApplySeoHead implements ObserverInterface
      * @param Observer $observer
      * @param Layer $layer
      * @param int $storeId
+     * @param string|null $pageName the page's name for {category} (the All Products page's title); null = the category's
      * @return void
      */
-    private function applyTemplates(Observer $observer, Layer $layer, int $storeId): void
+    private function applyTemplates(Observer $observer, Layer $layer, int $storeId, ?string $pageName = null): void
     {
         $title = $this->config->getMetaTitleTemplate($storeId);
         $description = $this->config->getMetaDescriptionTemplate($storeId);
@@ -123,7 +134,7 @@ class ApplySeoHead implements ObserverInterface
             return;
         }
         $values = [
-            'category' => (string) $layer->getCurrentCategory()->getName(),
+            'category' => $pageName ?? (string) $layer->getCurrentCategory()->getName(),
             'filters' => array_values(array_filter(array_map(
                 static fn ($item): string => trim(strip_tags((string) $item->getData('label'))),
                 $layer->getState()->getFilters()

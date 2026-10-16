@@ -32,6 +32,10 @@ Stores › Configuration › Iranimij › OpenFilter › Display (per store view
 
 These parts load a small extra script (`js/extras.phtml`, under 1.5 KB gzipped) only on store views that use one of them; the default page keeps the 6 KB budget.
 
+## All Products page (1.2)
+
+With *Stores › Configuration › OpenFilter › All Products page › Show the All Products page* on, every product of the store view is listed with the filters at the URL key you choose (default `all-products`, also `shop/all.html` style). The page is the store's root category on Magento's category page, so the theme's category templates, OpenFilter's Hyvä templates, AJAX, robots and canonical rules and the SEO templates work as on any category page; it has its own title and H1 (*Page title and heading*), its URL as canonical, and an entry in the XML sitemap. The root category must be an anchor category (Magento's default root is). A page that already has the URL key (a category, a CMS page) keeps it.
+
 ## More products (1.2)
 
 *Stores › Configuration › OpenFilter › Display › More products* chooses how shoppers see the next products: Magento's page links (default), a **Load more products** button after the list, or loading **as shoppers scroll** (two pages load on their own, then the button waits, so the page footer stays reachable). The button fetches the pager's next page (the same URL as the page link, so Varnish serves it), adds its products to the list, runs their scripts and takes over its pager; the live region announces how many products were added and the keyboard moves to the first new one. The page links stay for search engines and without JavaScript, the address does not change, and Back from a product loads the same pages again. The script (about 1.1 KB) is printed only on store views that use it.

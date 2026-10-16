@@ -38,6 +38,7 @@
         "magento/module-customer": "^103.0.7",
         "magento/module-eav": "^102.1.7",
         "magento/module-elasticsearch": "^101.0.7",
+        "magento/module-media-storage": "^100.4.7",
         "magento/module-review": "^100.4.7",
         "magento/module-search": "^101.1.7",
         "magento/module-sitemap": "^100.4",

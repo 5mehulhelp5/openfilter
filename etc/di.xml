@@ -269,10 +269,16 @@
         <arguments>
             <argument name="itemProviders" xsi:type="array">
                 <item name="openfilterProvider" xsi:type="object">Iranimij\OpenFilter\Model\Sitemap\FilterPages</item>
+                <item name="openfilterAllProducts" xsi:type="object">Iranimij\OpenFilter\Model\Sitemap\AllProductsPage</item>
             </argument>
         </arguments>
     </type>
     <type name="Iranimij\OpenFilter\Model\Sitemap\FilterPages">
+        <arguments>
+            <argument name="categoryConfig" xsi:type="object">Magento\Sitemap\Model\ItemProvider\CategoryConfigReader</argument>
+        </arguments>
+    </type>
+    <type name="Iranimij\OpenFilter\Model\Sitemap\AllProductsPage">
         <arguments>
             <argument name="categoryConfig" xsi:type="object">Magento\Sitemap\Model\ItemProvider\CategoryConfigReader</argument>
         </arguments>
