@@ -65,6 +65,12 @@
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <backend_model>Iranimij\OpenFilter\Model\Config\Backend\PageCacheValue</backend_model>
                 </field>
+                <field id="pagination" translate="label comment" type="select" sortOrder="55" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>More products</label>
+                    <comment>"Load more" adds the next page's products below the list; "As shoppers scroll" loads two pages on its own, then shows the button so the page footer stays reachable. The page links stay for search engines and without JavaScript.</comment>
+                    <source_model>Iranimij\OpenFilter\Model\Config\Source\Pagination</source_model>
+                    <backend_model>Iranimij\OpenFilter\Model\Config\Backend\PageCacheValue</backend_model>
+                </field>
                 <field id="quick_bar_size" translate="label comment" type="text" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
                     <label>Quick filter bar above the products: values shown</label>
                     <comment>0 = no bar. One-click links to the values of the filters you mark with "In the quick filter bar" (filter form › How it behaves), picked values first, then the values with the most products.</comment>

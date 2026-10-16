@@ -5,6 +5,7 @@ All notable changes to this project are documented here. The format follows [Kee
 ## [Unreleased]
 
 ### Added
+- **More products**: *Load more* button or loading as shoppers scroll (two pages, then the button), set under *Display › More products*; page links stay for search engines and without JavaScript, Back restores the loaded pages (Hyvä package).
 - **Quick filter bar**: one-click links above the products to values of the filters marked for it (picked first, then by product count), up to the number set under *Display* (0 = off, the default); real links, no JavaScript, no extra search request.
 - **Option images**: the display type *Images* shows the merchant's image per option (uploaded in the filter form's new *Option images* section) for attributes without swatches; text for options without an image; GraphQL reports them as image swatches. Table `openfilter_option_image`.
 - **Dependent filters**: a filter can show only after a pick in another filter (any value, or chosen values), set under *Where it shows* in the filter form (the grid shows it too). Until then it is not on the page, in GraphQL or in the sitemap; its picks leave with the parent's pick (old links 301 to the page without them). Filters that would wait for each other are refused.

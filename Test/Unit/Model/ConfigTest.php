@@ -58,6 +58,9 @@ class ConfigTest extends TestCase
             'sitemap maximum' => ['getSitemapMaxUrls', 'getInt', 'openfilter/sitemap/max_urls', 5000],
             'horizontal layout' => ['getLayout', 'getString', 'openfilter/display/layout', 'horizontal'],
             'apply button' => ['getApplyMode', 'getString', 'openfilter/display/apply_mode', 'button'],
+            'quick bar' => ['getQuickBarSize', 'getInt', 'openfilter/display/quick_bar_size', 8],
+            'load more' => ['getPagination', 'getString', 'openfilter/display/pagination', 'load_more'],
+            'infinite' => ['getPagination', 'getString', 'openfilter/display/pagination', 'infinite'],
         ];
     }
 
@@ -91,6 +94,7 @@ class ConfigTest extends TestCase
         self::assertSame(0.0, $config->getPriceStep());
         self::assertSame(1, $config->getSitemapMinProducts(), 'at least one product');
         self::assertSame(0, $config->getSitemapMaxUrls());
+        self::assertSame(0, $config->getQuickBarSize(), 'no bar');
     }
 
     public function testUnknownLayoutAndApplyModeFallBackTo10Behaviour(): void
@@ -101,6 +105,7 @@ class ConfigTest extends TestCase
 
         self::assertSame(Config::LAYOUT_SIDEBAR, $config->getLayout());
         self::assertSame(Config::APPLY_INSTANT, $config->getApplyMode());
+        self::assertSame(Config::PAGINATION_PAGES, $config->getPagination());
     }
 
     public function testTemplatesAreTrimmed(): void
