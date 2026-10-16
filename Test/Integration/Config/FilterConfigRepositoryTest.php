@@ -127,6 +127,26 @@ class FilterConfigRepositoryTest extends TestCase
         $this->repository->save($this->freshRepository()->getByCode(Filter::BUILTIN_PRICE)->setRanges('0-60,50-100'));
     }
 
+    public function testThe12SettingsArePersistedForAttributesAndBuiltins(): void
+    {
+        $attribute = $this->repository->getByCode(self::CODE);
+        $this->repository->save($attribute->setDependsOn(Filter::BUILTIN_PRICE)->setDependsValues(['0-50'])->setQuickBar(true));
+        $stock = $this->repository->getByCode(Filter::BUILTIN_STOCK);
+        $this->repository->save($stock->setActive(true)->setDependsOn(self::CODE)->setQuickBar(true));
+
+        $configs = $this->freshProvider()->getForStore(0);
+        self::assertSame([Filter::BUILTIN_PRICE, ['0-50'], true], [
+            $configs[self::CODE]->getDependsOn(), $configs[self::CODE]->getDependsValues(), $configs[self::CODE]->isQuickBar(),
+        ]);
+        self::assertSame([self::CODE, [], true], [
+            $configs['stock']->getDependsOn(), $configs['stock']->getDependsValues(), $configs['stock']->isQuickBar(),
+        ]);
+
+        $this->expectException(InputException::class);
+        $this->expectExceptionMessage('cannot wait for a pick in itself');
+        $this->repository->save($this->freshRepository()->getByCode(self::CODE)->setDependsOn(self::CODE));
+    }
+
     public function testTooltipsPerStoreViewAndALabelClearedKeepsTheTooltip(): void
     {
         $storeId = (int) $this->om->get(StoreManagerInterface::class)->getStore('default')->getId();

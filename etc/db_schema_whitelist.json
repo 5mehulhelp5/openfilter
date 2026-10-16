@@ -14,7 +14,10 @@
             "position_override": true,
             "is_active": true,
             "ranges": true,
-            "tree_depth": true
+            "tree_depth": true,
+            "depends_on": true,
+            "depends_values": true,
+            "quick_bar": true
         },
         "constraint": {
             "PRIMARY": true,
@@ -49,7 +52,10 @@
             "seo_indexable": true,
             "position_override": true,
             "ranges": true,
-            "tree_depth": true
+            "tree_depth": true,
+            "depends_on": true,
+            "depends_values": true,
+            "quick_bar": true
         },
         "constraint": {
             "PRIMARY": true

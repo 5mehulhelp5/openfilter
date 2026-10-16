@@ -288,3 +288,6 @@
 "Show on search pages","Show on search pages"
 "Hide on search pages","Hide on search pages"
 "Order","Order"
+"A filter cannot wait for a pick in itself.","A filter cannot wait for a pick in itself."
+"Choose the filter to wait for before choosing its values.","Choose the filter to wait for before choosing its values."
+"Some values to wait for are not options of ""%1"".","Some values to wait for are not options of ""%1""."

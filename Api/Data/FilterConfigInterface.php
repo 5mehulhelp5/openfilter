@@ -312,4 +312,43 @@ interface FilterConfigInterface
      * @return $this
      */
     public function setCategoryIds(array $categoryIds): self;
+
+    /**
+     * Key of the filter this one waits for (1.2): it shows only after a pick there; null = always shown.
+     *
+     * @return string|null
+     */
+    public function getDependsOn(): ?string;
+
+    /**
+     * @param string|null $filterKey
+     * @return $this
+     */
+    public function setDependsOn(?string $filterKey): self;
+
+    /**
+     * Values of getDependsOn() that show this filter (option ids, or the built-in's values); empty = any pick (1.2).
+     *
+     * @return string[]
+     */
+    public function getDependsValues(): array;
+
+    /**
+     * @param string[] $values
+     * @return $this
+     */
+    public function setDependsValues(array $values): self;
+
+    /**
+     * Whether the filter's options appear in the quick filter bar above the products (1.2).
+     *
+     * @return bool
+     */
+    public function isQuickBar(): bool;
+
+    /**
+     * @param bool $quickBar
+     * @return $this
+     */
+    public function setQuickBar(bool $quickBar): self;
 }

@@ -16,6 +16,7 @@ use Iranimij\OpenFilter\Console\Command\SlugsGenerate;
 use Iranimij\OpenFilter\Model\Cache\Type as CacheType;
 use Iranimij\OpenFilter\Model\Config\FilterConfigProvider;
 use Iranimij\OpenFilter\Model\ResourceModel\SlugStorage;
+use Iranimij\OpenFilter\Model\Transfer\Schema;
 use Iranimij\OpenFilter\Test\Integration\Catalog\M1Catalog;
 use Magento\Framework\App\Cache\StateInterface;
 use Magento\Framework\App\ResourceConnection;
@@ -68,7 +69,7 @@ class CommandsTest extends TestCase
     {
         $color = $this->original['filters'][M1Catalog::COLOR];
 
-        self::assertSame(2, $this->original['schema']);
+        self::assertSame(Schema::VERSION, $this->original['schema']);
         self::assertSame(['admin' => 'red', M1Catalog::STORE => 'rot'], $color['options']['Red'], 'by label and store code');
         self::assertIsBool($color['settings']['multiselect']);
 

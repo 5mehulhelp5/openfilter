@@ -29,6 +29,9 @@ class FilterConfig implements FilterConfigInterface
         'position_override',
         'ranges',
         'tree_depth',
+        'depends_on',
+        'depends_values',
+        'quick_bar',
     ];
 
     /** @var array<string, true> keys given through setters since construction (the fields of a REST request) */
@@ -59,6 +62,9 @@ class FilterConfig implements FilterConfigInterface
         'tooltip' => null,
         'category_mode' => self::CATEGORIES_ALL,
         'category_ids' => [],
+        'depends_on' => null,
+        'depends_values' => [],
+        'quick_bar' => false,
     ];
 
     /**
@@ -104,6 +110,9 @@ class FilterConfig implements FilterConfigInterface
             'position_override' => $this->getPositionOverride(),
             'ranges' => $this->getRanges(),
             'tree_depth' => $this->getTreeDepth(),
+            'depends_on' => $this->getDependsOn(),
+            'depends_values' => $this->data['depends_values'] === [] ? null : implode(',', $this->data['depends_values']),
+            'quick_bar' => (int) $this->isQuickBar(),
         ];
     }
 
@@ -130,6 +139,9 @@ class FilterConfig implements FilterConfigInterface
             ->setTreeDepth($config->getTreeDepth())
             ->setCategoryMode($config->getCategoryMode())
             ->setCategoryIds($config->getCategoryIds())
+            ->setDependsOn($config->getDependsOn())
+            ->setDependsValues($config->getDependsValues())
+            ->setQuickBar($config->isQuickBar())
             ->setActive($config->isActive());
 
         return $copy;
@@ -529,11 +541,85 @@ class FilterConfig implements FilterConfigInterface
     }
 
     /**
+     * @inheritDoc
+     */
+    public function getDependsOn(): ?string
+    {
+        return $this->data['depends_on'];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setDependsOn(?string $filterKey): self
+    {
+        $this->data['depends_on'] = $filterKey === null || trim($filterKey) === '' ? null : trim($filterKey);
+
+        $this->sent['depends_on'] = true;
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getDependsValues(): array
+    {
+        return $this->data['depends_values'];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setDependsValues(array $values): self
+    {
+        $this->data['depends_values'] = $this->valueList($values);
+
+        $this->sent['depends_values'] = true;
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function isQuickBar(): bool
+    {
+        return (bool) $this->data['quick_bar'];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setQuickBar(bool $quickBar): self
+    {
+        $this->data['quick_bar'] = $quickBar;
+
+        $this->sent['quick_bar'] = true;
+        return $this;
+    }
+
+    /**
+     * Trimmed, distinct, non-empty values from a list or a comma-separated database value.
+     *
+     * @param mixed $values
+     * @return string[]
+     */
+    private function valueList($values): array
+    {
+        $list = is_array($values) ? $values : explode(',', (string) $values);
+        $list = array_filter(
+            array_map(static fn ($value): string => trim((string) $value), $list),
+            static fn (string $value): bool => $value !== ''
+        );
+
+        return array_values(array_unique($list));
+    }
+
+    /**
      * Database rows carry strings; keep the internal types stable for the cache round trip.
      */
     private function normalise(): void
     {
-        foreach (['builtin', 'multiselect', 'hide_single_option', 'seo_indexable', 'active'] as $key) {
+        foreach (['builtin', 'multiselect', 'hide_single_option', 'seo_indexable', 'active', 'quick_bar'] as $key) {
             $this->data[$key] = (bool) $this->data[$key];
         }
         foreach (['visible_options', 'search_threshold', 'position', 'tree_depth'] as $key) {
@@ -542,12 +628,14 @@ class FilterConfig implements FilterConfigInterface
         foreach (['attribute_id', 'position_override'] as $key) {
             $this->data[$key] = $this->data[$key] === null || $this->data[$key] === '' ? null : (int) $this->data[$key];
         }
-        foreach (['ranges', 'tooltip'] as $key) {
+        foreach (['ranges', 'tooltip', 'depends_on'] as $key) {
             $value = $this->data[$key];
             $this->data[$key] = $value === null || trim((string) $value) === '' ? null : (string) $value;
         }
+        $this->data['depends_on'] = $this->data['depends_on'] === null ? null : trim($this->data['depends_on']);
         $this->data['category_ids'] = array_values(array_unique(array_map('intval', (array) $this->data['category_ids'])));
         sort($this->data['category_ids']);
+        $this->data['depends_values'] = $this->valueList($this->data['depends_values'] ?? []);
         $expanded = $this->data['expanded'];
         $this->data['expanded'] = $expanded === null || $expanded === '' ? null : (bool) $expanded;
     }

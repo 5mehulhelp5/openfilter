@@ -68,6 +68,13 @@ class Validator
         if ($config->getVisibleOptions() < 0 || $config->getSearchThreshold() < 0) {
             $errors[] = __('Visible options and the search box threshold cannot be negative.');
         }
+        $parent = $config->getDependsOn();
+        if ($parent !== null && in_array($parent, [$config->getCode(), 'attribute:' . $config->getCode()], true)) {
+            $errors[] = __('A filter cannot wait for a pick in itself.');
+        }
+        if ($parent === null && $config->getDependsValues() !== []) {
+            $errors[] = __('Choose the filter to wait for before choosing its values.');
+        }
         if ($errors !== []) {
             throw new InputException(new Phrase(implode(' ', array_map('strval', $errors))));
         }

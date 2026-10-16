@@ -18,10 +18,13 @@ namespace Iranimij\OpenFilter\Model\Transfer;
  */
 class Schema
 {
-    public const VERSION = 2;
+    public const VERSION = 3;
 
-    /** Versions this module reads: 1 (OpenFilter 1.0) and 2 (1.1: logic "and", ranges, tree depth, tooltips). */
-    public const READS = [1, 2];
+    /**
+     * Versions this module reads: 1 (OpenFilter 1.0), 2 (1.1: logic "and", ranges, tree depth, tooltips, where it
+     * shows) and 3 (1.2: dependent filters, quick filter bar). Values a filter waits for are the parent's option keys.
+     */
+    public const READS = [1, 2, 3];
 
     public const ADMIN = 'admin';
 
@@ -42,6 +45,9 @@ class Schema
         'tree_depth' => 'int',
         'category_mode' => 'string',
         'category_ids' => 'int[]',
+        'depends_on' => '?string',
+        'depends_values' => 'string[]',
+        'quick_bar' => 'bool',
     ];
 
     private const SECTIONS = ['settings', 'labels', 'tooltips', 'url_name', 'options'];
@@ -69,7 +75,10 @@ class Schema
         if (!in_array($data['schema'] ?? null, self::READS, true)) {
             $schema = json_encode($data['schema'] ?? null);
 
-            return [sprintf('Unsupported schema "%s" (this version reads %s).', $schema, implode(' and ', self::READS))];
+            $last = self::READS[array_key_last(self::READS)];
+            $versions = implode(', ', array_slice(self::READS, 0, -1)) . ' and ' . $last;
+
+            return [sprintf('Unsupported schema "%s" (this version reads %s).', $schema, $versions)];
         }
         $filtersData = $data['filters'] ?? null;
         if (!is_array($filtersData) || (array_is_list($filtersData) && $filtersData !== [])) {
@@ -185,6 +194,7 @@ class Schema
                 'bool' => is_bool($value),
                 'int' => is_int($value),
                 'int[]' => is_array($value) && array_is_list($value) && array_filter($value, 'is_int') === $value,
+                'string[]' => is_array($value) && array_is_list($value) && array_filter($value, 'is_string') === $value,
                 default => is_string($value) && $value !== '',
             };
             if (!$ok) {

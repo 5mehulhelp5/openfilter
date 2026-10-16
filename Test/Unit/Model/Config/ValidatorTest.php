@@ -69,6 +69,11 @@ class ValidatorTest extends TestCase
             'rating stars' => [['builtin' => true, 'code' => 'rating', 'display_mode' => 'rating'], 0, true],
             'stock toggle' => [['builtin' => true, 'code' => 'stock', 'display_mode' => 'toggle'], 0, true],
             'sale list' => [['builtin' => true, 'code' => 'sale', 'display_mode' => 'list'], 0, false],
+            'waits for another filter' => [['depends_on' => 'color', 'depends_values' => ['49']], 0, true],
+            'waits for itself' => [['depends_on' => 'attr'], 0, false],
+            'waits for itself by key' => [['code' => 'new', 'depends_on' => 'attribute:new'], 0, false],
+            'values without a filter to wait for' => [['depends_values' => ['49']], 0, false],
+            'quick bar' => [['quick_bar' => true], 0, true],
         ];
     }
 

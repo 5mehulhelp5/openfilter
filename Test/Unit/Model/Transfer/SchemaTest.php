@@ -49,8 +49,19 @@ class SchemaTest extends TestCase
         ]];
 
         self::assertSame([], (new Schema())->validate($file, self::FILTERS, self::STORES));
-        self::assertSame(2, Schema::VERSION);
-        self::assertSame([1, 2], Schema::READS);
+        self::assertContains(2, Schema::READS);
+    }
+
+    public function testVersionThreeAddsDependentFiltersAndTheQuickBar(): void
+    {
+        $file = ['schema' => 3, 'filters' => [
+            'color' => ['settings' => ['depends_on' => 'rating', 'depends_values' => ['4'], 'quick_bar' => true]],
+            'rating' => ['settings' => ['depends_on' => null, 'depends_values' => []]],
+        ]];
+
+        self::assertSame([], (new Schema())->validate($file, self::FILTERS, self::STORES));
+        self::assertSame(3, Schema::VERSION);
+        self::assertSame([1, 2, 3], Schema::READS);
     }
 
     /**
@@ -62,7 +73,9 @@ class SchemaTest extends TestCase
 
         return [
             'not an object' => ['nonsense', 'not a JSON object'],
-            'other schema' => [['schema' => 3, 'filters' => []], 'Unsupported schema "3" (this version reads 1 and 2)'],
+            'other schema' => [['schema' => 4, 'filters' => []], 'Unsupported schema "4" (this version reads 1, 2 and 3)'],
+            'values to wait for as ids' => [$filter(['settings' => ['depends_values' => [49]]]), 'depends_values: expected string[]'],
+            'quick bar as text' => [$filter(['settings' => ['quick_bar' => 'yes']]), 'quick_bar: expected bool'],
             'category ids as text' => [$filter(['settings' => ['category_ids' => ['3']]]), 'category_ids: expected int[]'],
             'category ids as an object' => [$filter(['settings' => ['category_ids' => ['a' => 3]]]), 'category_ids: expected int[]'],
             'tree depth as text' => [$filter(['settings' => ['tree_depth' => '3']]), 'tree_depth: expected int'],

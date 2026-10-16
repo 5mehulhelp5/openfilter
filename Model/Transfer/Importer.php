@@ -112,7 +112,17 @@ class Importer
         }
         $settings = (array) ($filter['settings'] ?? []);
         try {
-            $saved = $this->repository->save($this->editor->apply($config, $this->editorValues($settings)));
+            $edited = $this->editor->apply($config, $this->editorValues($settings));
+            if (array_key_exists('depends_values', $settings) && $edited->getDependsOn() !== null) {
+                $parent = $this->repository->getByCode((string) $edited->getDependsOn());
+                $wanted = count($edited->getDependsValues());
+                $ids = $this->exporter->parentValues($edited, $parent instanceof FilterConfig ? $parent : null, false);
+                if (count($ids) !== $wanted) {
+                    throw new LocalizedException(__('Some values to wait for are not options of "%1".', $edited->getDependsOn()));
+                }
+                $edited->setDependsValues($ids);
+            }
+            $saved = $this->repository->save($edited);
         } catch (LocalizedException $e) {
             throw new LocalizedException(__('%1: %2', $key, $e->getMessage()), $e);
         }

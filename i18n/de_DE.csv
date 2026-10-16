@@ -288,3 +288,6 @@
 "Show on search pages","Auf Suchseiten zeigen"
 "Hide on search pages","Auf Suchseiten ausblenden"
 "Order","Reihenfolge"
+"A filter cannot wait for a pick in itself.","Ein Filter kann nicht auf eine Auswahl in sich selbst warten."
+"Choose the filter to wait for before choosing its values.","Wählen Sie zuerst den Filter, auf den gewartet wird, dann seine Werte."
+"Some values to wait for are not options of ""%1"".","Einige Werte, auf die gewartet wird, sind keine Optionen von „%1“."
