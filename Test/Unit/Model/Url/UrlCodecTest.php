@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace Iranimij\OpenFilter\Test\Unit\Model\Url;
 
+use Iranimij\OpenFilter\Model\Config\DependencyRule;
 use Iranimij\OpenFilter\Model\Config\Defaults;
 use Iranimij\OpenFilter\Model\Config\FilterConfig;
 use Iranimij\OpenFilter\Model\Config\FilterConfigProvider;
@@ -49,7 +50,7 @@ class UrlCodecTest extends TestCase
                 144 => [167 => 's', 168 => 'm', 169 => 'l'],
             ],
         ]);
-        $this->codec = new UrlCodec($configProvider, $slugProvider, new Range(), $this->createStub(CategoryTree::class));
+        $this->codec = new UrlCodec($configProvider, $slugProvider, new Range(), $this->createStub(CategoryTree::class), new DependencyRule());
     }
 
     public function testDecodesSlugsIdsRangesAndToggles(): void
@@ -152,7 +153,7 @@ class UrlCodecTest extends TestCase
         $configProvider->method('getActive')->willReturn($configs);
         $slugProvider = $this->createStub(SlugProvider::class);
         $slugProvider->method('forStore')->willReturn(['attributes' => [82 => 'weight'], 'options' => []]);
-        $codec = new UrlCodec($configProvider, $slugProvider, new Range(), $this->createStub(CategoryTree::class));
+        $codec = new UrlCodec($configProvider, $slugProvider, new Range(), $this->createStub(CategoryTree::class), new DependencyRule());
 
         $state = $codec->decode(['price' => '100-,50-100,0-50,50-100,cheap,-20', 'weight' => '2-3,1-2'], 1);
 
@@ -177,12 +178,36 @@ class UrlCodecTest extends TestCase
         $slugProvider->method('forStore')->willReturn(['attributes' => [], 'options' => []]);
         $tree = $this->createStub(CategoryTree::class);
         $tree->method('order')->willReturn([20 => 0, 23 => 1, 21 => 2]);
-        $codec = new UrlCodec($configProvider, $slugProvider, new Range(), $tree);
+        $codec = new UrlCodec($configProvider, $slugProvider, new Range(), $tree, new DependencyRule());
 
         $state = $codec->decode(['cat' => '21,99,abc,20,21'], 1);
 
         self::assertSame(['20', '21'], $state->get('category'), 'unknown ids dropped, tree order');
         self::assertSame(['cat' => '20,23,21'], $codec->encode($state->with('category', ['21', '23', '20']), 1));
         self::assertSame(['cat' => 'category'], $codec->getParameterNames(1));
+    }
+
+    public function testPicksOfAFilterThatWaitsLeaveWithItsParent(): void
+    {
+        $defaults = new Defaults();
+        $configs = [
+            'color' => $defaults->forAttribute('color', 93, 'select', 'visual', 10),
+            'size' => $defaults->forAttribute('size', 144, 'select', 'text', 20)->setDependsOn('color')->setDependsValues(['50']),
+        ];
+        $configProvider = $this->createStub(FilterConfigProvider::class);
+        $configProvider->method('getActive')->willReturn($configs);
+        $slugProvider = $this->createStub(SlugProvider::class);
+        $slugProvider->method('forStore')->willReturn([
+            'attributes' => [93 => 'color', 144 => 'size'],
+            'options' => [93 => [50 => 'red', 49 => 'green'], 144 => [167 => 's', 168 => 'm']],
+        ]);
+        $codec = new UrlCodec($configProvider, $slugProvider, new Range(), $this->createStub(CategoryTree::class), new DependencyRule());
+
+        self::assertSame(['color' => ['50'], 'size' => ['168']], $codec->decode(['color' => 'red', 'size' => 'm'], 1)->getValues());
+        self::assertSame(['color' => ['49']], $codec->decode(['color' => 'green', 'size' => 'm'], 1)->getValues(), 'not the value it waits for');
+        self::assertSame([], $codec->decode(['size' => 'm'], 1)->getValues(), 'an old link without the parent');
+        $state = $codec->decode(['color' => 'red', 'size' => 'm'], 1);
+        self::assertSame([], $codec->encode($state->without('color'), 1), 'removing the parent removes the child from the URL');
+        self::assertSame('/tops.html?color=red&size=m', $codec->urlFor($state, '/tops.html', [], 1));
     }
 }

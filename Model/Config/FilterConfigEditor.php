@@ -56,6 +56,9 @@ class FilterConfigEditor
             $parent = trim((string) $values['depends_on']);
             $edited->setDependsOn($parent === '' ? null : $parent);
         }
+        if (isset($values['depends_on']) && !array_key_exists('depends_values', $values)) {
+            $values['depends_values'] = []; // the form posts no values when every chip was removed
+        }
         if (array_key_exists('depends_values', $values)) {
             $chosen = $values['depends_values'];
             $edited->setDependsValues(is_array($chosen) ? array_map('strval', $chosen) : explode(',', (string) $chosen));

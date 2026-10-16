@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace Iranimij\OpenFilter\Test\Unit\Model\GraphQl;
 
+use Iranimij\OpenFilter\Model\Config\DependencyRule;
 use Iranimij\OpenFilter\Api\Data\FilterConfigInterface as Filter;
 use Iranimij\OpenFilter\Model\Config\CategoryRule;
 use Iranimij\OpenFilter\Model\Config\Defaults;
@@ -202,7 +203,8 @@ class AggregationsBuilderTest extends TestCase
             $eav,
             $ranges ?? $this->createStub(RangeFilters::class),
             $swatches,
-            new Uid()
+            new Uid(),
+            new DependencyRule()
         );
     }
 }

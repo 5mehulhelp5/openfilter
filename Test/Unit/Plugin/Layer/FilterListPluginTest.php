@@ -8,6 +8,8 @@ declare(strict_types=1);
 
 namespace Iranimij\OpenFilter\Test\Unit\Plugin\Layer;
 
+use Iranimij\OpenFilter\Model\Url\FilterState;
+use Iranimij\OpenFilter\Model\Config\DependencyRule;
 use Iranimij\OpenFilter\Model\Layer\Filter\BuiltinFactory;
 use Iranimij\OpenFilter\Model\Layer\Filter\CategoryTree;
 use Iranimij\OpenFilter\Model\Layer\Filter\CategoryTreeFactory;
@@ -35,7 +37,7 @@ class FilterListPluginTest extends TestCase
         $context->method('config')->willReturn(null);
         $builtins = $this->createStub(BuiltinFilters::class);
         $builtins->method('activeCodes')->willReturn([]);
-        $plugin = new FilterListPlugin($context, $builtins, $this->createStub(BuiltinFactory::class), $this->createStub(CategoryTreeFactory::class), new CategoryRule());
+        $plugin = new FilterListPlugin($context, $builtins, $this->createStub(BuiltinFactory::class), $this->createStub(CategoryTreeFactory::class), new CategoryRule(), new DependencyRule());
 
         $color = $this->attributeFilter(93, 'color');
         $size = $this->attributeFilter(144, 'size');
@@ -59,7 +61,7 @@ class FilterListPluginTest extends TestCase
         $context->method('isHidden')->willReturnCallback(static fn (?int $id, ?string $builtin): bool => $builtin === 'price');
         $builtins = $this->createStub(BuiltinFilters::class);
         $builtins->method('activeCodes')->willReturn([]);
-        $plugin = new FilterListPlugin($context, $builtins, $this->createStub(BuiltinFactory::class), $this->createStub(CategoryTreeFactory::class), new CategoryRule());
+        $plugin = new FilterListPlugin($context, $builtins, $this->createStub(BuiltinFactory::class), $this->createStub(CategoryTreeFactory::class), new CategoryRule(), new DependencyRule());
         $price = $this->attributeFilter(77, 'price');
         $size = $this->attributeFilter(144, 'size');
 
@@ -82,7 +84,7 @@ class FilterListPluginTest extends TestCase
         $tree->method('getOpenFilterKey')->willReturn('category');
         $factory = $this->createMock(CategoryTreeFactory::class);
         $factory->expects(self::once())->method('create')->willReturn($tree);
-        $plugin = new FilterListPlugin($context, $builtins, $this->createStub(BuiltinFactory::class), $factory, new CategoryRule());
+        $plugin = new FilterListPlugin($context, $builtins, $this->createStub(BuiltinFactory::class), $factory, new CategoryRule(), new DependencyRule());
         $layer = $this->createStub(Layer::class);
         $core = $this->createStub(AbstractFilter::class);
         $core->method('hasData')->willReturn(false);
@@ -126,7 +128,7 @@ class FilterListPluginTest extends TestCase
         $context->method('config')->willReturnCallback(static fn (string $key) => $key === 'color' ? $colour : null);
         $builtins = $this->createStub(BuiltinFilters::class);
         $builtins->method('activeCodes')->willReturn([]);
-        $plugin = new FilterListPlugin($context, $builtins, $this->createStub(BuiltinFactory::class), $this->createStub(CategoryTreeFactory::class), new CategoryRule());
+        $plugin = new FilterListPlugin($context, $builtins, $this->createStub(BuiltinFactory::class), $this->createStub(CategoryTreeFactory::class), new CategoryRule(), new DependencyRule());
         $filter = $this->getMockBuilder(\Iranimij\OpenFilter\Model\Layer\Filter\Attribute::class)->disableOriginalConstructor()
             ->onlyMethods(['getOpenFilterKey', 'hasData'])->getMock();
         $filter->method('getOpenFilterKey')->willReturn('color');
@@ -141,6 +143,42 @@ class FilterListPluginTest extends TestCase
         $result = $plugin->afterGetFilters($this->createStub(FilterList::class), [$filter], $layer);
 
         self::assertSame($shown ? [$filter] : [], $result);
+    }
+
+    #[AllowMockObjectsWithoutExpectations]
+    public function testAFilterThatWaitsShowsOnlyAfterItsParentsPick(): void
+    {
+        $configs = [
+            'color' => new FilterConfig(['code' => 'color']),
+            'size' => new FilterConfig(['code' => 'size', 'depends_on' => 'color', 'depends_values' => ['50']]),
+        ];
+        $shown = [];
+        foreach ([[], ['color' => ['49']], ['color' => ['49', '50']]] as $picks) {
+            $context = $this->createStub(LayerContext::class);
+            $context->method('isActive')->willReturn(true);
+            $context->method('isHidden')->willReturn(false);
+            $context->method('config')->willReturnCallback(static fn (string $key) => $configs[$key] ?? null);
+            $context->method('state')->willReturn(new FilterState($picks));
+            $builtins = $this->createStub(BuiltinFilters::class);
+            $builtins->method('activeCodes')->willReturn([]);
+            $plugin = new FilterListPlugin($context, $builtins, $this->createStub(BuiltinFactory::class), $this->createStub(CategoryTreeFactory::class), new CategoryRule(), new DependencyRule());
+            $filters = [];
+            foreach (['color', 'size'] as $key) {
+                $filter = $this->getMockBuilder(\Iranimij\OpenFilter\Model\Layer\Filter\Attribute::class)->disableOriginalConstructor()
+                    ->onlyMethods(['getOpenFilterKey', 'hasData'])->getMock();
+                $filter->method('getOpenFilterKey')->willReturn($key);
+                $filter->method('hasData')->willReturn(true);
+                $filters[$key] = $filter;
+            }
+            $result = $plugin->afterGetFilters(
+                $this->createStub(FilterList::class),
+                array_values($filters),
+                $this->createStub(\Magento\Catalog\Model\Layer\Search::class)
+            );
+            $shown[] = array_map(static fn ($filter): string => (string) array_search($filter, $filters, true), $result);
+        }
+
+        self::assertSame([['color'], ['color'], ['color', 'size']], $shown, 'no pick, another value, the value it waits for');
     }
 
     private function attributeFilter(int $id, string $code): AbstractFilter

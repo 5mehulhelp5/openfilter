@@ -294,6 +294,28 @@
                 </select>
             </formElements>
         </field>
+        <field name="depends_on" formElement="select" sortOrder="30">
+            <settings>
+                <dataType>text</dataType>
+                <label translate="true">Show only after a pick in</label>
+                <notice translate="true">The filter appears once shoppers pick a value in the other filter, and its own picks leave when that pick is removed.</notice>
+            </settings>
+        </field>
+        <field name="depends_values" component="Iranimij_OpenFilter/js/form/element/depends-values" formElement="select" sortOrder="40">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="filterOptions" xsi:type="boolean">true</item>
+                    <item name="chipsEnabled" xsi:type="boolean">true</item>
+                    <item name="multiple" xsi:type="boolean">true</item>
+                    <item name="elementTmpl" xsi:type="string">ui/grid/filters/elements/ui-select</item>
+                </item>
+            </argument>
+            <settings>
+                <dataType>text</dataType>
+                <label translate="true">Only for these values</label>
+                <notice translate="true">Empty = any value of that filter.</notice>
+            </settings>
+        </field>
     </fieldset>
     <fieldset name="seo" sortOrder="30">
         <settings>

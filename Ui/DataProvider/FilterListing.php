@@ -111,13 +111,27 @@ class FilterListing extends DataProvider
             'position' => $config->getPosition(),
             'order' => $this->ranks()[$this->keyOf($config)] ?? null,
             'logic' => $config->getLogic(),
-            'where' => match ($config->getCategoryMode()) {
-                FilterConfigInterface::CATEGORIES_ONLY => (string) __('Only in %1 categories', count($config->getCategoryIds())),
-                FilterConfigInterface::CATEGORIES_EXCEPT => (string) __('Except %1 categories', count($config->getCategoryIds())),
-                default => (string) __('Every category'),
-            },
+            'where' => $this->where($config),
             'active' => (int) $config->isActive(),
         ];
+    }
+
+    /**
+     * "Where it shows" in one line: the categories, and the filter it waits for (1.2).
+     *
+     * @param FilterConfigInterface $config
+     * @return string
+     */
+    private function where(FilterConfigInterface $config): string
+    {
+        $where = match ($config->getCategoryMode()) {
+            FilterConfigInterface::CATEGORIES_ONLY => (string) __('Only in %1 categories', count($config->getCategoryIds())),
+            FilterConfigInterface::CATEGORIES_EXCEPT => (string) __('Except %1 categories', count($config->getCategoryIds())),
+            default => (string) __('Every category'),
+        };
+        $parent = $config->getDependsOn();
+
+        return $parent === null ? $where : (string) __('%1, after a pick in %2', $where, $parent);
     }
 
     /**

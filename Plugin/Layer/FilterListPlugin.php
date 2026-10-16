@@ -10,6 +10,7 @@ namespace Iranimij\OpenFilter\Plugin\Layer;
 
 use Iranimij\OpenFilter\Api\Data\FilterConfigInterface as Filter;
 use Iranimij\OpenFilter\Model\Config\CategoryRule;
+use Iranimij\OpenFilter\Model\Config\DependencyRule;
 use Iranimij\OpenFilter\Model\Layer\Filter\BuiltinFactory;
 use Iranimij\OpenFilter\Model\Layer\Filter\CategoryTree;
 use Iranimij\OpenFilter\Model\Layer\Filter\CategoryTreeFactory;
@@ -40,13 +41,15 @@ class FilterListPlugin
      * @param BuiltinFactory $builtinFactory
      * @param CategoryTreeFactory $treeFactory the category tree (1.1) in place of core's drill-down
      * @param CategoryRule $categoryRule "Where it shows" (1.1)
+     * @param DependencyRule $dependencies filters that wait for a pick in another filter (1.2)
      */
     public function __construct(
         private readonly LayerContext $context,
         private readonly BuiltinFilters $builtinFilters,
         private readonly BuiltinFactory $builtinFactory,
         private readonly CategoryTreeFactory $treeFactory,
-        private readonly CategoryRule $categoryRule
+        private readonly CategoryRule $categoryRule,
+        private readonly DependencyRule $dependencies
     ) {
     }
 
@@ -83,7 +86,7 @@ class FilterListPlugin
                 array_filter($filters, fn (AbstractFilter $filter): bool => !$this->isHidden($filter)),
                 $this->builtins[$id]
             ),
-            fn (AbstractFilter $filter): bool => $path === null || $this->showsIn($filter, $path)
+            fn (AbstractFilter $filter): bool => ($path === null || $this->showsIn($filter, $path)) && $this->waitsForNothing($filter)
         );
         $positions = [];
         foreach ($all as $index => $filter) {
@@ -129,6 +132,20 @@ class FilterListPlugin
         $config = $key === null ? null : $this->context->config($key);
 
         return $config === null || $this->categoryRule->showsIn($config, $path);
+    }
+
+    /**
+     * A dependent filter shows once its parent has a pick it waits for (1.2).
+     *
+     * @param AbstractFilter $filter
+     * @return bool
+     */
+    private function waitsForNothing(AbstractFilter $filter): bool
+    {
+        $key = $this->key($filter);
+        $config = $key === null ? null : $this->context->config($key);
+
+        return $config === null || $this->dependencies->allows($config, $this->context->state());
     }
 
     /**

@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace Iranimij\OpenFilter\Test\Unit\Model\Config;
 
+use Iranimij\OpenFilter\Model\Config\DependencyRule;
 use Iranimij\OpenFilter\Api\Data\FilterConfigSearchResultsInterfaceFactory;
 use Iranimij\OpenFilter\Model\Config\Defaults;
 use Iranimij\OpenFilter\Model\Config\FilterConfig;
@@ -67,7 +68,8 @@ class FilterConfigRepositoryTest extends TestCase
             $this->cache,
             $this->typeList,
             new FilterConfigList(),
-            $this->resultsFactory()
+            $this->resultsFactory(),
+            new DependencyRule()
         );
     }
 
