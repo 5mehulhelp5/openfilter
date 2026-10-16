@@ -10,6 +10,12 @@ set -euo pipefail
 : "${MAGENTO_VERSION:?}" "${SEARCH_ENGINE:=opensearch}" "${MODULE_DIR:?}" "${MAGENTO_ROOT:=/tmp/magento}"
 MIRROR=https://repo-magento-mirror.fooman.co.nz/
 package="$(php -r 'echo json_decode(file_get_contents($argv[1]), true)["name"];' "$MODULE_DIR/composer.json")"
+# A path package's version comes from its dev-main branch alias ("1.1.x-dev" → "1.1.0"), so constraints between the
+# packages (openfilter-hyva 1.1 requires openfilter ^1.1) resolve as they will from Packagist.
+version_of() {
+  php -r '$c = json_decode(file_get_contents($argv[1]), true);
+    echo preg_replace("/\\.x-dev$/", ".0", $c["extra"]["branch-alias"]["dev-main"] ?? "1.0.x-dev");' "$1/composer.json"
+}
 
 echo "::group::Composer project $MAGENTO_VERSION"
 if [ -n "${GITHUB_TOKEN:-}" ]; then composer config -g github-oauth.github.com "$GITHUB_TOKEN"; fi
@@ -19,18 +25,18 @@ cd "$MAGENTO_ROOT"
 php -r '$f = "composer.json"; $c = json_decode(file_get_contents($f), true);
   $c["repositories"] = ["magento-mirror" => ["type" => "composer", "url" => $argv[1]]];
   file_put_contents($f, json_encode($c, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n");' "$MIRROR"
-composer config repositories.module '{"type":"path","url":"'"$MODULE_DIR"'","options":{"symlink":false,"versions":{"'"$package"'":"1.0.0"}}}'
+composer config repositories.module '{"type":"path","url":"'"$MODULE_DIR"'","options":{"symlink":false,"versions":{"'"$package"'":"'"$(version_of "$MODULE_DIR")"'"}}}'
 # Extra path packages (e.g. openfilter for the openfilter-hyva job): space-separated "name=dir" pairs.
 for extra in ${EXTRA_PATH_PACKAGES:-}; do
   name="${extra%%=*}"; dir="${extra#*=}"
-  composer config "repositories.${name//\//-}" '{"type":"path","url":"'"$dir"'","options":{"symlink":false,"versions":{"'"$name"'":"1.0.0"}}}'
+  composer config "repositories.${name//\//-}" '{"type":"path","url":"'"$dir"'","options":{"symlink":false,"versions":{"'"$name"'":"'"$(version_of "$dir")"'"}}}'
 done
 composer config --no-plugins allow-plugins.magento/composer-dependency-version-audit-plugin false
 composer config --no-plugins allow-plugins.magento/* true
 composer config --no-plugins allow-plugins.laminas/laminas-dependency-plugin true
 composer config --no-plugins allow-plugins.dealerdirect/phpcodesniffer-composer-installer true
 composer config --no-plugins allow-plugins.php-http/discovery true
-composer require --no-update --no-interaction "$package:1.0.0"
+composer require --no-update --no-interaction "$package:$(version_of "$MODULE_DIR")"
 # 2.4.7's project does not ship the Elasticsearch 8 engine module; add it for the ES8 leg (2.4.8+ include it).
 if [ "$SEARCH_ENGINE" = elasticsearch8 ] && ! grep -q '"magento/module-elasticsearch-8"' composer.lock 2>/dev/null; then
   # Its product package requires the Elasticsearch 7 module, whose 7.x client conflicts with ES8's: replace it.
