@@ -311,3 +311,8 @@
 "0 = no bar. One-click links to the values of the filters you mark with ""In the quick filter bar"" (filter form › How it behaves), picked values first, then the values with the most products.","0 = no bar. One-click links to the values of the filters you mark with ""In the quick filter bar"" (filter form › How it behaves), picked values first, then the values with the most products."
 "In the quick filter bar","In the quick filter bar"
 "Its values may appear as one-click links above the products (Stores › Configuration › OpenFilter › Display sets how many).","Its values may appear as one-click links above the products (Stores › Configuration › OpenFilter › Display sets how many)."
+"More products","More products"
+"""Load more"" adds the next page's products below the list; ""As shoppers scroll"" loads two pages on its own, then shows the button so the page footer stays reachable. The page links stay for search engines and without JavaScript.","""Load more"" adds the next page's products below the list; ""As shoppers scroll"" loads two pages on its own, then shows the button so the page footer stays reachable. The page links stay for search engines and without JavaScript."
+"Page links (Magento's pager)","Page links (Magento's pager)"
+"A ""Load more"" button","A ""Load more"" button"
+"As shoppers scroll","As shoppers scroll"
