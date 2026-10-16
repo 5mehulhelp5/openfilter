@@ -20,6 +20,7 @@
                 <layout>sidebar</layout>
                 <apply_mode>instant</apply_mode>
                 <sticky>0</sticky>
+                <quick_bar_size>0</quick_bar_size>
             </display>
             <seo>
                 <nofollow_threshold>2</nofollow_threshold>

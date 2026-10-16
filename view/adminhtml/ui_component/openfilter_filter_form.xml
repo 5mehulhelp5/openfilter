@@ -210,6 +210,24 @@
                 </checkbox>
             </formElements>
         </field>
+        <field name="quick_bar" formElement="checkbox" sortOrder="75">
+            <settings>
+                <dataType>boolean</dataType>
+                <label translate="true">In the quick filter bar</label>
+                <notice translate="true">Its values may appear as one-click links above the products (Stores › Configuration › OpenFilter › Display sets how many).</notice>
+            </settings>
+            <formElements>
+                <checkbox>
+                    <settings>
+                        <valueMap>
+                            <map name="false" xsi:type="string">0</map>
+                            <map name="true" xsi:type="string">1</map>
+                        </valueMap>
+                        <prefer>toggle</prefer>
+                    </settings>
+                </checkbox>
+            </formElements>
+        </field>
         <field name="position_override" formElement="input" sortOrder="80">
             <settings>
                 <dataType>text</dataType>

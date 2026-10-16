@@ -307,3 +307,7 @@
 "Upload a JPG, PNG, GIF or WebP image.","Laden Sie ein JPG-, PNG-, GIF- oder WebP-Bild hoch."
 "The image could not be saved. Please try again.","Das Bild konnte nicht gespeichert werden. Bitte versuchen Sie es erneut."
 "The uploaded image ""%1"" is gone. Please upload it again.","Das hochgeladene Bild „%1“ ist nicht mehr da. Bitte laden Sie es erneut hoch."
+"Quick filter bar above the products: values shown","Schnellfilterleiste über den Produkten: angezeigte Werte"
+"0 = no bar. One-click links to the values of the filters you mark with ""In the quick filter bar"" (filter form › How it behaves), picked values first, then the values with the most products.","0 = keine Leiste. Links mit einem Klick zu den Werten der Filter, die Sie mit „In der Schnellfilterleiste“ markieren (Filterformular › Verhalten), gewählte Werte zuerst, dann die Werte mit den meisten Produkten."
+"In the quick filter bar","In der Schnellfilterleiste"
+"Its values may appear as one-click links above the products (Stores › Configuration › OpenFilter › Display sets how many).","Seine Werte können als Links mit einem Klick über den Produkten erscheinen (Shops › Konfiguration › OpenFilter › Anzeige legt fest, wie viele)."

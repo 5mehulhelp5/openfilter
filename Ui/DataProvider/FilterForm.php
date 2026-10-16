@@ -41,7 +41,7 @@ class FilterForm extends AbstractDataProvider
         'looks' => ['display_mode', 'ranges', 'tree_depth'],
         'behaves' => [
             'active', 'multiselect', 'logic', 'visible_options', 'search_threshold', 'expanded', 'sort_by',
-            'hide_single_option', 'position_override',
+            'hide_single_option', 'quick_bar', 'position_override',
         ],
         'where' => ['category_mode', 'category_ids', 'depends_on', 'depends_values'],
         'seo' => ['seo_indexable'],
@@ -144,6 +144,7 @@ class FilterForm extends AbstractDataProvider
             'seo_indexable' => $config->isSeoIndexable() ? '1' : '0',
             'active' => $config->isActive() ? '1' : '0',
             'position_override' => $config->getPositionOverride(),
+            'quick_bar' => $config->isQuickBar() ? '1' : '0',
             'depends_on' => (string) $config->getDependsOn(),
             'depends_values' => $config->getDependsValues(),
         ];

@@ -307,3 +307,7 @@
 "Upload a JPG, PNG, GIF or WebP image.","Upload a JPG, PNG, GIF or WebP image."
 "The image could not be saved. Please try again.","The image could not be saved. Please try again."
 "The uploaded image ""%1"" is gone. Please upload it again.","The uploaded image ""%1"" is gone. Please upload it again."
+"Quick filter bar above the products: values shown","Quick filter bar above the products: values shown"
+"0 = no bar. One-click links to the values of the filters you mark with ""In the quick filter bar"" (filter form › How it behaves), picked values first, then the values with the most products.","0 = no bar. One-click links to the values of the filters you mark with ""In the quick filter bar"" (filter form › How it behaves), picked values first, then the values with the most products."
+"In the quick filter bar","In the quick filter bar"
+"Its values may appear as one-click links above the products (Stores › Configuration › OpenFilter › Display sets how many).","Its values may appear as one-click links above the products (Stores › Configuration › OpenFilter › Display sets how many)."

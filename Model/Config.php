@@ -29,6 +29,7 @@ class Config
     public const XML_PATH_LAYOUT = 'openfilter/display/layout';
     public const XML_PATH_APPLY_MODE = 'openfilter/display/apply_mode';
     public const XML_PATH_STICKY = 'openfilter/display/sticky';
+    public const XML_PATH_QUICK_BAR_SIZE = 'openfilter/display/quick_bar_size';
     public const XML_PATH_META_TITLE = 'openfilter/seo/meta_title';
     public const XML_PATH_META_DESCRIPTION = 'openfilter/seo/meta_description';
     public const XML_PATH_H1 = 'openfilter/seo/h1';
@@ -95,6 +96,17 @@ class Config
     public function isAjaxEnabled(?int $storeId = null): bool
     {
         return $this->reader->getBool(self::XML_PATH_AJAX, ScopeInterface::SCOPE_STORE, $storeId);
+    }
+
+    /**
+     * Values shown in the quick filter bar above the products (1.2); 0 = no bar.
+     *
+     * @param int|null $storeId
+     * @return int
+     */
+    public function getQuickBarSize(?int $storeId = null): int
+    {
+        return max(0, $this->reader->getInt(self::XML_PATH_QUICK_BAR_SIZE, ScopeInterface::SCOPE_STORE, $storeId));
     }
 
     /**
