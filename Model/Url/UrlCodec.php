@@ -11,6 +11,7 @@ namespace Iranimij\OpenFilter\Model\Url;
 use Iranimij\OpenFilter\Api\Data\FilterConfigInterface as Filter;
 use Iranimij\OpenFilter\Api\FilterStateInterface;
 use Iranimij\OpenFilter\Api\UrlCodecInterface;
+use Iranimij\OpenFilter\Model\Config\DependencyRule;
 use Iranimij\OpenFilter\Model\Config\FilterConfigProvider;
 use Iranimij\OpenFilter\Model\Layer\CategoryTree;
 use Iranimij\OpenFilter\Model\Layer\Filter\CategoryTree as CategoryTreeFilter;
@@ -39,12 +40,14 @@ class UrlCodec implements UrlCodecInterface
      * @param SlugProvider $slugProvider
      * @param Range $range
      * @param CategoryTree $categoryTree category ids and their tree order (category tree display)
+     * @param DependencyRule $dependencies picks of dependent filters leave with their parent's pick (1.2)
      */
     public function __construct(
         private readonly FilterConfigProvider $configProvider,
         private readonly SlugProvider $slugProvider,
         private readonly Range $range,
-        private readonly CategoryTree $categoryTree
+        private readonly CategoryTree $categoryTree,
+        private readonly DependencyRule $dependencies
     ) {
     }
 
@@ -72,7 +75,7 @@ class UrlCodec implements UrlCodecInterface
             }
         }
 
-        return new FilterState($values);
+        return $this->dependencies->prune(new FilterState($values), $this->configProvider->getActive($storeId));
     }
 
     /**
@@ -80,6 +83,7 @@ class UrlCodec implements UrlCodecInterface
      */
     public function encode(FilterStateInterface $state, int $storeId): array
     {
+        $state = $this->dependencies->prune($state, $this->configProvider->getActive($storeId));
         $params = [];
         foreach ($this->lookup($storeId) as $key => $filter) {
             $values = $state->get($key);

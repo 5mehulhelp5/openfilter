@@ -194,6 +194,32 @@ class FilterFormTest extends TestCase
         self::assertArrayNotHasKey('url_name', $form->getData()['price']);
     }
 
+    public function testAFilterCanWaitForAnyOtherFilterAndItsValues(): void
+    {
+        $defaults = new Defaults();
+        $all = [
+            'color' => $this->colour()->setDependsOn('rating')->setDependsValues(['4']),
+            'size' => $defaults->forAttribute('size', 144, 'select', 'text', 20),
+            'rating' => $defaults->forBuiltin('rating'),
+            'weight' => $defaults->forAttribute('weight', 80, 'decimal', null, 30),
+            'price' => $defaults->forBuiltin('price')->setDisplayMode('ranges')->setRanges('0-50,50-'),
+        ];
+        $form = $this->form('color', $all['color'], null, [self::DE => 'Deutsch'], false, $all);
+        $form->addFilter((new \Magento\Framework\Api\Filter())->setField('code')->setValue('color'));
+
+        $meta = $form->getMeta();
+        $parents = array_column($this->config($meta, 'where', 'depends_on')['options'], 'value');
+        self::assertSame(['', 'size', 'rating', 'weight', 'price'], $parents, 'every other filter, never itself');
+        $values = $this->config($meta, 'where', 'depends_values')['optionsByParent'];
+        self::assertSame([['value' => '49', 'label' => 'Black']], $values['size']);
+        self::assertSame(['4', '3', '2', '1'], array_column($values['rating'], 'value'));
+        self::assertSame([], $values['weight'], 'a slider: any pick');
+        self::assertSame(['0-50', '50-'], array_column($values['price'], 'value'));
+        self::assertSame('[GLOBAL]', $this->config($meta, 'where', 'depends_on')['scopeLabel']);
+        $data = $form->getData()['color'];
+        self::assertSame(['rating', ['4']], [$data['depends_on'], $data['depends_values']]);
+    }
+
     private function colour(): FilterConfig
     {
         return (new Defaults())->forAttribute('color', 93, 'select', 'visual', 10);
@@ -223,13 +249,15 @@ class FilterFormTest extends TestCase
 
     /**
      * @param array<int, string> $storeNames
+     * @param array<string, FilterConfig> $all every filter by key (the filters to wait for)
      */
-    private function form(string $key, FilterConfig $config, ?string $store, array $storeNames, bool $single = false): FilterForm
+    private function form(string $key, FilterConfig $config, ?string $store, array $storeNames, bool $single = false, array $all = []): FilterForm
     {
         $repository = $this->createStub(FilterConfigRepositoryInterface::class);
         $repository->method('getByCode')->willReturn($config);
         $provider = $this->createStub(FilterConfigProvider::class);
         $provider->method('keyOf')->willReturn($key);
+        $provider->method('getForStore')->willReturn($all);
         $attributeSlugs = $this->createStub(AttributeSlugScope::class);
         $attributeSlugs->method('own')->willReturnMap([[93, 0, 'color'], [93, self::DE, 'farbe']]);
         $configStorage = $this->createStub(FilterConfigStorage::class);
@@ -270,7 +298,8 @@ class FilterFormTest extends TestCase
             new Validator(new RangeList(new Range())),
             new DisplayMode(),
             new FormScope($manager),
-            $request
+            $request,
+            new Defaults()
         );
     }
 }

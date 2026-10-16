@@ -53,6 +53,7 @@ class AggregationsTest extends TestCase
         $this->configure(M1Catalog::COLOR, static fn (Filter $f) => $f->setLogic(Filter::LOGIC_OR)
             ->setCategoryMode(Filter::CATEGORIES_ALL)->setCategoryIds([]));
         $this->configure(Filter::BUILTIN_PRICE, static fn (Filter $f) => $f->setDisplayMode(Filter::DISPLAY_SLIDER)->setRanges(null));
+        $this->configure(M1Catalog::SIZE, static fn (Filter $f) => $f->setDependsOn(null)->setDependsValues([]));
     }
 
     /**
@@ -170,6 +171,16 @@ class AggregationsTest extends TestCase
 
         self::assertNull($this->aggregation($products, M1Catalog::COLOR, false));
         self::assertNotNull($this->aggregation($products, M1Catalog::SIZE, false));
+    }
+
+    public function testAFilterThatWaitsShowsAfterItsParentsPick(): void
+    {
+        $red = $this->option(M1Catalog::COLOR, 'Red');
+        $this->configure(M1Catalog::SIZE, static fn (Filter $f) => $f->setDependsOn(M1Catalog::COLOR)->setDependsValues([$red]));
+
+        self::assertNull($this->aggregation($this->products([]), M1Catalog::SIZE, false));
+        self::assertNull($this->aggregation($this->products([M1Catalog::COLOR => ['eq' => $this->option(M1Catalog::COLOR, 'Blue')]]), M1Catalog::SIZE, false));
+        self::assertNotNull($this->aggregation($this->products([M1Catalog::COLOR => ['in' => [$red]]]), M1Catalog::SIZE, false));
     }
 
     public function testAQueryWithoutTheFieldKeepsMagentosCounts(): void

@@ -11,6 +11,8 @@ namespace Iranimij\OpenFilter\Ui\DataProvider;
 use Iranimij\OpenFilter\Api\Data\FilterConfigInterface as Filter;
 use Iranimij\OpenFilter\Api\FilterConfigRepositoryInterface;
 use Iranimij\OpenFilter\Model\Admin\FormScope;
+use Iranimij\OpenFilter\Model\Config\Defaults;
+use Iranimij\OpenFilter\Model\Search\BuiltinClauses;
 use Iranimij\OpenFilter\Model\Config\FilterConfigProvider;
 use Iranimij\OpenFilter\Model\Config\Source\DisplayMode;
 use Iranimij\OpenFilter\Model\Config\Validator;
@@ -40,7 +42,7 @@ class FilterForm extends AbstractDataProvider
             'active', 'multiselect', 'logic', 'visible_options', 'search_threshold', 'expanded', 'sort_by',
             'hide_single_option', 'position_override',
         ],
-        'where' => ['category_mode', 'category_ids'],
+        'where' => ['category_mode', 'category_ids', 'depends_on', 'depends_values'],
         'seo' => ['seo_indexable'],
     ];
 
@@ -49,6 +51,9 @@ class FilterForm extends AbstractDataProvider
 
     /** Read-only cells of the options table (Review #1). */
     private const ROW_TEXT = 'Iranimij_OpenFilter/form/element/row-text';
+
+    /** A filter with more options than this can be waited for with any pick only (keeps the form light). */
+    private const MAX_PARENT_VALUES = 200;
 
     /** @var string|null key of the filter the form shows */
     private ?string $key = null;
@@ -66,6 +71,7 @@ class FilterForm extends AbstractDataProvider
      * @param DisplayMode $displayModes
      * @param FormScope $formScope
      * @param RequestInterface $request
+     * @param Defaults $defaults built-in filter names (the filters to wait for)
      * @param array<string, mixed> $meta
      * @param array<string, mixed> $data
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
@@ -83,6 +89,7 @@ class FilterForm extends AbstractDataProvider
         private readonly DisplayMode $displayModes,
         private readonly FormScope $formScope,
         private readonly RequestInterface $request,
+        private readonly Defaults $defaults,
         array $meta = [],
         array $data = []
     ) {
@@ -134,6 +141,8 @@ class FilterForm extends AbstractDataProvider
             'seo_indexable' => $config->isSeoIndexable() ? '1' : '0',
             'active' => $config->isActive() ? '1' : '0',
             'position_override' => $config->getPositionOverride(),
+            'depends_on' => (string) $config->getDependsOn(),
+            'depends_values' => $config->getDependsValues(),
         ];
         $labels = $this->configStorage->labelOverrides($config->isBuiltin() ? null : $attributeId, $config->getCode());
         $tooltips = $this->configStorage->tooltipOverrides(
@@ -205,6 +214,7 @@ class FilterForm extends AbstractDataProvider
             }
         }
 
+        $meta = $this->dependencyMeta($meta, $config);
         $meta = $this->labelMeta($meta, $scope, $stores, $multiStore);
         if (!$this->hasUrlNames($config)) {
             $meta['seo']['children']['url_name']['arguments']['data']['config']['visible'] = false;
@@ -214,6 +224,76 @@ class FilterForm extends AbstractDataProvider
         }
 
         return $this->urlNameMeta($meta, $scope, $stores, $multiStore);
+    }
+
+    /**
+     * The filters this one can wait for and their values (1.2).
+     *
+     * @param array<string, mixed> $meta
+     * @param Filter $config
+     * @return array<string, mixed>
+     */
+    private function dependencyMeta(array $meta, Filter $config): array
+    {
+        $own = $this->provider->keyOf($config);
+        $parents = [['value' => '', 'label' => (string) __('Nothing (always shown)')]];
+        $values = [];
+        foreach ($this->provider->getForStore(0) as $key => $other) {
+            if ($key === $own) {
+                continue;
+            }
+            $label = $other->getLabel()
+                ?? ($other->isBuiltin() ? (string) __($this->defaults->builtinLabel($other->getCode())) : $other->getCode());
+            $parents[] = ['value' => $key, 'label' => sprintf('%s (%s)', $label, $key)];
+            $values[$key] = $this->parentValues($other);
+        }
+        $meta = $this->merge($meta, ['where', 'children', 'depends_on'], ['options' => $parents]);
+
+        return $this->merge($meta, ['where', 'children', 'depends_values'], ['optionsByParent' => $values]);
+    }
+
+    /**
+     * Values another filter can be waited for with: options, rating levels, on/off, the merchant's price ranges.
+     *
+     * @param Filter $parent
+     * @return array<int, array{value: string, label: string}>
+     */
+    private function parentValues(Filter $parent): array
+    {
+        $attributeId = $parent->getAttributeId();
+        if (!$parent->isBuiltin() && $attributeId !== null) {
+            if (!in_array($parent->getInputType(), ['select', 'multiselect'], true)) {
+                return [];
+            }
+            $labels = $this->slugStorage->optionLabels($attributeId)['admin'];
+            if (count($labels) > self::MAX_PARENT_VALUES) {
+                return [];
+            }
+            $options = [];
+            foreach ($labels as $optionId => $label) {
+                $options[] = ['value' => (string) $optionId, 'label' => (string) $label];
+            }
+
+            return $options;
+        }
+
+        return match ($parent->getCode()) {
+            Filter::BUILTIN_RATING => array_map(
+                static fn (int $stars): array => [
+                    'value' => (string) $stars,
+                    'label' => $stars === 1 ? (string) __('%1 star & up', $stars) : (string) __('%1 stars & up', $stars),
+                ],
+                BuiltinClauses::STARS
+            ),
+            Filter::BUILTIN_STOCK, Filter::BUILTIN_SALE, Filter::BUILTIN_NEW => [['value' => '1', 'label' => (string) __('Yes')]],
+            Filter::BUILTIN_PRICE => $parent->getDisplayMode() === Filter::DISPLAY_RANGES && $parent->getRanges() !== null
+                ? array_map(
+                    static fn (string $range): array => ['value' => trim($range), 'label' => trim($range)],
+                    explode(',', $parent->getRanges())
+                )
+                : [],
+            default => [],
+        };
     }
 
     /**

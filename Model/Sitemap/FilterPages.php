@@ -63,7 +63,9 @@ class FilterPages implements ItemProviderInterface
         }
         $indexable = array_filter(
             $this->filters->getActive($storeId),
+            // A filter that waits for another one (1.2) has no page of its own: its single value redirects away.
             static fn (Filter $filter): bool => !$filter->isBuiltin() && $filter->isSeoIndexable()
+                && $filter->getDependsOn() === null
                 && in_array($filter->getInputType(), ['select', 'multiselect'], true)
         );
         if ($indexable === []) {

@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace Iranimij\OpenFilter\Test\Unit\Model\Seo;
 
+use Iranimij\OpenFilter\Model\Config\DependencyRule;
 use Iranimij\OpenFilter\Model\Config;
 use Iranimij\OpenFilter\Model\Config\Defaults;
 use Iranimij\OpenFilter\Model\Config\FilterConfigProvider;
@@ -167,6 +168,6 @@ class SeoPoliciesTest extends TestCase
             'options' => [93 => [50 => 'red', 49 => 'blue'], 144 => [167 => 's', 168 => 'm']],
         ]);
 
-        return new UrlCodec($this->configProvider(), $slugProvider, new Range(), $this->createStub(CategoryTree::class));
+        return new UrlCodec($this->configProvider(), $slugProvider, new Range(), $this->createStub(CategoryTree::class), new DependencyRule());
     }
 }

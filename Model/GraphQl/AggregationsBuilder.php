@@ -9,7 +9,10 @@ declare(strict_types=1);
 namespace Iranimij\OpenFilter\Model\GraphQl;
 
 use Iranimij\OpenFilter\Api\Data\FilterConfigInterface as Filter;
+use Iranimij\OpenFilter\Api\FilterStateInterface;
 use Iranimij\OpenFilter\Model\Config\CategoryRule;
+use Iranimij\OpenFilter\Model\Config\DependencyRule;
+use Iranimij\OpenFilter\Model\Url\FilterState;
 use Iranimij\OpenFilter\Model\Config\FilterConfigProvider;
 use Iranimij\OpenFilter\Model\Layer\CategoryTree;
 use Iranimij\OpenFilter\Model\Url\SlugProvider;
@@ -43,6 +46,7 @@ class AggregationsBuilder
      * @param RangeFilters $ranges
      * @param Swatch $swatches
      * @param Uid $uid category_uid of the filter argument
+     * @param DependencyRule $dependencies filters that wait for a pick in another filter (1.2)
      */
     public function __construct(
         private readonly FilterConfigProvider $filters,
@@ -52,7 +56,8 @@ class AggregationsBuilder
         private readonly EavConfig $eavConfig,
         private readonly RangeFilters $ranges,
         private readonly Swatch $swatches,
-        private readonly Uid $uid
+        private readonly Uid $uid,
+        private readonly DependencyRule $dependencies
     ) {
     }
 
@@ -71,9 +76,12 @@ class AggregationsBuilder
         $category = $this->pageCategory($filterArgs, $storeId);
         $path = $category === null ? null : $this->tree->pathIds($category, $storeId);
         $slugs = $this->slugs->forStore($storeId);
+        $active = $this->filters->getActive($storeId);
+        $state = $this->argState($active, $filterArgs);
         $filters = array_values(array_filter(
-            $this->filters->getActive($storeId),
-            fn (Filter $filter): bool => $path === null || $this->categoryRule->showsIn($filter, $path)
+            $active,
+            fn (Filter $filter): bool => ($path === null || $this->categoryRule->showsIn($filter, $path))
+                && $this->dependencies->allows($filter, $state)
         ));
         usort($filters, static fn (Filter $a, Filter $b): int => $a->getPosition() <=> $b->getPosition());
         $result = [];
@@ -301,6 +309,31 @@ class AggregationsBuilder
         }
 
         return $attribute === null ? $filter->getCode() : (string) $attribute->getStoreLabel($storeId);
+    }
+
+    /**
+     * The picks of the `filter` argument by filter key, in the storefront's value format (option ids, "from-to").
+     *
+     * @param array<string, Filter> $filters
+     * @param array<string, mixed> $filterArgs
+     * @return FilterStateInterface
+     */
+    private function argState(array $filters, array $filterArgs): FilterStateInterface
+    {
+        $values = [];
+        foreach ($filters as $key => $filter) {
+            $code = $filter->getCode() === Filter::BUILTIN_CATEGORY && $filter->isBuiltin() ? 'category_id' : $filter->getCode();
+            $arg = $filterArgs[$code] ?? null;
+            $picked = $this->pickedValues($arg);
+            if ($picked === [] && is_array($arg) && (isset($arg['from']) || isset($arg['to']))) {
+                $picked = [sprintf('%s-%s', $arg['from'] ?? '', $arg['to'] ?? '')];
+            }
+            if ($picked !== []) {
+                $values[(string) $key] = $picked;
+            }
+        }
+
+        return new FilterState($values);
     }
 
     /**

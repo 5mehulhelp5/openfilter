@@ -16,6 +16,7 @@ use Iranimij\OpenFilter\Api\FilterConfigRepositoryInterface;
 use Magento\Framework\Api\SearchCriteriaInterface;
 use Magento\Framework\App\Cache\TypeListInterface;
 use Magento\Framework\Cache\FrontendInterface;
+use Magento\Framework\Exception\InputException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Store\Model\Store;
 
@@ -36,6 +37,7 @@ class FilterConfigRepository implements FilterConfigRepositoryInterface
      * @param TypeListInterface $cacheTypeList
      * @param FilterConfigList $list
      * @param FilterConfigSearchResultsInterfaceFactory $resultsFactory
+     * @param DependencyRule $dependencies dependent filters (1.2): no loops, no unknown filter to wait for
      */
     public function __construct(
         private readonly FilterConfigProvider $provider,
@@ -45,7 +47,8 @@ class FilterConfigRepository implements FilterConfigRepositoryInterface
         private readonly FrontendInterface $cache,
         private readonly TypeListInterface $cacheTypeList,
         private readonly FilterConfigList $list,
-        private readonly FilterConfigSearchResultsInterfaceFactory $resultsFactory
+        private readonly FilterConfigSearchResultsInterfaceFactory $resultsFactory,
+        private readonly DependencyRule $dependencies
     ) {
     }
 
@@ -113,6 +116,14 @@ class FilterConfigRepository implements FilterConfigRepositoryInterface
         $attributeId = $current->getAttributeId();
         $optionCount = !$current->isBuiltin() && $attributeId !== null ? $this->storage->optionCount($attributeId) : 0;
         $this->validator->validate($merged, $optionCount);
+        $problem = $this->dependencies->problem(
+            $this->provider->keyOf($current),
+            $merged->getDependsOn(),
+            $this->provider->getForStore(Store::DEFAULT_STORE_ID)
+        );
+        if ($problem !== null) {
+            throw new InputException($problem);
+        }
 
         if ($current->isBuiltin()) {
             $this->storage->saveBuiltin($current->getCode(), $merged->isActive(), $row);
