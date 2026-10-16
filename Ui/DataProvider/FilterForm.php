@@ -11,6 +11,7 @@ namespace Iranimij\OpenFilter\Ui\DataProvider;
 use Iranimij\OpenFilter\Api\Data\FilterConfigInterface as Filter;
 use Iranimij\OpenFilter\Api\FilterConfigRepositoryInterface;
 use Iranimij\OpenFilter\Model\Admin\FormScope;
+use Iranimij\OpenFilter\Model\Admin\OptionImageForm;
 use Iranimij\OpenFilter\Model\Config\Defaults;
 use Iranimij\OpenFilter\Model\Search\BuiltinClauses;
 use Iranimij\OpenFilter\Model\Config\FilterConfigProvider;
@@ -72,6 +73,7 @@ class FilterForm extends AbstractDataProvider
      * @param FormScope $formScope
      * @param RequestInterface $request
      * @param Defaults $defaults built-in filter names (the filters to wait for)
+     * @param OptionImageForm $optionImages the "Option images" table (1.2)
      * @param array<string, mixed> $meta
      * @param array<string, mixed> $data
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
@@ -90,6 +92,7 @@ class FilterForm extends AbstractDataProvider
         private readonly FormScope $formScope,
         private readonly RequestInterface $request,
         private readonly Defaults $defaults,
+        private readonly OptionImageForm $optionImages,
         array $meta = [],
         array $data = []
     ) {
@@ -160,6 +163,9 @@ class FilterForm extends AbstractDataProvider
             }
             $data['option_urls'] = $this->optionRows($attributeId, $scope);
         }
+        if ($this->hasOptionImages($config) && $attributeId !== null && $scope === 0) {
+            $data['option_images'] = $this->optionImages->rows($attributeId);
+        }
 
         return [$key => $data];
     }
@@ -215,6 +221,10 @@ class FilterForm extends AbstractDataProvider
         }
 
         $meta = $this->dependencyMeta($meta, $config);
+        if (!$this->hasOptionImages($config) || $scope !== 0) {
+            // Images are the same in every store view: edited with "All Store Views" only.
+            $meta['images']['arguments']['data']['config']['visible'] = false;
+        }
         $meta = $this->labelMeta($meta, $scope, $stores, $multiStore);
         if (!$this->hasUrlNames($config)) {
             $meta['seo']['children']['url_name']['arguments']['data']['config']['visible'] = false;
@@ -468,6 +478,18 @@ class FilterForm extends AbstractDataProvider
         }
 
         return $rows;
+    }
+
+    /**
+     * Option images fit attributes with a list of options (the "Images" display type, 1.2).
+     *
+     * @param Filter $config
+     * @return bool
+     */
+    private function hasOptionImages(Filter $config): bool
+    {
+        return !$config->isBuiltin() && $config->getSwatchType() === null
+            && in_array($config->getInputType(), ['select', 'multiselect'], true);
     }
 
     /**

@@ -39,6 +39,7 @@ class UninstallTest extends TestCase
         (new Uninstall())->uninstall($setup, $this->createStub(ModuleContextInterface::class));
 
         self::assertSame([
+            'pfx_openfilter_option_image',
             'pfx_openfilter_filter_category',
             'pfx_openfilter_option_slug',
             'pfx_openfilter_attribute_slug',

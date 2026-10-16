@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace Iranimij\OpenFilter\Test\Integration\GraphQl;
 
+use Iranimij\OpenFilter\Model\Config\OptionImages;
 use Iranimij\OpenFilter\Api\Data\FilterConfigInterface as Filter;
 use Iranimij\OpenFilter\Api\FilterConfigRepositoryInterface;
 use Iranimij\OpenFilter\Model\Cache\Type as CacheType;
@@ -38,7 +39,7 @@ class AggregationsTest extends TestCase
 {
     /** Also Magento's aggregations: a process keeps the schema of its first query, and the baseline query is second. */
     private const FIELDS = 'total_count aggregations { attribute_code } openfilter_aggregations { code filter_key label
-        url_param display_mode logic range { min max from to } options { value label url_value count selected from to } }';
+        url_param display_mode logic range { min max from to } options { value label url_value count selected from to swatch { type value } } }';
 
     /** @var array{category: int, store: int, options: array<string, array<string, int>>}|null */
     private static ?array $catalog = null;
@@ -54,6 +55,8 @@ class AggregationsTest extends TestCase
             ->setCategoryMode(Filter::CATEGORIES_ALL)->setCategoryIds([]));
         $this->configure(Filter::BUILTIN_PRICE, static fn (Filter $f) => $f->setDisplayMode(Filter::DISPLAY_SLIDER)->setRanges(null));
         $this->configure(M1Catalog::SIZE, static fn (Filter $f) => $f->setDependsOn(null)->setDependsValues([]));
+        $this->configure(M1Catalog::MATERIAL, static fn (Filter $f) => $f->setDisplayMode(Filter::DISPLAY_LIST));
+        Bootstrap::getObjectManager()->get(OptionImages::class)->save([(int) $this->option(M1Catalog::MATERIAL, 'Cotton') => null]);
     }
 
     /**
@@ -181,6 +184,21 @@ class AggregationsTest extends TestCase
         self::assertNull($this->aggregation($this->products([]), M1Catalog::SIZE, false));
         self::assertNull($this->aggregation($this->products([M1Catalog::COLOR => ['eq' => $this->option(M1Catalog::COLOR, 'Blue')]]), M1Catalog::SIZE, false));
         self::assertNotNull($this->aggregation($this->products([M1Catalog::COLOR => ['in' => [$red]]]), M1Catalog::SIZE, false));
+    }
+
+    public function testFiltersShownAsImagesCarryTheMerchantsImages(): void
+    {
+        $cotton = $this->option(M1Catalog::MATERIAL, 'Cotton');
+        Bootstrap::getObjectManager()->get(OptionImages::class)->save([(int) $cotton => 'c/o/cotton.png']);
+        $this->configure(M1Catalog::MATERIAL, static fn (Filter $f) => $f->setDisplayMode(Filter::DISPLAY_IMAGES));
+
+        $material = $this->aggregation($this->products([]), M1Catalog::MATERIAL);
+        $swatches = array_column($material['options'], 'swatch', 'label');
+
+        self::assertSame('images', $material['display_mode']);
+        self::assertSame('image', $swatches['Cotton']['type']);
+        self::assertStringEndsWith('/media/openfilter/options/c/o/cotton.png', $swatches['Cotton']['value']);
+        self::assertSame(['type' => 'text', 'value' => 'Wool'], $swatches['Wool'], 'no image: the label');
     }
 
     public function testAQueryWithoutTheFieldKeepsMagentosCounts(): void

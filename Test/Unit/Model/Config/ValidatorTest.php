@@ -74,6 +74,9 @@ class ValidatorTest extends TestCase
             'waits for itself by key' => [['code' => 'new', 'depends_on' => 'attribute:new'], 0, false],
             'values without a filter to wait for' => [['depends_values' => ['49']], 0, false],
             'quick bar' => [['quick_bar' => true], 0, true],
+            'images on a plain select' => [['display_mode' => 'images'], 0, true],
+            'images on a swatch attribute' => [['display_mode' => 'images', 'swatch_type' => 'visual'], 0, false],
+            'images on a decimal' => [['display_mode' => 'images', 'input_type' => 'decimal'], 0, false],
         ];
     }
 
@@ -115,7 +118,7 @@ class ValidatorTest extends TestCase
             $validator->allowedModes($defaults->forAttribute('color', 93, 'select', 'visual', 10), 12)
         );
         self::assertSame(
-            ['list', 'toggle', 'dropdown'],
+            ['list', 'toggle', 'dropdown', 'images'],
             $validator->allowedModes($defaults->forAttribute('gift', 95, 'select', null, 10), 2)
         );
         self::assertSame(['slider', 'from_to', 'ranges'], $validator->allowedModes($defaults->forBuiltin('price')));

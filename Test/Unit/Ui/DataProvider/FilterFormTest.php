@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace Iranimij\OpenFilter\Test\Unit\Ui\DataProvider;
 
+use Iranimij\OpenFilter\Model\Admin\OptionImageForm;
 use Iranimij\OpenFilter\Api\FilterConfigRepositoryInterface;
 use Iranimij\OpenFilter\Model\Admin\FormScope;
 use Iranimij\OpenFilter\Model\Config\Defaults;
@@ -299,7 +300,8 @@ class FilterFormTest extends TestCase
             new DisplayMode(),
             new FormScope($manager),
             $request,
-            new Defaults()
+            new Defaults(),
+            $this->createStub(OptionImageForm::class)
         );
     }
 }

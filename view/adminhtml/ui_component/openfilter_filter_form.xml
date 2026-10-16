@@ -412,6 +412,73 @@
             </container>
         </dynamicRows>
     </fieldset>
+    <fieldset name="images" sortOrder="15">
+        <settings>
+            <label translate="true">Option images</label>
+            <collapsible>true</collapsible>
+            <opened>false</opened>
+        </settings>
+        <dynamicRows name="option_images" sortOrder="10">
+            <settings>
+                <label translate="true">Images for the "Images" display type</label>
+                <addButton>false</addButton>
+                <dndConfig>
+                    <param name="enabled" xsi:type="boolean">false</param>
+                </dndConfig>
+                <componentType>dynamicRows</componentType>
+                <additionalClasses>
+                    <class name="admin__field-wide">true</class>
+                </additionalClasses>
+            </settings>
+            <container name="record" component="Magento_Ui/js/dynamic-rows/record">
+                <argument name="data" xsi:type="array">
+                    <item name="config" xsi:type="array">
+                        <item name="isTemplate" xsi:type="boolean">true</item>
+                        <item name="is_collection" xsi:type="boolean">true</item>
+                        <item name="componentType" xsi:type="string">container</item>
+                    </item>
+                </argument>
+                <field name="option_id" formElement="input" sortOrder="10">
+                    <settings>
+                        <dataType>text</dataType>
+                        <visible>false</visible>
+                    </settings>
+                </field>
+                <field name="option_label" formElement="input" sortOrder="20">
+                    <settings>
+                        <dataType>text</dataType>
+                        <label translate="true">Option</label>
+                        <elementTmpl>Iranimij_OpenFilter/form/element/row-text</elementTmpl>
+                        <disabled>true</disabled>
+                    </settings>
+                </field>
+                <field name="image" formElement="imageUploader" sortOrder="30">
+                    <argument name="data" xsi:type="array">
+                        <item name="config" xsi:type="array">
+                            <item name="fileInputName" xsi:type="string">option_image</item>
+                        </item>
+                    </argument>
+                    <settings>
+                        <label translate="true">Image</label>
+                        <notice translate="true">JPG, PNG, GIF or WebP, square works best (shown at 36 × 36 px).</notice>
+                    </settings>
+                    <formElements>
+                        <imageUploader>
+                            <settings>
+                                <required>false</required>
+                                <uploaderConfig>
+                                    <param xsi:type="url" name="url" path="openfilter/filter/uploadImage"/>
+                                </uploaderConfig>
+                                <previewTmpl>Magento_Catalog/image-preview</previewTmpl>
+                                <allowedExtensions>jpg jpeg gif png webp</allowedExtensions>
+                                <maxFileSize>2097152</maxFileSize>
+                            </settings>
+                        </imageUploader>
+                    </formElements>
+                </field>
+            </container>
+        </dynamicRows>
+    </fieldset>
     <fieldset name="why" sortOrder="90">
         <settings>
             <label translate="true">Why is this filter not showing?</label>
