@@ -17,6 +17,7 @@ use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\Registry;
 use Magento\Framework\View\Result\Page;
 use Magento\Framework\View\Result\PageFactory;
+use Magento\Store\Model\Store;
 use Magento\Store\Model\StoreManagerInterface;
 
 /**
@@ -57,7 +58,8 @@ class Index implements HttpGetActionInterface
         if (!$this->allProducts->isEnabled($storeId)) {
             return $this->forwardFactory->create()->forward('noroute');
         }
-        $category = $this->categories->get((int) $store->getRootCategoryId(), $storeId);
+        $rootId = $store instanceof Store ? (int) $store->getRootCategoryId() : 0;
+        $category = $this->categories->get($rootId, $storeId);
         $this->registry->register('current_category', $category, true);
         $this->layerResolver->create(Resolver::CATALOG_LAYER_CATEGORY);
 
