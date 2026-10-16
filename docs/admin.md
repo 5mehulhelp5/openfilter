@@ -59,6 +59,14 @@ Stores › Attributes › Product › *attribute* › **Storefront Properties** 
 
 Saving any product attribute refreshes OpenFilter's cache, so an attribute that becomes filterable appears on the storefront without a cache flush.
 
+## Landing pages (1.2)
+
+*Catalog › OpenFilter › Landing pages* (ACL *Landing pages*) lists the pages with their URL key, category, number of filters, store views, robots value and status; mass action *Delete*.
+
+To make one, open the category on the storefront, pick the filters, copy the address and paste it into **Filtered category page**: OpenFilter reads the category and the filters from it (query or path URLs, the URL names of the page's first store view). When editing, the field shows the page's category and filters now; leave it empty to keep them. **URL key** is the address after the store's base URL (`black-tops`, `women/black-tops.html`); it must not be taken by a category, product or CMS page or by another landing page of the same store views. **Heading** and **Meta title** default to the title; **Text above the products** is HTML with widgets and variables.
+
+Saving cleans the *OpenFilter* cache and marks the full page cache invalid, as filter settings do.
+
 ## Why is this filter not showing?
 
 Each line is a condition the filter needs, with what was found and how to fix it. The first problem is usually the answer.

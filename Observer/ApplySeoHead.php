@@ -10,6 +10,7 @@ namespace Iranimij\OpenFilter\Observer;
 
 use Iranimij\OpenFilter\Model\AllProducts;
 use Iranimij\OpenFilter\Model\Config;
+use Iranimij\OpenFilter\Model\Landing\LandingLinks;
 use Iranimij\OpenFilter\Model\Layer\LayerContext;
 use Iranimij\OpenFilter\Model\Seo\CanonicalResolver;
 use Iranimij\OpenFilter\Model\Seo\CategoryUrl;
@@ -58,6 +59,7 @@ class ApplySeoHead implements ObserverInterface
      * @param SeoTemplates $templates title, description and H1 templates (1.1)
      * @param StoreManagerInterface $storeManager
      * @param AllProducts $allProducts the All Products page (1.2): its own URL and title instead of the root category's
+     * @param LandingLinks $landingLinks a filter state that is a landing page's has the landing page as canonical (1.2)
      */
     public function __construct(
         private readonly LayerContext $context,
@@ -71,7 +73,8 @@ class ApplySeoHead implements ObserverInterface
         private readonly Config $config,
         private readonly SeoTemplates $templates,
         private readonly StoreManagerInterface $storeManager,
-        private readonly AllProducts $allProducts
+        private readonly AllProducts $allProducts,
+        private readonly LandingLinks $landingLinks
     ) {
     }
 
@@ -113,6 +116,7 @@ class ApplySeoHead implements ObserverInterface
             is_scalar($page) ? max(1, (int) $page) : 1,
             $storeId
         );
+        $url = $allProducts ? $url : ($this->landingLinks->urlFor($state, [], $storeId) ?? $url);
         $this->replaceCanonical($this->escaper->escapeUrl($url));
     }
 

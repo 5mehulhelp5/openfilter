@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © Iman Aboheydary. All rights reserved.
+ * See LICENSE for license details (MIT).
+ */
+-->
+<!-- A landing page (1.2): the category's own image, description and CMS block give way to the landing page's content. -->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock name="category.image" remove="true"/>
+        <referenceBlock name="category.description" remove="true"/>
+        <referenceBlock name="category.cms" remove="true"/>
+        <referenceContainer name="content">
+            <block class="Magento\Framework\View\Element\Template" name="openfilter.landing.content" before="-"
+                   template="Iranimij_OpenFilter::landing/content.phtml">
+                <arguments>
+                    <argument name="view_model" xsi:type="object">Iranimij\OpenFilter\ViewModel\LandingContent</argument>
+                </arguments>
+            </block>
+        </referenceContainer>
+    </body>
+</page>

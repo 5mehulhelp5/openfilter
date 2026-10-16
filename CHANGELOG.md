@@ -5,6 +5,7 @@ All notable changes to this project are documented here. The format follows [Kee
 ## [Unreleased]
 
 ### Added
+- **Landing pages** (*Catalog › OpenFilter › Landing pages*): a category with fixed filters at its own URL key, with its own title, H1, meta title and description, robots value and text (widgets and variables) per store views; made by pasting a filtered category address. Filter links that reach the same filters point to it and the category page names it canonical; indexable ones are in the XML sitemap; GraphQL `openfilter_landing_page(url_key)`. Taken URL keys are refused. Tables `openfilter_landing_page`, `openfilter_landing_page_store`.
 - **Path filter URLs** (opt-in, *SEO › Filter URLs on category pages*): `/women/tops-women/color-black,blue/size-m.html` instead of query parameters on category pages; query links and other orders redirect (301); canonical tags, the sitemap and every link follow; no extra SQL query or search request.
 - **All Products page**: every product of the store view with the filters at a URL key of your choice (*All Products page* settings, off by default); own title, H1 and canonical URL, XML sitemap entry; filter links stay on the URL key.
 - **More products**: *Load more* button or loading as shoppers scroll (two pages, then the button), set under *Display › More products*; page links stay for search engines and without JavaScript, Back restores the loaded pages (Hyvä package).

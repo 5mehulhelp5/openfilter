@@ -1,0 +1,127 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © Iman Aboheydary. All rights reserved.
+ * See LICENSE for license details (MIT).
+ */
+-->
+<listing xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
+    <argument name="data" xsi:type="array">
+        <item name="js_config" xsi:type="array">
+            <item name="provider" xsi:type="string">openfilter_landing_listing.openfilter_landing_listing_data_source</item>
+        </item>
+    </argument>
+    <settings>
+        <buttons>
+            <button name="add">
+                <url path="*/*/new"/>
+                <class>primary</class>
+                <label translate="true">Add landing page</label>
+            </button>
+        </buttons>
+        <spinner>openfilter_landing_columns</spinner>
+        <deps>
+            <dep>openfilter_landing_listing.openfilter_landing_listing_data_source</dep>
+        </deps>
+    </settings>
+    <dataSource name="openfilter_landing_listing_data_source" component="Magento_Ui/js/grid/provider">
+        <settings>
+            <storageConfig>
+                <param name="indexField" xsi:type="string">page_id</param>
+            </storageConfig>
+            <updateUrl path="mui/index/render"/>
+        </settings>
+        <aclResource>Iranimij_OpenFilter::landing_pages</aclResource>
+        <dataProvider class="Iranimij\OpenFilter\Ui\DataProvider\LandingListing" name="openfilter_landing_listing_data_source">
+            <settings>
+                <requestFieldName>page_id</requestFieldName>
+                <primaryFieldName>page_id</primaryFieldName>
+            </settings>
+        </dataProvider>
+    </dataSource>
+    <listingToolbar name="listing_top">
+        <settings>
+            <sticky>true</sticky>
+        </settings>
+        <bookmark name="bookmarks"/>
+        <columnsControls name="columns_controls"/>
+        <filterSearch name="fulltext"/>
+        <massaction name="listing_massaction">
+            <action name="delete">
+                <settings>
+                    <confirm>
+                        <message translate="true">Delete the selected landing pages?</message>
+                        <title translate="true">Delete</title>
+                    </confirm>
+                    <url path="openfilter/landing/massDelete"/>
+                    <type>delete</type>
+                    <label translate="true">Delete</label>
+                </settings>
+            </action>
+        </massaction>
+        <paging name="listing_paging"/>
+    </listingToolbar>
+    <columns name="openfilter_landing_columns">
+        <selectionsColumn name="ids">
+            <settings>
+                <indexField>page_id</indexField>
+            </settings>
+        </selectionsColumn>
+        <column name="page_id" sortOrder="5">
+            <settings>
+                <sortable>false</sortable>
+                <label translate="true">ID</label>
+            </settings>
+        </column>
+        <column name="title" sortOrder="10">
+            <settings>
+                <sortable>false</sortable>
+                <label translate="true">Title</label>
+            </settings>
+        </column>
+        <column name="url_key" sortOrder="20">
+            <settings>
+                <sortable>false</sortable>
+                <label translate="true">URL key</label>
+            </settings>
+        </column>
+        <column name="category" sortOrder="30">
+            <settings>
+                <sortable>false</sortable>
+                <label translate="true">Category</label>
+            </settings>
+        </column>
+        <column name="filters" sortOrder="40">
+            <settings>
+                <sortable>false</sortable>
+                <label translate="true">Filters</label>
+            </settings>
+        </column>
+        <column name="store_ids" sortOrder="50">
+            <settings>
+                <sortable>false</sortable>
+                <label translate="true">Store views</label>
+            </settings>
+        </column>
+        <column name="robots" sortOrder="60">
+            <settings>
+                <sortable>false</sortable>
+                <label translate="true">Robots</label>
+            </settings>
+        </column>
+        <column name="is_active" component="Magento_Ui/js/grid/columns/select" sortOrder="70">
+            <settings>
+                <options class="Magento\Config\Model\Config\Source\Enabledisable"/>
+                <sortable>false</sortable>
+                <dataType>select</dataType>
+                <label translate="true">Status</label>
+            </settings>
+        </column>
+        <actionsColumn name="actions" class="Iranimij\OpenFilter\Ui\Component\Listing\Column\LandingActions" sortOrder="200">
+            <settings>
+                <indexField>page_id</indexField>
+            </settings>
+        </actionsColumn>
+    </columns>
+</listing>

@@ -34,6 +34,7 @@
         "magento/module-catalog": "^104.0.7",
         "magento/module-catalog-inventory": "^100.4.7",
         "magento/module-catalog-search": "^102.0.7",
+        "magento/module-cms": "^104.0",
         "magento/module-config": "^101.2.7",
         "magento/module-customer": "^103.0.7",
         "magento/module-eav": "^102.1.7",
