@@ -134,6 +134,8 @@ class Validator
             Filter::DISPLAY_SWATCH => $config->getSwatchType() !== null,
             Filter::DISPLAY_SLIDER, Filter::DISPLAY_FROM_TO, Filter::DISPLAY_RANGES => $input === 'decimal',
             Filter::DISPLAY_TREE => false,
+            // Swatch attributes have their own pictures; images are for the others (1.2).
+            Filter::DISPLAY_IMAGES => $config->getSwatchType() === null && in_array($input, ['select', 'multiselect'], true),
             Filter::DISPLAY_TOGGLE => $input === 'boolean' || ($input === 'select' && $optionCount === 2),
             Filter::DISPLAY_RATING => false,
             default => in_array($input, ['select', 'multiselect', 'boolean'], true),

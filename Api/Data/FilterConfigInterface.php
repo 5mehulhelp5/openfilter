@@ -27,6 +27,8 @@ interface FilterConfigInterface
     public const DISPLAY_RANGES = 'ranges';
     /** Category tree with several levels (1.1). */
     public const DISPLAY_TREE = 'tree';
+    /** Options as the merchant's images with their labels, for attributes without swatches (1.2). */
+    public const DISPLAY_IMAGES = 'images';
     public const DISPLAY_MODES = [
         self::DISPLAY_LIST,
         self::DISPLAY_SWATCH,
@@ -37,6 +39,7 @@ interface FilterConfigInterface
         self::DISPLAY_DROPDOWN,
         self::DISPLAY_RANGES,
         self::DISPLAY_TREE,
+        self::DISPLAY_IMAGES,
     ];
 
     /** Products matching any of the picked values. */

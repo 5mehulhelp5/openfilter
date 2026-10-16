@@ -133,4 +133,13 @@
             <column name="category_id"/>
         </index>
     </table>
+    <table name="openfilter_option_image" resource="default" engine="innodb" comment="OpenFilter: option images (1.2)">
+        <column xsi:type="int" name="option_id" unsigned="true" nullable="false" comment="Option ID"/>
+        <column xsi:type="varchar" name="image" length="255" nullable="false" comment="Path below media/openfilter/options"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="option_id"/>
+        </constraint>
+        <constraint xsi:type="foreign" referenceId="OPENFILTER_OPT_IMAGE_OPT_ID_EAV_ATTR_OPT_OPT_ID" table="openfilter_option_image"
+                    column="option_id" referenceTable="eav_attribute_option" referenceColumn="option_id" onDelete="CASCADE"/>
+    </table>
 </schema>

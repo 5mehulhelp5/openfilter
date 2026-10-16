@@ -10,6 +10,7 @@ namespace Iranimij\OpenFilter\Controller\Adminhtml\Filter;
 
 use Iranimij\OpenFilter\Api\FilterConfigRepositoryInterface;
 use Iranimij\OpenFilter\Model\Admin\FormScope;
+use Iranimij\OpenFilter\Model\Admin\OptionImageForm;
 use Iranimij\OpenFilter\Model\Cache\AfterRollback;
 use Iranimij\OpenFilter\Model\Config\FilterConfig;
 use Iranimij\OpenFilter\Model\Config\FilterConfigEditor;
@@ -40,6 +41,7 @@ class Save extends Action implements HttpPostActionInterface
      * @param FormScope $formScope
      * @param ResourceConnection $resource
      * @param AfterRollback $afterRollback
+     * @param OptionImageForm $optionImages the "Option images" table (1.2)
      */
     public function __construct(
         Action\Context $context,
@@ -49,7 +51,8 @@ class Save extends Action implements HttpPostActionInterface
         private readonly OptionSlugBatch $optionSlugs,
         private readonly FormScope $formScope,
         private readonly ResourceConnection $resource,
-        private readonly AfterRollback $afterRollback
+        private readonly AfterRollback $afterRollback,
+        private readonly OptionImageForm $optionImages
     ) {
         parent::__construct($context);
     }
@@ -88,6 +91,9 @@ class Save extends Action implements HttpPostActionInterface
             $attributeId = $config->isBuiltin() ? null : $config->getAttributeId();
             if ($attributeId !== null) {
                 $this->saveUrlNames($attributeId, $scope, $post);
+                if ($scope === 0 && array_key_exists('option_images', $post)) {
+                    $this->optionImages->save($attributeId, $post['option_images']);
+                }
             }
             $connection->commit();
         } catch (LocalizedException $e) {

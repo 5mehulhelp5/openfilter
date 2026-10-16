@@ -45,6 +45,7 @@ class DisplayMode implements OptionSourceInterface
             Filter::DISPLAY_DROPDOWN => __('Dropdown'),
             Filter::DISPLAY_RANGES => __('Ranges (for example 0–50, 50–100)'),
             Filter::DISPLAY_TREE => __('Category tree'),
+            Filter::DISPLAY_IMAGES => __('Images (from "Option images")'),
         ];
     }
 }

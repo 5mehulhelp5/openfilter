@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace Iranimij\OpenFilter\Test\Unit\ViewModel;
 
+use Iranimij\OpenFilter\Model\Config\OptionImages;
 use Iranimij\OpenFilter\ViewModel\Data\FilterGroup;
 use Iranimij\OpenFilter\ViewModel\Data\FilterOption;
 use Iranimij\OpenFilter\ViewModel\Swatch;
@@ -30,7 +31,7 @@ class SwatchTest extends TestCase
         $media->method('getSwatchAttributeImage')
             ->willReturnCallback(static fn (string $type, string $file): string => "https://m/$type$file");
 
-        $swatches = (new Swatch($data, $media))->forGroup($this->group(['49', '50', '51', '52', '53']));
+        $swatches = (new Swatch($data, $media, $this->createStub(OptionImages::class)))->forGroup($this->group(['49', '50', '51', '52', '53']));
 
         self::assertSame(['type' => Swatch::COLOR, 'value' => '#000000'], $swatches['49']);
         self::assertSame(['type' => Swatch::IMAGE, 'value' => 'https://m/swatch_thumb/b/l/blue.png'], $swatches['50']);
@@ -44,19 +45,32 @@ class SwatchTest extends TestCase
         $data = $this->createMock(SwatchData::class);
         $data->expects(self::never())->method('getSwatchesByOptionsId');
 
-        self::assertSame([], (new Swatch($data, $this->createStub(Media::class)))->forGroup($this->group([], null)));
+        self::assertSame([], (new Swatch($data, $this->createStub(Media::class), $this->createStub(OptionImages::class)))->forGroup($this->group([], null)));
+    }
+
+    public function testTheImagesDisplayUsesTheMerchantsImagesAndTextOtherwise(): void
+    {
+        $data = $this->createMock(SwatchData::class);
+        $data->expects(self::never())->method('getSwatchesByOptionsId');
+        $images = $this->createMock(OptionImages::class);
+        $images->expects(self::once())->method('urls')->with(['60', '61'])->willReturn([60 => 'https://m/openfilter/options/c/o/cotton.png']);
+
+        $swatches = (new Swatch($data, $this->createStub(Media::class), $images))->forGroup($this->group(['60', '61'], 'material', 'images'));
+
+        self::assertSame(['type' => Swatch::IMAGE, 'value' => 'https://m/openfilter/options/c/o/cotton.png'], $swatches['60']);
+        self::assertSame(['type' => Swatch::TEXT, 'value' => 'Option 61'], $swatches['61']);
     }
 
     /**
      * @param string[] $values
      */
-    private function group(array $values, ?string $key = 'color'): FilterGroup
+    private function group(array $values, ?string $key = 'color', string $display = 'swatch'): FilterGroup
     {
         $options = array_map(
             static fn (string $value): FilterOption => new FilterOption("Option $value", $value, "/c?$value", 1, false),
             $values
         );
 
-        return new FilterGroup('color', $key, 'Colour', 'swatch', true, true, 6, false, $options);
+        return new FilterGroup('color', $key, 'Colour', $display, true, true, 6, false, $options);
     }
 }

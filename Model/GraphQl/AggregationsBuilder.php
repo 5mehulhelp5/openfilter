@@ -138,7 +138,11 @@ class AggregationsBuilder
         if ($labels === [] || ($filter->isHideSingleOption() && count($labels) === 1 && $picked === [])) {
             return null;
         }
-        $swatches = $filter->getDisplayMode() === Filter::DISPLAY_SWATCH ? $this->swatches->forOptions($labels) : [];
+        $swatches = match ($filter->getDisplayMode()) {
+            Filter::DISPLAY_SWATCH => $this->swatches->forOptions($labels),
+            Filter::DISPLAY_IMAGES => $this->swatches->forImages($labels, $storeId),
+            default => [],
+        };
         $attributeId = (int) $filter->getAttributeId();
         $options = [];
         foreach ($labels as $id => $label) {

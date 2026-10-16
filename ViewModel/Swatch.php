@@ -8,6 +8,8 @@ declare(strict_types=1);
 
 namespace Iranimij\OpenFilter\ViewModel;
 
+use Iranimij\OpenFilter\Api\Data\FilterConfigInterface as Filter;
+use Iranimij\OpenFilter\Model\Config\OptionImages;
 use Iranimij\OpenFilter\ViewModel\Data\FilterGroup;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
 use Magento\Swatches\Helper\Data as SwatchData;
@@ -29,10 +31,12 @@ class Swatch implements ArgumentInterface
     /**
      * @param SwatchData $swatchData
      * @param Media $media
+     * @param OptionImages $optionImages the merchant's option images ("Images" display type, 1.2)
      */
     public function __construct(
         private readonly SwatchData $swatchData,
-        private readonly Media $media
+        private readonly Media $media,
+        private readonly OptionImages $optionImages
     ) {
     }
 
@@ -52,7 +56,27 @@ class Swatch implements ArgumentInterface
             $labels[$option->getValue()] = $option->getLabel();
         }
 
-        return $this->forOptions($labels);
+        return $group->getDisplay() === Filter::DISPLAY_IMAGES ? $this->forImages($labels) : $this->forOptions($labels);
+    }
+
+    /**
+     * The merchant's option images (1.2); options without one show their label as text.
+     *
+     * @param array<int|string, string> $labels option id => label
+     * @param int|null $storeId null = the current store view
+     * @return array<int|string, array{type: string, value: string}>
+     */
+    public function forImages(array $labels, ?int $storeId = null): array
+    {
+        $urls = $this->optionImages->urls(array_keys($labels), $storeId);
+        $swatches = [];
+        foreach ($labels as $value => $label) {
+            $swatches[$value] = isset($urls[(int) $value])
+                ? ['type' => self::IMAGE, 'value' => $urls[(int) $value]]
+                : ['type' => self::TEXT, 'value' => $label];
+        }
+
+        return $swatches;
     }
 
     /**

@@ -115,5 +115,15 @@
             "PRIMARY": true,
             "OPENFILTER_FILTER_CTGR_CTGR_ID_CAT_CTGR_ENTT_ENTT_ID": true
         }
+    },
+    "openfilter_option_image": {
+        "column": {
+            "option_id": true,
+            "image": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "OPENFILTER_OPT_IMAGE_OPT_ID_EAV_ATTR_OPT_OPT_ID": true
+        }
     }
 }

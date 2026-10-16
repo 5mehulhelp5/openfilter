@@ -49,6 +49,11 @@
             <argument name="cache" xsi:type="object">Iranimij\OpenFilter\Model\Cache\Type</argument>
         </arguments>
     </type>
+    <type name="Iranimij\OpenFilter\Model\Config\OptionImages">
+        <arguments>
+            <argument name="cache" xsi:type="object">Iranimij\OpenFilter\Model\Cache\Type</argument>
+        </arguments>
+    </type>
     <type name="Iranimij\OpenFilter\Model\Search\PriceBoundsConverter">
         <arguments>
             <argument name="cache" xsi:type="object">Iranimij\OpenFilter\Model\Cache\Type</argument>
