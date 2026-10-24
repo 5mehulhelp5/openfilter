@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace Iranimij\OpenFilter\Model\Doctor;
 
 use Iranimij\OpenFilter\Model\Cache\Type as CacheType;
+use Iranimij\OpenFilter\Model\Migration\VendorModules;
 use Iranimij\OpenFilter\Model\ResourceModel\SlugStorage;
 use Iranimij\OpenFilter\Model\Search\StrategyResolver;
 use Magento\Catalog\Model\ResourceModel\Product\Attribute\CollectionFactory as AttributeCollectionFactory;
@@ -44,6 +45,7 @@ class SystemChecks
      * @param SlugStorage $slugStorage
      * @param ConfigLoaderInterface $diConfig
      * @param AttributeCollectionFactory $attributes product attributes (search page use)
+     * @param VendorModules $vendorModules other layered navigation modules (1.2)
      */
     public function __construct(
         private readonly EngineProbe $engine,
@@ -51,7 +53,8 @@ class SystemChecks
         private readonly CacheState $cacheState,
         private readonly SlugStorage $slugStorage,
         private readonly ConfigLoaderInterface $diConfig,
-        private readonly AttributeCollectionFactory $attributes
+        private readonly AttributeCollectionFactory $attributes,
+        private readonly VendorModules $vendorModules
     ) {
     }
 
@@ -69,6 +72,7 @@ class SystemChecks
             $this->urlNames($optionAttributes),
             $this->searchPageFilters(),
             $this->replacements(),
+            $this->otherFilterModules(),
         ];
     }
 
@@ -196,6 +200,28 @@ class SystemChecks
             $found === [],
             implode('; ', $found),
             (string) __('Two layered navigations on one page break filters: disable the other module, or OpenFilter.')
+        );
+    }
+
+    /**
+     * Another layered navigation module still enabled (1.2): its URLs, settings and templates compete with OpenFilter's.
+     *
+     * @return Check
+     */
+    private function otherFilterModules(): Check
+    {
+        $modules = $this->vendorModules->enabled();
+
+        return new Check(
+            'other_filter_modules',
+            (string) __('No other layered navigation module is enabled'),
+            $modules === [],
+            implode(', ', array_map(
+                static fn (string $module, string $product): string => sprintf('%s (%s)', $module, $product),
+                array_keys($modules),
+                $modules
+            )),
+            (string) __('Run bin/magento openfilter:migrate: it lists what to switch off and can redirect the old filter URLs.')
         );
     }
 

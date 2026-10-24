@@ -235,6 +235,7 @@
                 <item name="openfilter_slugs_generate" xsi:type="object">Iranimij\OpenFilter\Console\Command\SlugsGenerate</item>
                 <item name="openfilter_config_export" xsi:type="object">Iranimij\OpenFilter\Console\Command\ConfigExport</item>
                 <item name="openfilter_config_import" xsi:type="object">Iranimij\OpenFilter\Console\Command\ConfigImport</item>
+                <item name="openfilter_migrate" xsi:type="object">Iranimij\OpenFilter\Console\Command\Migrate</item>
             </argument>
         </arguments>
     </type>
@@ -247,6 +248,12 @@
         <arguments>
             <argument name="provider" xsi:type="object">Iranimij\OpenFilter\Model\Config\FilterConfigProvider\Proxy</argument>
             <argument name="slugs" xsi:type="object">Iranimij\OpenFilter\Api\SlugRepositoryInterface\Proxy</argument>
+        </arguments>
+    </type>
+    <type name="Iranimij\OpenFilter\Console\Command\Migrate">
+        <arguments>
+            <argument name="configProvider" xsi:type="object">Iranimij\OpenFilter\Model\Config\FilterConfigProvider\Proxy</argument>
+            <argument name="resolver" xsi:type="object">Iranimij\OpenFilter\Model\Migration\OldUrlResolver\Proxy</argument>
         </arguments>
     </type>
     <type name="Iranimij\OpenFilter\Console\Command\ConfigExport">

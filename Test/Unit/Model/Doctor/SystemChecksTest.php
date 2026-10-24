@@ -11,9 +11,11 @@ namespace Iranimij\OpenFilter\Test\Unit\Model\Doctor;
 use Iranimij\OpenFilter\Model\Doctor\Check;
 use Iranimij\OpenFilter\Model\Doctor\EngineProbe;
 use Iranimij\OpenFilter\Model\Doctor\SystemChecks;
+use Iranimij\OpenFilter\Model\Migration\VendorModules;
 use Iranimij\OpenFilter\Model\ResourceModel\SlugStorage;
 use Iranimij\OpenFilter\Model\Search\StrategyResolver;
 use Magento\Framework\App\Cache\StateInterface;
+use Magento\Framework\Module\ModuleListInterface;
 use Magento\Framework\ObjectManager\ConfigLoaderInterface;
 use PHPUnit\Framework\TestCase;
 
@@ -23,8 +25,11 @@ class SystemChecksTest extends TestCase
     {
         $checks = $this->rows($this->checks()->run(1, [93 => 'color']));
 
-        self::assertSame(['engine', 'strategy', 'cache', 'url_names', 'search_page_filters', 'replacements'], array_keys($checks));
-        self::assertSame([true, true, true, true, true, true], array_column($checks, 'ok'));
+        self::assertSame(
+            ['engine', 'strategy', 'cache', 'url_names', 'search_page_filters', 'replacements', 'other_filter_modules'],
+            array_keys($checks)
+        );
+        self::assertSame([true, true, true, true, true, true, true], array_column($checks, 'ok'));
         self::assertStringContainsString('single_query (engine opensearch)', $checks['strategy']['detail']);
         self::assertStringContainsString('2 fields', $checks['engine']['detail']);
     }
@@ -42,9 +47,9 @@ class SystemChecksTest extends TestCase
                 ]],
             ],
         ];
-        $checks = $this->rows($this->checks(null, false, [93 => [1 => 'red']], $di, 0)->run(1, [93 => 'color']));
+        $checks = $this->rows($this->checks(null, false, [93 => [1 => 'red']], $di, 0, ['Amasty_ShopbySeo', 'Magento_Catalog'])->run(1, [93 => 'color']));
 
-        foreach (['engine', 'cache', 'url_names', 'search_page_filters', 'replacements'] as $code) {
+        foreach (['engine', 'cache', 'url_names', 'search_page_filters', 'replacements', 'other_filter_modules'] as $code) {
             self::assertFalse($checks[$code]['ok'], $code);
             self::assertNotNull($checks[$code]['fix'], $code);
         }
@@ -54,6 +59,7 @@ class SystemChecksTest extends TestCase
             . 'Acme\Nav\Plugin wraps Magento\LayeredNavigation\Block\Navigation',
             $checks['replacements']['detail']
         );
+        self::assertSame('Amasty_ShopbySeo (Amasty Improved Layered Navigation)', $checks['other_filter_modules']['detail']);
     }
 
     /**
@@ -75,13 +81,15 @@ class SystemChecksTest extends TestCase
      * @param string[]|null $fields
      * @param array<int, array<int, string>> $unnamed attribute id => option id => label without a URL name
      * @param array<string, array<string, mixed>> $di
+     * @param string[] $modules enabled module names
      */
     private function checks(
         ?array $fields = ['color', 'price_0_1'],
         bool $cache = true,
         array $unnamed = [],
         array $di = [],
-        int $searchAttributes = 3
+        int $searchAttributes = 3,
+        array $modules = ['Magento_Catalog']
     ): SystemChecks {
         $engine = $this->createStub(EngineProbe::class);
         $engine->method('fields')->willReturn($fields);
@@ -107,6 +115,9 @@ class SystemChecksTest extends TestCase
         $attributes = $this->createStub(\Magento\Catalog\Model\ResourceModel\Product\Attribute\CollectionFactory::class);
         $attributes->method('create')->willReturn($collection);
 
-        return new SystemChecks($engine, $strategies, $state, $slugs, $loader, $attributes);
+        $moduleList = $this->createStub(ModuleListInterface::class);
+        $moduleList->method('getNames')->willReturn($modules);
+
+        return new SystemChecks($engine, $strategies, $state, $slugs, $loader, $attributes, new VendorModules($moduleList));
     }
 }
