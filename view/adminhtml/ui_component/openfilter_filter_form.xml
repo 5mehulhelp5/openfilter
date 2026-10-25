@@ -501,7 +501,7 @@
         <settings>
             <label translate="true">Why is this filter not showing?</label>
             <collapsible>true</collapsible>
-            <opened>false</opened>
+            <opened>true</opened>
         </settings>
         <htmlContent name="why_panel">
             <block class="Iranimij\OpenFilter\Block\Adminhtml\Filter\WhyPanel" name="openfilter.filter.why" template="Iranimij_OpenFilter::filter/why.phtml"/>

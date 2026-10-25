@@ -4,11 +4,9 @@
  * See LICENSE for license details (MIT).
  */
 
-/** @var \Magento\Backend\Block\Template $block */
-/** @var \Magento\Framework\Escaper $escaper */
-$options = [
-    'fields' => ['openfilter_seo_meta_title' => 60, 'openfilter_seo_meta_description' => 160],
-    'label' => (string) __('%1 of about %2 characters shown in search results'),
-];
+/** @var \Iranimij\OpenFilter\Block\Adminhtml\Config\TemplatePreview $block */
+if (!$block->isOpenFilterSection()) {
+    return;
+}
 ?>
-<script type="text/x-magento-init">{"*": {"Iranimij_OpenFilter/js/template-length": <?= /* @noEscape */ json_encode($options) ?>}}</script>
+<script type="text/x-magento-init">{"*": {"Iranimij_OpenFilter/js/template-length": <?= /* @noEscape */ json_encode($block->getOptions()) ?>}}</script>

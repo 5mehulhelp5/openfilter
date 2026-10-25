@@ -47,7 +47,7 @@ Every filtered URL has one canonical spelling (filters in position order, values
 
 - `{category}` is the category name, `{filters}` the active values in the order of the page ("Red, Blue"), `{store}` the store name. Other text in braces stays as it is.
 - Pages without filters, and search result pages, keep Magento's title, description and heading.
-- Search results show about 60 characters of a title and 160 of a description; keep the templates short. The settings page counts the characters as you type.
+- Search results show about 60 characters of a title and 160 of a description; keep the templates short. Under each template the settings page shows a live preview (1.2) with a real category, two option labels and the store name of the default store view, and counts the preview's characters as you type.
 - A title template does not change the heading; set the H1 template for that.
 
 ## XML sitemap (1.1)

@@ -13,8 +13,8 @@ use Magento\Framework\Setup\SchemaSetupInterface;
 use Magento\Framework\Setup\UninstallInterface;
 
 /**
- * `bin/magento module:uninstall Iranimij_OpenFilter` (Composer installs): removes OpenFilter's tables, settings and
- * the record of its data patches, so a later install starts with fresh defaults. Magento's own attributes and
+ * `bin/magento module:uninstall Iranimij_OpenFilter` (Composer installs): removes OpenFilter's tables, settings, admin
+ * flags and the record of its data patches, so a later install starts with fresh defaults. Magento's own attributes and
  * search index fields are untouched (the next reindex drops OpenFilter's fields).
  */
 class Uninstall implements UninstallInterface
@@ -48,5 +48,7 @@ class Uninstall implements UninstallInterface
         }
         $connection->delete($setup->getTable('core_config_data'), ['path LIKE ?' => 'openfilter/%']);
         $connection->delete($setup->getTable('patch_list'), ['patch_name LIKE ?' => 'Iranimij\\\\OpenFilter\\\\%']);
+        // First-run notice, setup checklist, default order (flags openfilter_…).
+        $connection->delete($setup->getTable('flag'), ['flag_code LIKE ?' => 'openfilter\\_%']);
     }
 }

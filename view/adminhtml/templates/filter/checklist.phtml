@@ -1,0 +1,33 @@
+<?php
+/**
+ * Copyright © Iman Aboheydary. All rights reserved.
+ * See LICENSE for license details (MIT).
+ */
+
+/** @var \Iranimij\OpenFilter\Block\Adminhtml\SetupChecklist $block */
+/** @var \Magento\Framework\Escaper $escaper */
+if (!$block->isShown()) {
+    return;
+}
+$steps = $block->getSteps();
+$done = count(array_filter($steps, static fn (array $step): bool => $step['done']));
+?>
+<section class="of-checklist" data-of-checklist aria-labelledby="of-checklist-title">
+    <h2 id="of-checklist-title" class="of-checklist__title">
+        <?= $escaper->escapeHtml(__('Set up OpenFilter')) ?>
+        <span class="of-checklist__count"><?= $escaper->escapeHtml(__('%1 of %2 done', $done, count($steps))) ?></span>
+    </h2>
+    <ol class="of-checklist__steps">
+        <?php foreach ($steps as $step): ?>
+            <li class="of-checklist__step <?= $step['done'] ? '_done' : '_todo' ?>" data-of-step="<?= $escaper->escapeHtmlAttr($step['code']) ?>">
+                <span class="of-checklist__state"><?= $escaper->escapeHtml($step['done'] ? __('Done') : __('To do')) ?></span>
+                <span class="of-checklist__text"><?= $escaper->escapeHtml($step['title']) ?></span>
+                <a href="<?= $escaper->escapeUrl($step['url']) ?>"><?= $escaper->escapeHtml($step['link']) ?></a>
+            </li>
+        <?php endforeach; ?>
+    </ol>
+    <form method="post" action="<?= $escaper->escapeUrl($block->getHideUrl()) ?>">
+        <input name="form_key" type="hidden" value="<?= $escaper->escapeHtmlAttr($block->getFormKey()) ?>"/>
+        <button type="submit" class="action-secondary"><span><?= $escaper->escapeHtml(__('Hide this list')) ?></span></button>
+    </form>
+</section>
