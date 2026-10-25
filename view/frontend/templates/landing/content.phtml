@@ -1,0 +1,24 @@
+<?php
+/**
+ * Copyright © Iman Aboheydary. All rights reserved.
+ * See LICENSE for license details (MIT).
+ */
+
+declare(strict_types=1);
+
+use Iranimij\OpenFilter\ViewModel\LandingContent;
+use Magento\Framework\View\Element\Template;
+
+/**
+ * The landing page's content above the products (1.2): the merchant's HTML, widgets and variables filtered as in CMS
+ * blocks.
+ *
+ * @var Template $block
+ */
+/** @var LandingContent $content */
+$content = $block->getData('view_model');
+$html = $content->html();
+?>
+<?php if ($html !== ''): ?>
+    <div class="of-landing__content"><?= /* @noEscape */ $html ?></div>
+<?php endif; ?>

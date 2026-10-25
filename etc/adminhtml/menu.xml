@@ -13,6 +13,9 @@
         <add id="Iranimij_OpenFilter::filters" title="Filters" translate="title" module="Iranimij_OpenFilter"
              sortOrder="10" parent="Iranimij_OpenFilter::openfilter" action="openfilter/filter/index"
              resource="Iranimij_OpenFilter::filters"/>
+        <add id="Iranimij_OpenFilter::landing_pages" title="Landing pages" translate="title" module="Iranimij_OpenFilter"
+             sortOrder="15" parent="Iranimij_OpenFilter::openfilter" action="openfilter/landing/index"
+             resource="Iranimij_OpenFilter::landing_pages"/>
         <add id="Iranimij_OpenFilter::settings" title="Settings" translate="title" module="Iranimij_OpenFilter"
              sortOrder="20" parent="Iranimij_OpenFilter::openfilter" action="adminhtml/system_config/edit/section/openfilter"
              resource="Iranimij_OpenFilter::config"/>

@@ -32,6 +32,14 @@ query ($filter: ProductAttributeFilterInput) {
 
 Everything comes from the same search request as the products: with the *single query* strategy OpenFilter adds no request to Magento's own (measured in the integration tests).
 
+## Landing pages (1.2)
+
+`openfilter_landing_page(url_key: "black-tops")` returns an enabled [landing page](storefront.md#landing-pages-12) of the store view (`Store` header), or null: `url`, `title`, `heading`, `meta_title`, `meta_description`, `description` (HTML with widgets and variables rendered), `robots`, `category_uid` and `filters { code values }`. Query `products` with that `category_uid` and the filters (`code: { in: values }`, ranges as `from`–`to`) to list its products:
+
+```graphql
+{ openfilter_landing_page(url_key: "black-tops") { heading description category_uid filters { code values } } }
+```
+
 ## Good to know
 
 - Prices and ranges are in the units of Magento's `price` filter (the price index), not converted to the display currency.

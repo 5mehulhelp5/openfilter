@@ -13,6 +13,7 @@
                 <resource id="Magento_Catalog::catalog">
                     <resource id="Iranimij_OpenFilter::openfilter" title="OpenFilter" translate="title" sortOrder="55">
                         <resource id="Iranimij_OpenFilter::filters" title="Filters" translate="title" sortOrder="10"/>
+                        <resource id="Iranimij_OpenFilter::landing_pages" title="Landing pages" translate="title" sortOrder="15"/>
                     </resource>
                 </resource>
                 <resource id="Magento_Backend::stores">

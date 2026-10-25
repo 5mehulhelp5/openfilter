@@ -42,3 +42,25 @@ type OpenFilterRange @doc(description: "The bounds of a slider, in the units of 
     from: Float @doc(description: "The picked lower bound, if any.")
     to: Float @doc(description: "The picked upper bound, if any.")
 }
+
+type Query {
+    openfilter_landing_page(url_key: String! @doc(description: "The landing page's URL key, as in the storefront address after the base URL.")): OpenFilterLandingPage @doc(description: "An enabled OpenFilter landing page of the store view (1.2): a category with fixed filters at its own address, with its own heading, text and meta tags. Null when no enabled page has this URL key in the store view.") @resolver(class: "Iranimij\\OpenFilter\\Model\\Resolver\\LandingPage")
+}
+
+type OpenFilterLandingPage @doc(description: "An OpenFilter landing page.") {
+    url_key: String! @doc(description: "The page's URL key.")
+    url: String! @doc(description: "The page's storefront address.")
+    title: String! @doc(description: "The page's title.")
+    heading: String! @doc(description: "The page's H1 (the title when the merchant left it empty).")
+    meta_title: String! @doc(description: "The title for browsers and search results (the title when left empty).")
+    meta_description: String @doc(description: "The meta description.")
+    description: String @doc(description: "The text above the products, as HTML with widgets and variables rendered.")
+    robots: String! @doc(description: "INDEX,FOLLOW, NOINDEX,FOLLOW or NOINDEX,NOFOLLOW.")
+    category_uid: ID! @doc(description: "The category the page lists (for the `products` `filter` argument `category_uid`).")
+    filters: [OpenFilterLandingFilter!]! @doc(description: "The page's filter picks.")
+}
+
+type OpenFilterLandingFilter @doc(description: "A filter pick of a landing page.") {
+    code: String! @doc(description: "The filter's code, as `code` in `openfilter_aggregations`: an attribute code or `price`.")
+    values: [String!]! @doc(description: "The picked values: option ids, or ranges `from-to` (as `value` in `openfilter_aggregations`).")
+}

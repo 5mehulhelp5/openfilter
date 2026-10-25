@@ -65,6 +65,10 @@ Each URL is the canonical one (`/women/tops.html?color=red`, the store view's UR
 
 Filter clicks fetch the same URL a crawler would and copy the title, meta description, robots, canonical and prev/next links from it, and the H1 when a heading template is set, so the page in the browser always carries the head a direct load of that URL has.
 
+## Landing pages (1.2)
+
+A [landing page](storefront.md#landing-pages-12) has its own title, meta description, robots value (*INDEX,FOLLOW* by default) and H1, and its URL is its canonical URL. The category page with the same filters names the landing page as canonical, and filter links that reach the same filters point to it, so search engines find one address per filter state. Landing pages set to *INDEX* are listed in the XML sitemap (with the categories' priority and change frequency), whether or not the filter page sitemap is on.
+
 ## Path URLs (1.2)
 
 Category pages can use path filter URLs (`/women/tops-women/color-black.html`), see [Filter URLs](url-format.md#path-urls-12-opt-in). Robots, nofollow, canonical and sitemap rules are the same; canonical URLs and sitemap entries use the path form, and the other form redirects (301) to it.

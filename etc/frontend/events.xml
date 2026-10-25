@@ -19,5 +19,6 @@
     <event name="layout_generate_blocks_after">
         <observer name="openfilter_all_products_heading" instance="Iranimij\OpenFilter\Observer\AllProductsHeading"/>
         <observer name="openfilter_seo_head" instance="Iranimij\OpenFilter\Observer\ApplySeoHead"/>
+        <observer name="openfilter_landing_head" instance="Iranimij\OpenFilter\Observer\LandingHead"/>
     </event>
 </config>
