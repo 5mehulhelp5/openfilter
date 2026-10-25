@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © Iman Aboheydary. All rights reserved.
+ * See LICENSE for license details (MIT).
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Cron:etc/crontab.xsd">
+    <group id="default">
+        <!-- Insight counts older than the retention setting (1.2). -->
+        <job name="openfilter_insights_purge" instance="Iranimij\OpenFilter\Model\Insights\Purge" method="execute">
+            <schedule>17 3 * * *</schedule>
+        </job>
+    </group>
+</config>

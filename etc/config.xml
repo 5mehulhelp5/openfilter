@@ -27,6 +27,10 @@
                 <redirects>0</redirects>
                 <filter_keys>shopby</filter_keys>
             </migration>
+            <insights>
+                <enabled>0</enabled>
+                <retention_days>90</retention_days>
+            </insights>
             <all_products>
                 <enabled>0</enabled>
                 <url_key>all-products</url_key>

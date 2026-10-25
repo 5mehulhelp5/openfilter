@@ -13,6 +13,11 @@ $filters = $block->getFilters();
     <p class="of-sort-intro" id="of-sort-help">
         <?= $escaper->escapeHtml(__('Drag a filter by its handle, or use Move up and Move down. The storefront shows the filters in this order; hidden filters keep their place for when you show them again.')) ?>
     </p>
+    <?php if ($block->isSuggested()): ?>
+        <div class="message message-notice" data-of-sort-suggested>
+            <?= $escaper->escapeHtml(__('This is the order Insights suggests, most used filters first. Check it and click Save order to use it.')) ?>
+        </div>
+    <?php endif; ?>
     <label class="of-sort-search">
         <span><?= $escaper->escapeHtml(__('Find a filter')) ?></span>
         <input type="search" class="admin__control-text" data-of-sort-search autocomplete="off">

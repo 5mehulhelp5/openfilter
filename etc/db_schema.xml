@@ -173,4 +173,27 @@
         <constraint xsi:type="foreign" referenceId="OPENFILTER_LANDING_PAGE_STORE_STORE_ID_STORE_STORE_ID" table="openfilter_landing_page_store"
                     column="store_id" referenceTable="store" referenceColumn="store_id" onDelete="CASCADE"/>
     </table>
+    <table name="openfilter_insight_daily" resource="default" engine="innodb" comment="OpenFilter: daily filter use counts, nothing about shoppers (1.2)">
+        <column xsi:type="date" name="day" nullable="false" comment="Day"/>
+        <column xsi:type="smallint" name="store_id" unsigned="true" nullable="false" comment="Store ID"/>
+        <column xsi:type="int" name="category_id" unsigned="true" nullable="false" default="0" comment="Category ID (0 = search results)"/>
+        <column xsi:type="varchar" name="kind" length="8" nullable="false" comment="view, filter, value or zero"/>
+        <column xsi:type="varchar" name="filter_key" length="80" nullable="false" default="" comment="Filter key"/>
+        <column xsi:type="varchar" name="value" length="255" nullable="false" default="" comment="Value, or the filters of a zero-result page"/>
+        <column xsi:type="int" name="hits" unsigned="true" nullable="false" default="0" comment="Count"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="day"/>
+            <column name="store_id"/>
+            <column name="category_id"/>
+            <column name="kind"/>
+            <column name="filter_key"/>
+            <column name="value"/>
+        </constraint>
+        <constraint xsi:type="foreign" referenceId="OPENFILTER_INSIGHT_DAILY_STORE_ID_STORE_STORE_ID" table="openfilter_insight_daily"
+                    column="store_id" referenceTable="store" referenceColumn="store_id" onDelete="CASCADE"/>
+        <index referenceId="OPENFILTER_INSIGHT_DAILY_KIND_DAY" indexType="btree">
+            <column name="kind"/>
+            <column name="day"/>
+        </index>
+    </table>
 </schema>

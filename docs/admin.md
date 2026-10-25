@@ -67,6 +67,10 @@ To make one, open the category on the storefront, pick the filters, copy the add
 
 Saving cleans the *OpenFilter* cache and marks the full page cache invalid, as filter settings do.
 
+## Insights (1.2)
+
+*Catalog › OpenFilter › Insights* (ACL *Insights*) shows what shoppers do with the filters of one store view: see [Insights](insights.md). **Apply to Sort filters** opens *Sort filters* with the order by use, to check and save.
+
 ## Why is this filter not showing?
 
 Each line is a condition the filter needs, with what was found and how to fix it. The first problem is usually the answer.
@@ -102,6 +106,7 @@ The same checks power `bin/magento openfilter:doctor` (1.0). With a category pic
 | More products (1.2) | `openfilter/display/pagination` | Page links (Magento's pager); or a "Load more" button, or as shoppers scroll | store view |
 | Quick filter bar above the products: values shown (1.2) | `openfilter/display/quick_bar_size` | 0 (no bar) | store view |
 | All Products page (1.2): on, URL key, title | `openfilter/all_products/enabled`, `url_key`, `title` | No, `all-products`, All products | store view |
+| Collect filter insights (1.2); days the counts are kept ([Insights](insights.md)) | `openfilter/insights/enabled`, `retention_days` | No, 90 | store view; global |
 | Redirect old filter URLs of another module (1.2); their filter keys | `openfilter/migration/redirects`, `filter_keys` | No, `shopby` | store view |
 | Ask search engines not to follow filter links from this many active values | `openfilter/seo/nofollow_threshold` | 2 | store view |
 | Most filter values active at once | `openfilter/seo/max_active_values` | 5 | store view |
