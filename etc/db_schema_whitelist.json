@@ -158,5 +158,23 @@
             "OPENFILTER_LANDING_PAGE_STORE_STORE_ID_STORE_STORE_ID": true,
             "FK_323D4E74463725073DE040805BEFE01B": true
         }
+    },
+    "openfilter_insight_daily": {
+        "column": {
+            "day": true,
+            "store_id": true,
+            "category_id": true,
+            "kind": true,
+            "filter_key": true,
+            "value": true,
+            "hits": true
+        },
+        "index": {
+            "OPENFILTER_INSIGHT_DAILY_KIND_DAY": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "OPENFILTER_INSIGHT_DAILY_STORE_ID_STORE_STORE_ID": true
+        }
     }
 }

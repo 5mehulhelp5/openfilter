@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © Iman Aboheydary. All rights reserved.
+ * See LICENSE for license details (MIT).
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <head>
+        <css src="Iranimij_OpenFilter::css/insights.css"/>
+    </head>
+    <body>
+        <referenceContainer name="content">
+            <block class="Iranimij\OpenFilter\Block\Adminhtml\Insights" name="openfilter.insights" template="Iranimij_OpenFilter::insights/index.phtml"/>
+        </referenceContainer>
+    </body>
+</page>

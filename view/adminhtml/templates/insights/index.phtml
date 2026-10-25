@@ -1,0 +1,157 @@
+<?php
+/**
+ * Copyright © Iman Aboheydary. All rights reserved.
+ * See LICENSE for license details (MIT).
+ */
+
+/** @var \Iranimij\OpenFilter\Block\Adminhtml\Insights $block */
+/** @var \Magento\Framework\Escaper $escaper */
+$report = $block->getReport();
+$storeId = $block->getStoreId();
+$days = $block->getDays();
+$order = $block->getSuggestedOrder();
+$percent = static fn (float $share): string => (string) round($share * 100) . ' %';
+?>
+<div class="of-insights">
+    <form class="of-insights-scope" method="get" action="<?= $escaper->escapeUrl($block->getFormUrl()) ?>">
+        <label>
+            <span><?= $escaper->escapeHtml(__('Store view')) ?></span>
+            <select name="store" class="admin__control-select">
+                <?php foreach ($block->getStores() as $id => $name): ?>
+                    <option value="<?= (int) $id ?>"<?= $id === $storeId ? ' selected' : '' ?>><?= $escaper->escapeHtml($name) ?></option>
+                <?php endforeach; ?>
+            </select>
+        </label>
+        <label>
+            <span><?= $escaper->escapeHtml(__('Period')) ?></span>
+            <select name="days" class="admin__control-select">
+                <?php foreach ($block::PERIODS as $period): ?>
+                    <option value="<?= (int) $period ?>"<?= $period === $days ? ' selected' : '' ?>><?= $escaper->escapeHtml(__('Last %1 days', $period)) ?></option>
+                <?php endforeach; ?>
+            </select>
+        </label>
+        <button type="submit" class="action-default"><?= $escaper->escapeHtml(__('Show')) ?></button>
+    </form>
+
+    <?php if (!$block->isCollecting()): ?>
+        <div class="message message-notice">
+            <?= $escaper->escapeHtml(__('This store view does not collect insights. Switch on "Collect filter insights" in the settings to start counting.')) ?>
+            <a href="<?= $escaper->escapeUrl($block->getSettingsUrl()) ?>"><?= $escaper->escapeHtml(__('Settings')) ?></a>
+        </div>
+    <?php endif; ?>
+    <p class="of-insights-views">
+        <?= $escaper->escapeHtml(__('%1 filter pages viewed in this period.', $report['views'])) ?>
+        <?php if (!$report['enough']): ?>
+            <?= $escaper->escapeHtml(__('Not enough data yet for firm conclusions: wait for at least %1 page views.', \Iranimij\OpenFilter\Model\Insights\Report::MIN_VIEWS)) ?>
+        <?php endif; ?>
+    </p>
+
+    <section class="of-insights-section">
+        <h2><?= $escaper->escapeHtml(__('Most used filters')) ?></h2>
+        <table class="data-grid of-insights-table">
+            <thead><tr>
+                <th scope="col" class="data-grid-th"><?= $escaper->escapeHtml(__('Filter')) ?></th>
+                <th scope="col" class="data-grid-th"><?= $escaper->escapeHtml(__('Pages')) ?></th>
+                <th scope="col" class="data-grid-th"><?= $escaper->escapeHtml(__('Share of pages')) ?></th>
+            </tr></thead>
+            <tbody>
+            <?php foreach ($report['filters'] as $row): ?>
+                <?php if ($row['hits'] > 0): ?>
+                    <tr>
+                        <td><?= $escaper->escapeHtml($row['label']) ?></td>
+                        <td><?= (int) $row['hits'] ?></td>
+                        <td><?= $escaper->escapeHtml($percent($row['share'])) ?></td>
+                    </tr>
+                <?php endif; ?>
+            <?php endforeach; ?>
+            </tbody>
+        </table>
+    </section>
+
+    <section class="of-insights-section">
+        <h2><?= $escaper->escapeHtml(__('Most used values')) ?></h2>
+        <?php if ($report['values'] === []): ?>
+            <p><?= $escaper->escapeHtml(__('None yet.')) ?></p>
+        <?php else: ?>
+            <table class="data-grid of-insights-table">
+                <thead><tr>
+                    <th scope="col" class="data-grid-th"><?= $escaper->escapeHtml(__('Filter')) ?></th>
+                    <th scope="col" class="data-grid-th"><?= $escaper->escapeHtml(__('Value')) ?></th>
+                    <th scope="col" class="data-grid-th"><?= $escaper->escapeHtml(__('Pages')) ?></th>
+                </tr></thead>
+                <tbody>
+                <?php foreach ($report['values'] as $row): ?>
+                    <tr>
+                        <td><?= $escaper->escapeHtml($row['filter']) ?></td>
+                        <td><?= $escaper->escapeHtml($row['label']) ?></td>
+                        <td><?= (int) $row['hits'] ?></td>
+                    </tr>
+                <?php endforeach; ?>
+                </tbody>
+            </table>
+        <?php endif; ?>
+    </section>
+
+    <section class="of-insights-section">
+        <h2><?= $escaper->escapeHtml(__('Filters nobody used')) ?></h2>
+        <?php if ($report['unused'] === []): ?>
+            <p><?= $escaper->escapeHtml(__('None: every filter was used.')) ?></p>
+        <?php else: ?>
+            <p><?= $escaper->escapeHtml(__('Consider hiding these or moving them down.')) ?></p>
+            <ul class="of-insights-list">
+                <?php foreach ($report['unused'] as $label): ?>
+                    <li><?= $escaper->escapeHtml($label) ?></li>
+                <?php endforeach; ?>
+            </ul>
+        <?php endif; ?>
+    </section>
+
+    <section class="of-insights-section">
+        <h2><?= $escaper->escapeHtml(__('Filter combinations without products')) ?></h2>
+        <?php if ($report['zero'] === []): ?>
+            <p><?= $escaper->escapeHtml(__('None yet.')) ?></p>
+        <?php else: ?>
+            <p><?= $escaper->escapeHtml(__('Shoppers asked for these and found nothing: products you could stock or tag.')) ?></p>
+            <table class="data-grid of-insights-table">
+                <thead><tr>
+                    <th scope="col" class="data-grid-th"><?= $escaper->escapeHtml(__('Filters')) ?></th>
+                    <th scope="col" class="data-grid-th"><?= $escaper->escapeHtml(__('Pages')) ?></th>
+                </tr></thead>
+                <tbody>
+                <?php foreach ($report['zero'] as $row): ?>
+                    <tr>
+                        <td><?= $escaper->escapeHtml($row['label']) ?></td>
+                        <td><?= (int) $row['hits'] ?></td>
+                    </tr>
+                <?php endforeach; ?>
+                </tbody>
+            </table>
+        <?php endif; ?>
+    </section>
+
+    <section class="of-insights-section">
+        <h2><?= $escaper->escapeHtml(__('Filters worth letting search engines index')) ?></h2>
+        <?php if ($report['indexable'] === []): ?>
+            <p><?= $escaper->escapeHtml(__('None at the moment.')) ?></p>
+        <?php else: ?>
+            <p><?= $escaper->escapeHtml(__('Used on many pages but not indexed: open the filter and switch on "Let Google index pages filtered by this".')) ?></p>
+            <ul class="of-insights-list">
+                <?php foreach ($report['indexable'] as $row): ?>
+                    <li><a href="<?= $escaper->escapeUrl($block->getFilterUrl($row['key'])) ?>"><?= $escaper->escapeHtml($row['label']) ?></a>
+                        (<?= $escaper->escapeHtml($percent($row['share'])) ?>)</li>
+                <?php endforeach; ?>
+            </ul>
+        <?php endif; ?>
+    </section>
+
+    <section class="of-insights-section">
+        <h2><?= $escaper->escapeHtml(__('Suggested filter order')) ?></h2>
+        <p><?= $escaper->escapeHtml(__('The most used filters first. Sort filters shows this order for you to check and save.')) ?></p>
+        <ol class="of-insights-order">
+            <?php foreach ($order as $label): ?>
+                <li><?= $escaper->escapeHtml($label) ?></li>
+            <?php endforeach; ?>
+        </ol>
+        <a class="action-primary of-insights-apply" href="<?= $escaper->escapeUrl($block->getSortUrl()) ?>"><?= $escaper->escapeHtml(__('Apply to Sort filters')) ?></a>
+    </section>
+</div>
