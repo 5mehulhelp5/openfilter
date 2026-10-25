@@ -1,0 +1,13 @@
+/**
+ * Copyright © Iman Aboheydary. All rights reserved.
+ * See LICENSE for license details (MIT).
+ */
+.of-insights-scope { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 1rem; margin-block-end: 1.5rem; }
+.of-insights-scope label { display: flex; flex-direction: column; gap: .25rem; }
+.of-insights-views { margin-block: 1rem 2rem; }
+.of-insights-section { margin-block-end: 2.5rem; max-width: 56rem; }
+.of-insights-section h2 { margin-block-end: .75rem; }
+.of-insights-table { max-width: 56rem; }
+.of-insights-list, .of-insights-order { margin-inline-start: 1.5rem; }
+.of-insights-list { list-style: disc; }
+.of-insights-order { margin-block-end: 1rem; }

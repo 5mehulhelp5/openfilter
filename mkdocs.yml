@@ -20,6 +20,7 @@ nav:
   - Troubleshooting: troubleshooting.md
   - Other search modules: coexistence.md
   - Moving from another filter module: migration.md
+  - Insights: insights.md
   - Upgrade and uninstall: upgrade-uninstall.md
   - Developers:
       - Hyvä integration: hyva-integration.md

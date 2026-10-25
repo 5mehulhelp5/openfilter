@@ -110,6 +110,22 @@
                     </depends>
                 </field>
             </group>
+            <group id="insights" translate="label comment" type="text" sortOrder="22" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Insights</label>
+                <comment>Counts which filters and values shoppers use, per day, to show in Catalog > OpenFilter > Insights. Nothing about the shopper is sent or stored: no cookies, IDs, IP addresses or browser details.</comment>
+                <field id="enabled" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Collect filter insights</label>
+                    <comment>Filter pages report the category, the active filters and a rough product count after each load and filter change.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <backend_model>Iranimij\OpenFilter\Model\Config\Backend\PageCacheValue</backend_model>
+                </field>
+                <field id="retention_days" translate="label comment" type="text" sortOrder="20" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+                    <label>Keep the counts for this many days</label>
+                    <comment>Older days are deleted every night.</comment>
+                    <validate>required-entry validate-digits validate-greater-than-zero</validate>
+                    <backend_model>Iranimij\OpenFilter\Model\Config\Backend\NonNegativeNumber</backend_model>
+                </field>
+            </group>
             <group id="seo" translate="label" type="text" sortOrder="18" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>SEO</label>
                 <field id="url_format" translate="label comment" type="select" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">

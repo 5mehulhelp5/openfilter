@@ -40,6 +40,10 @@ Everything comes from the same search request as the products: with the *single 
 { openfilter_landing_page(url_key: "black-tops") { heading description category_uid filters { code values } } }
 ```
 
+## Insights (1.2)
+
+Where [insights](insights.md) are on, a headless storefront can report filter use with the same beacon as the Hyvä storefront: `POST /openfilter/insights/collect` with `{"s": store code, "c": category ID, "f": {code: [value, …]}, "b": bucket}`, keys from `openfilter_aggregations { code }` and values from `options { value }`. See [Insights › Headless storefronts](insights.md#headless-storefronts).
+
 ## Good to know
 
 - Prices and ranges are in the units of Magento's `price` filter (the price index), not converted to the display currency.

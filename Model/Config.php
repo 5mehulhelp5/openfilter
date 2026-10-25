@@ -38,6 +38,8 @@ class Config
     public const XML_PATH_SITEMAP_ENABLED = 'openfilter/sitemap/enabled';
     public const XML_PATH_SITEMAP_MIN_PRODUCTS = 'openfilter/sitemap/min_products';
     public const XML_PATH_SITEMAP_MAX_URLS = 'openfilter/sitemap/max_urls';
+    public const XML_PATH_INSIGHTS_ENABLED = 'openfilter/insights/enabled';
+    public const XML_PATH_INSIGHTS_RETENTION_DAYS = 'openfilter/insights/retention_days';
 
     public const LAYOUT_SIDEBAR = 'sidebar';
     public const LAYOUT_HORIZONTAL = 'horizontal';
@@ -291,5 +293,31 @@ class Config
     public function getSitemapMaxUrls(?int $storeId = null): int
     {
         return max(0, $this->reader->getInt(self::XML_PATH_SITEMAP_MAX_URLS, ScopeInterface::SCOPE_STORE, $storeId));
+    }
+
+    /**
+     * Merchant insights (1.2): the storefront reports which filters shoppers use, counted per day without anything
+     * about the shopper.
+     *
+     * @param int|null $storeId
+     * @return bool
+     */
+    public function isInsightsEnabled(?int $storeId = null): bool
+    {
+        return $this->reader->getBool(self::XML_PATH_INSIGHTS_ENABLED, ScopeInterface::SCOPE_STORE, $storeId);
+    }
+
+    /**
+     * Days the daily insight counts are kept (1.2, global); at least one.
+     *
+     * @return int
+     */
+    public function getInsightsRetentionDays(): int
+    {
+        return max(1, $this->reader->getInt(
+            self::XML_PATH_INSIGHTS_RETENTION_DAYS,
+            ScopeConfigInterface::SCOPE_TYPE_DEFAULT,
+            null
+        ));
     }
 }

@@ -21,6 +21,7 @@ class Uninstall implements UninstallInterface
 {
     /** Child tables first so foreign keys never block a drop. */
     public const TABLES = [
+        'openfilter_insight_daily',
         'openfilter_landing_page_store',
         'openfilter_landing_page',
         'openfilter_option_image',

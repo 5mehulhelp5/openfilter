@@ -34,4 +34,12 @@
             </argument>
         </arguments>
     </type>
+    <!-- The insight beacon (1.2) is not a visit: Magento's visitor log skips the openfilter route (its POSTs). -->
+    <type name="Magento\Customer\Model\Visitor">
+        <arguments>
+            <argument name="ignores" xsi:type="array">
+                <item name="openfilter" xsi:type="boolean">true</item>
+            </argument>
+        </arguments>
+    </type>
 </config>

@@ -61,6 +61,7 @@ class ConfigTest extends TestCase
             'quick bar' => ['getQuickBarSize', 'getInt', 'openfilter/display/quick_bar_size', 8],
             'load more' => ['getPagination', 'getString', 'openfilter/display/pagination', 'load_more'],
             'infinite' => ['getPagination', 'getString', 'openfilter/display/pagination', 'infinite'],
+            'insights' => ['isInsightsEnabled', 'getBool', 'openfilter/insights/enabled', true],
         ];
     }
 
@@ -114,5 +115,17 @@ class ConfigTest extends TestCase
         $reader->method('getString')->willReturn("  {category}\n");
 
         self::assertSame('{category}', (new Config($reader))->getH1Template());
+    }
+
+    public function testInsightRetentionIsGlobalAndAtLeastOneDay(): void
+    {
+        $reader = $this->createMock(TypedReader::class);
+        $reader->expects(self::exactly(2))->method('getInt')
+            ->with('openfilter/insights/retention_days', 'default', null)
+            ->willReturnOnConsecutiveCalls(90, 0);
+        $config = new Config($reader);
+
+        self::assertSame(90, $config->getInsightsRetentionDays());
+        self::assertSame(1, $config->getInsightsRetentionDays());
     }
 }
