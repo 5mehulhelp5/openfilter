@@ -23,6 +23,10 @@
                 <quick_bar_size>0</quick_bar_size>
                 <pagination>pages</pagination>
             </display>
+            <migration>
+                <redirects>0</redirects>
+                <filter_keys>shopby</filter_keys>
+            </migration>
             <all_products>
                 <enabled>0</enabled>
                 <url_key>all-products</url_key>

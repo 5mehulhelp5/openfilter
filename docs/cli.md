@@ -29,6 +29,17 @@ bin/magento openfilter:slugs:generate --overwrite   # every name again from the 
 
 Without `--overwrite`, existing URL names never change: published filter URLs keep working. Use it after importing options outside the admin (new options saved in the admin get a name on save). `--overwrite` regenerates every name from the current labels; old URLs then answer through the option-id fallback only if they used ids.
 
+## openfilter:migrate
+
+Moving from another layered navigation module ([guide](migration.md)): lists the other filter modules still enabled and the command to switch them off, the number of filters OpenFilter took over, and whether old filter URLs redirect.
+
+| Option | |
+|---|---|
+| `--store=<code>` | the store view to report on and to change (default: the default store view; without it, `--redirects` and `--filter-keys` change the default scope) |
+| `--redirects=on\|off` | turn the redirects of old filter URLs on or off |
+| `--filter-keys=shopby,…` | path parts of the old URLs before the filters |
+| `--urls=<file>` | a file of old URLs, one per line: shows where each one would redirect (changes nothing) |
+
 ## openfilter:config:export / import
 
 See [Import and export](import-export.md).

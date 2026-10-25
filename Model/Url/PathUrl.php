@@ -27,7 +27,7 @@ class PathUrl
     public const ALIAS = 'openfilter_path';
 
     /** Magento's category URL suffix (CategoryUrlPathGenerator::XML_PATH_CATEGORY_URL_SUFFIX). */
-    private const SUFFIX_PATH = 'catalog/seo/category_url_suffix';
+    public const SUFFIX_PATH = 'catalog/seo/category_url_suffix';
 
     /**
      * @param Config $config

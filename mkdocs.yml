@@ -19,6 +19,7 @@ nav:
   - Import and export: import-export.md
   - Troubleshooting: troubleshooting.md
   - Other search modules: coexistence.md
+  - Moving from another filter module: migration.md
   - Upgrade and uninstall: upgrade-uninstall.md
   - Developers:
       - Hyvä integration: hyva-integration.md
