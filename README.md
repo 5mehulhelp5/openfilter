@@ -37,11 +37,11 @@ In production mode also run `bin/magento setup:di:compile` and `bin/magento setu
 
 | | |
 |---|---|
-| Filters | multi-select per attribute (OR), single-select option, swatches (colour, image, text), lists with "Show more" and a search box, price and decimal sliders with from–to fields (display currency and tax aware), rating "4 stars and up", in stock (MSI-aware), on sale (per customer group and website), new, category drill-down; category and search result pages |
-| Storefront (Hyvä 1.4 and 1.5) | AJAX with Back/Forward and scroll restore, chips and Clear all, mobile drawer with "Show 123 products" counted before you apply, keyboard and screen reader support (axe-clean), right-to-left, no layout shift, no Tailwind rebuild |
-| SEO | readable store-scoped URL names (Grün → `gruen`), one canonical URL per page (301), robots and canonical tags, `rel="nofollow"` beyond 2 active values, at most 5 values per URL (302) |
-| Admin | Filters grid with inline edit, a form per filter (how it looks, how it behaves, SEO, labels per store view), settings on the attribute page, "Why is this filter not showing?" |
-| Operations | `openfilter:doctor`, `openfilter:slugs:generate`, `openfilter:config:export` / `import` (JSON, dry run, all or nothing), `var/log/openfilter.log`, debug mode |
+| Filters | multi-select per attribute (OR, or "match all"), single-select option, swatches (colour, image, text), option images, lists with "Show more" and a search box, dropdowns, price and decimal sliders with from–to fields (display currency and tax aware) or ranges, rating "4 stars and up", in stock (MSI-aware), on sale (per customer group and website), new, category drill-down or tree; filters that show only after a pick in another; category, search result and All Products pages |
+| Storefront (Hyvä 1.4 and 1.5) | AJAX with Back/Forward and scroll restore, chips and Clear all, mobile drawer with "Show 123 products" counted before you apply, sidebar or horizontal bar, apply button on desktop, quick filter bar, "Load more" or loading as shoppers scroll, keyboard and screen reader support (axe-clean), right-to-left, no layout shift, no Tailwind rebuild |
+| SEO | readable store-scoped URL names (Grün → `gruen`), query or path URLs (`/women/tops-women/color-black.html`), one canonical URL per page (301), robots and canonical tags, `rel="nofollow"` beyond 2 active values, at most 5 values per URL (302), title/description/H1 templates, landing pages with their own head and text, an XML sitemap of indexable filter pages, 301s from other modules' old filter URLs |
+| Admin | Filters grid with inline edit, a form per filter (how it looks, how it behaves, where it shows, SEO, labels per store view), Sort filters, landing pages, insights into how shoppers filter (opt-in, anonymous), a setup checklist, settings on the attribute page, "Why is this filter not showing?" |
+| Operations | `openfilter:doctor`, `openfilter:migrate` (moving from another filter module), `openfilter:slugs:generate`, `openfilter:config:export` / `import` (JSON, dry run, all or nothing), GraphQL and REST, `var/log/openfilter.log`, debug mode |
 
 Tested together with [OpenLabel](https://github.com/iranimij/openlabel) (free product labels): labels survive every filter update.
 
@@ -60,7 +60,7 @@ From each vendor's public product page and documentation on 2026-10-13; features
 | Limit on combined filter values | yes | not documented | yes | not documented | no |
 | Rating, stock, sale, new filters | yes | yes | yes | Pro edition | no |
 
-Paid modules offer more in their higher tiers (brand and landing pages, infinite scroll, analytics). OpenFilter 1.1 adds "match all" filters, price ranges, a category tree, per-category visibility, horizontal and apply-button layouts, title/description/H1 templates, an XML sitemap of indexable filter pages, GraphQL for headless storefronts and a REST API; the [roadmap](https://github.com/iranimij/openfilter/milestones) brings path URLs, landing pages and a Luma package in 1.2. How it compares on speed with Magento's own layered navigation: [benchmark](docs/benchmark.md).
+Paid modules sell landing pages, infinite scroll, SEO URLs and analytics in their higher tiers; OpenFilter 1.2 has them free: path URLs, landing pages, "Load more" and infinite scroll, a quick filter bar, option images, dependent filters, an All Products page and anonymous insights, plus [redirects of the old filter URLs](docs/migration.md) of Amasty, Mirasvit and Mageplaza when you switch. A Luma package and an ElasticSuite adapter follow in 1.3 ([roadmap](https://github.com/iranimij/openfilter/milestones)). How it compares on speed with Magento's own layered navigation: [benchmark](docs/benchmark.md).
 
 ## SEO notes
 
