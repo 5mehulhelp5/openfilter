@@ -2,7 +2,7 @@
 
 All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/): `Api/` interfaces, the filter URL format, the storefront markup contract (`docs/storefront.md`) and the CLI JSON format change only in a major version.
 
-## [Unreleased]
+## [1.2.0-rc1] - 2026-10-25
 
 ### Added
 - Admin polish (Review #1): **Set up OpenFilter** checklist above the Filters grid (five steps, states from what was saved, *Hide this list*); the *Why is this filter not showing?* panel opens with one status line (the first problem and its fix) and folds the checks below it; a live preview with a real category, option labels and store name under the SEO title, description and H1 templates; new installs start with category, price, swatch filters, then the other filters (existing shops keep their order).
