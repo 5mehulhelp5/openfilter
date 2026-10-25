@@ -52,6 +52,7 @@ class OldUrlParserTest extends TestCase
      * @param string $path
      * @param array<string, string[]>|null $expected
      * @param string[] $filterKeys
+     * @dataProvider urls
      */
     #[DataProvider('urls')]
     public function testDocumentedFormats(string $path, ?array $expected, array $filterKeys = []): void
