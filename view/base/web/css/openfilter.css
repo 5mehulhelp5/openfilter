@@ -79,7 +79,7 @@
 .of-slider__number{box-sizing:border-box;inline-size:100%;block-size:2.5rem;margin:0;padding-inline:.75rem;border:1px solid var(--of-border);border-radius:var(--of-radius);color:inherit;font-size:1rem}
 .of-slider__number:focus-visible,.of-slider__apply:focus-visible{outline:2px solid var(--of-accent);outline-offset:2px}
 .of-slider__dash{display:flex;align-items:center;align-self:flex-end;block-size:2.5rem;margin:0;line-height:1;color:var(--of-muted)}
-.of-slider__output{font-size:.875rem;color:var(--of-muted)}
+.of-slider__output{min-block-size:1.5em;font-size:.875rem;line-height:1.5;color:var(--of-muted)}
 .of-slider__apply{justify-self:start;min-block-size:var(--of-row);padding-inline:1rem;border:1px solid var(--of-accent);border-radius:var(--of-radius);background:var(--of-surface);color:var(--of-accent);cursor:pointer}
 .of-drawer{position:static;box-sizing:border-box;inline-size:auto;max-inline-size:none;block-size:auto;max-block-size:none;margin:0;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;color:inherit}
 .of-drawer__head,.of-drawer__foot,.of-state__bar{display:none}
