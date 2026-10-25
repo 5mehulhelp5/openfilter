@@ -9,12 +9,14 @@ declare(strict_types=1);
 namespace Iranimij\OpenFilter\Controller\Adminhtml\Filter;
 
 use Iranimij\OpenFilter\Api\FilterConfigRepositoryInterface;
+use Iranimij\OpenFilter\Model\Admin\SetupChecklist;
 use Iranimij\OpenFilter\Model\Cache\AfterRollback;
 use Magento\Backend\App\Action;
 use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\Controller\Result\Redirect;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\FlagManager;
 
 /**
  * Saves "Sort filters": the posted order becomes the positions 10, 20, 30… (only changed filters are written),
@@ -32,12 +34,14 @@ class SortSave extends Action implements HttpPostActionInterface
      * @param FilterConfigRepositoryInterface $repository
      * @param ResourceConnection $resource
      * @param AfterRollback $afterRollback
+     * @param FlagManager $flags "Set up OpenFilter" (1.2) counts a saved order as done
      */
     public function __construct(
         Action\Context $context,
         private readonly FilterConfigRepositoryInterface $repository,
         private readonly ResourceConnection $resource,
-        private readonly AfterRollback $afterRollback
+        private readonly AfterRollback $afterRollback,
+        private readonly FlagManager $flags
     ) {
         parent::__construct($context);
     }
@@ -76,6 +80,7 @@ class SortSave extends Action implements HttpPostActionInterface
             $this->afterRollback->forget();
             throw $e;
         }
+        $this->flags->saveFlag(SetupChecklist::FLAG_SORTED, '1');
         $this->messageManager->addSuccessMessage((string) __('The new order of the filters is saved.'));
 
         return $redirect;

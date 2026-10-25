@@ -52,6 +52,7 @@ class UninstallTest extends TestCase
         self::assertSame([
             ['pfx_core_config_data', ['path LIKE ?' => 'openfilter/%']],
             ['pfx_patch_list', ['patch_name LIKE ?' => 'Iranimij\\\\OpenFilter\\\\%']],
+            ['pfx_flag', ['flag_code LIKE ?' => 'openfilter\\_%']],
         ], $deleted);
     }
 }

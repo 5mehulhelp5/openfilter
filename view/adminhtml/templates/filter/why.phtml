@@ -14,10 +14,29 @@ $options = [
     'linkLabel' => (string) __('Fix it here'),
     'previewLabel' => (string) __('Open this category on the storefront'),
     'errorText' => (string) __('The check could not run. Reload the page and try again.'),
+    'statusOk' => (string) __('Shows on the storefront: every condition is met.'),
+    'statusFail' => (string) __('Not showing: %1'),
+    'statusSearch' => (string) __('Not showing on search result pages: %1'),
+    'allLabel' => (string) __('All %1 checks'),
 ];
+$checks = array_map(static fn ($check): array => $check->toArray(), $block->getInitialChecks());
+$problem = current(array_filter($checks, static fn (array $row): bool => !$row['ok'])) ?: null;
 ?>
 <div class="of-why" data-of-why="<?= $escaper->escapeHtmlAttr(json_encode($options)) ?>">
-    <p class="of-why-intro"><?= $escaper->escapeHtml(__('Each line is a condition the filter needs. The first problem is usually the answer.')) ?></p>
+    <p class="of-why-status <?= $problem === null ? '_ok' : '_fail' ?>" data-of-why-status role="status">
+        <?php if ($problem === null): ?>
+            <?= $escaper->escapeHtml($options['statusOk']) ?>
+        <?php else: ?>
+            <strong><?= $escaper->escapeHtml(str_replace(
+                '%1',
+                $problem['title'],
+                $problem['code'] === 'search_pages' ? $options['statusSearch'] : $options['statusFail']
+            )) ?></strong>
+            <?php if ($problem['fix'] !== null): ?>
+                <span class="of-why-fix"><?= $escaper->escapeHtml($problem['fix']) ?></span>
+            <?php endif; ?>
+        <?php endif; ?>
+    </p>
     <div class="of-why-controls admin__field-control">
         <label class="of-why-label">
             <span><?= $escaper->escapeHtml(__('Store view')) ?></span>
@@ -40,9 +59,11 @@ $options = [
             <span><?= $escaper->escapeHtml(__('Check again')) ?></span>
         </button>
     </div>
-    <ul class="of-why-checks" data-of-why-checks aria-live="polite">
-        <?php foreach ($block->getInitialChecks() as $check): ?>
-            <?php $row = $check->toArray(); ?>
+    <details class="of-why-all">
+    <summary data-of-why-all><?= $escaper->escapeHtml(__('All %1 checks', count($checks))) ?></summary>
+    <p class="of-why-intro"><?= $escaper->escapeHtml(__('Each line is a condition the filter needs. The first problem is usually the answer.')) ?></p>
+    <ul class="of-why-checks" data-of-why-checks>
+        <?php foreach ($checks as $row): ?>
             <li class="of-why-check <?= $row['ok'] ? '_ok' : '_fail' ?>" data-of-check="<?= $escaper->escapeHtmlAttr($row['code']) ?>">
                 <span class="of-why-state"><?= $escaper->escapeHtml($row['ok'] ? __('OK') : __('Problem')) ?></span>
                 <strong><?= $escaper->escapeHtml($row['title']) ?></strong>
@@ -58,5 +79,6 @@ $options = [
             </li>
         <?php endforeach; ?>
     </ul>
+    </details>
     <p class="of-why-preview" data-of-why-preview></p>
 </div>

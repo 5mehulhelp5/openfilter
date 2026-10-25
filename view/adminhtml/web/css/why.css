@@ -2,6 +2,11 @@
  * Copyright © Iman Aboheydary. All rights reserved.
  * See LICENSE for license details (MIT).
  */
+/* One line first (1.2): the first problem and its fix, or that the filter shows; the checks fold below it. */
+.of-why-status { display: flex; flex-wrap: wrap; gap: .25rem 1rem; margin: 0; padding: .75rem 1rem; border-inline-start: 4px solid; }
+.of-why-status._ok { border-color: #185b00; background: #f1f8ee; }
+.of-why-status._fail { border-color: #e22626; background: #fdf0f0; }
+.of-why-all > summary { cursor: pointer; padding-block: .5rem; color: #006bb4; }
 .of-why-controls { display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-end; margin-block: 1rem; }
 .of-why-label { display: flex; flex-direction: column; gap: .25rem; max-inline-size: 28rem; }
 .of-why-checks { list-style: none; margin: 0; padding: 0; }
@@ -15,3 +20,12 @@
 .openfilter-row-text { display: inline-block; padding-block: .5rem; color: #303030; }
 /* Dynamic rows fade disabled cells to half opacity (2.7:1 contrast); read-only text is not a control, keep it legible. */
 .admin__control-table td._disabled:has(.openfilter-row-text) { opacity: 1; }
+/* "Set up OpenFilter" above the Filters grid (1.2). */
+.of-checklist { margin-block-end: 2rem; padding: 1rem 1.5rem; border: 1px solid #d6d6d6; background: #fafafa; }
+.of-checklist__title { display: flex; gap: 1rem; align-items: baseline; margin: 0 0 .75rem; font-size: 1.8rem; }
+.of-checklist__count { font-size: 1.3rem; font-weight: 400; color: #303030; }
+.of-checklist__steps { margin: 0 0 1rem; padding-inline-start: 1.5rem; }
+.of-checklist__step { display: flex; flex-wrap: wrap; gap: .25rem 1rem; padding-block: .35rem; }
+.of-checklist__state { min-inline-size: 4.5rem; font-weight: 600; }
+.of-checklist__step._done .of-checklist__state { color: #185b00; }
+.of-checklist__step._todo .of-checklist__state { color: #b25e00; }

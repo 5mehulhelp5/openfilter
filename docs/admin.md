@@ -6,6 +6,12 @@ Everything lives under **Catalog › OpenFilter**: **Filters** (one list of attr
 
 After installing, the admin shows a notice: how many filterable attributes OpenFilter found and which defaults it set (colours as swatches, sizes as text swatches, price as a slider, other lists as checkbox lists, Yes/No attributes as switches). Rating, In stock, On sale and New start switched off. **Review defaults** opens the Filters grid and dismisses the notice.
 
+## Set up OpenFilter (1.2)
+
+Above the Filters grid a checklist shows five steps and whether each is done, with a link to where it is done: review which filters show (the first-run notice's *Review defaults*), put them in order (*Sort filters*), choose where filters show (*Settings › Display*), set the search engine rules (*Settings › SEO*), keep the OpenFilter and full page caches on. The states come from what was saved, so nothing is ticked by hand; **Hide this list** hides it for every admin user.
+
+A new install of 1.2 also starts with a useful order: category, price, the filters with swatches, then the other filters, each group in Magento's attribute order (written as sort positions, as *Sort filters* saves them). Shops that installed an earlier version keep their order.
+
 ## Filters grid
 
 One row per filter: label, code, type (attribute or built-in), how it looks, several values, options before "Show more", search box threshold, "Google may index", order (its place on the storefront: 1, 2, 3 …), position (the number behind the order), products must match (any / all), where it shows, storefront (shown or hidden).
@@ -69,7 +75,7 @@ Saving cleans the *OpenFilter* cache and marks the full page cache invalid, as f
 
 ## Why is this filter not showing?
 
-Each line is a condition the filter needs, with what was found and how to fix it. The first problem is usually the answer.
+The panel opens with one line (1.2): that the filter shows, or the first problem and its fix ("Not showing on search result pages" when only search pages miss it). **All N checks** unfolds every condition the filter needs, with what was found and how to fix it. The first problem is usually the answer.
 
 | Check | Fails when |
 |---|---|

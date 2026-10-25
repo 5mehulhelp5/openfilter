@@ -42,6 +42,38 @@ define(['jquery'], function ($) {
     }
 
     /**
+     * The one-line status above the checks: the first problem and its fix ("on search result pages" when only those
+     * miss the filter), or that the filter shows.
+     */
+    function status(root, checks, options) {
+        var line = root.find('[data-of-why-status]')[0],
+            problem = checks.filter(function (check) {
+                return !check.ok;
+            })[0],
+            title,
+            fix;
+
+        line.className = 'of-why-status ' + (problem ? '_fail' : '_ok');
+        line.replaceChildren();
+        if (!problem) {
+            line.textContent = options.statusOk;
+        } else {
+            title = document.createElement('strong');
+            // Search result pages only: the filter still shows on category pages.
+            title.textContent = (problem.code === 'search_pages' ? options.statusSearch : options.statusFail)
+                .replace('%1', problem.title);
+            line.appendChild(title);
+            if (problem.fix) {
+                fix = document.createElement('span');
+                fix.className = 'of-why-fix';
+                fix.textContent = problem.fix;
+                line.appendChild(fix);
+            }
+        }
+        root.find('[data-of-why-all]').text(options.allLabel.replace('%1', String(checks.length)));
+    }
+
+    /**
      * The panel is inserted by the form's Knockout template after page load, so the handler listens on the
      * document and reads its options from the panel.
      */
@@ -84,6 +116,7 @@ define(['jquery'], function ($) {
                 list.replaceChildren.apply(list, (response.checks || []).map(function (check) {
                     return item(check, options);
                 }));
+                status(root, response.checks || [], options);
                 preview.replaceChildren();
                 if (response.preview) {
                     link = document.createElement('a');
@@ -99,6 +132,7 @@ define(['jquery'], function ($) {
                 li.className = 'of-why-check _fail';
                 li.textContent = options.errorText;
                 list.replaceChildren(li);
+                root.find('[data-of-why-status]').attr('class', 'of-why-status _fail').text(options.errorText);
             });
         });
     };
