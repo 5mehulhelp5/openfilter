@@ -16,6 +16,9 @@ All notable changes to this project are documented here. The format follows [Kee
 - **Dependent filters**: a filter can show only after a pick in another filter (any value, or chosen values), set under *Where it shows* in the filter form (the grid shows it too). Until then it is not on the page, in GraphQL or in the sitemap; its picks leave with the parent's pick (old links 301 to the page without them). Filters that would wait for each other are refused.
 - Settings for 1.2: a filter can wait for a pick in another filter (`depends_on`, `depends_values`) and can put its options in the quick filter bar (`quick_bar`); stored for attributes and built-ins, part of the REST shape and of the config export (schema 3; schema 1 and 2 files still import).
 
+### Fixed
+- The desktop apply bar (*When results update on desktop* = button, 1.1) had no background, border or button colour: it is moved to the end of the page, outside the elements that define OpenFilter's colours, so products showed through it and *Show N products* was white on nothing. Found by the new visual checks.
+
 ## [1.1.0] - 2026-10-16
 
 No changes since 1.1.0-rc1.
